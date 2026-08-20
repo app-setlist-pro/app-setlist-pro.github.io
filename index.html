@@ -331,7 +331,7 @@
       return line.replace(wordExtractor, (match, word, spaces) => {
           if (!isChord(word)) return match; 
           let newChord = transposeSingleChord(word, steps);
-          let diff = newChord.length - chord.length;
+          let diff = newChord.length - word.length;
           let newSpaces = spaces;
           
           if (diff > 0 && newSpaces.length >= diff) {
