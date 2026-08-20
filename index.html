@@ -292,42 +292,42 @@
           return;
       }
       
-      // Muda o botão para mostrar que está carregando
       const originalText = btn.innerHTML;
       btn.innerHTML = "⏳ Aguarde...";
       btn.disabled = true;
       btn.style.opacity = "0.7";
 
       try {
-          // Usamos o AllOrigins para contornar o bloqueio de CORS do navegador
+          // Utilizando o proxy allorigins para contornar o CORS
           const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(urlInput)}`;
           const response = await fetch(proxyUrl);
           const data = await response.json();
           
           if(!data.contents) throw new Error("Sem conteúdo na resposta");
           
-          // Transforma o texto recebido em HTML lido pelo navegador
           const parser = new DOMParser();
           const doc = parser.parseFromString(data.contents, "text/html");
           
-          // Tenta extrair as informações principais
-          const titleEl = doc.querySelector('h1.t1') || doc.querySelector('.t1');
-          const artistEl = doc.querySelector('h2.t3') || doc.querySelector('.t3');
+          // Seletores mais robustos para evitar falhas caso o site mude levemente
+          const titleEl = doc.querySelector('h1.t1') || doc.querySelector('.t1') || doc.querySelector('h1');
+          const artistEl = doc.querySelector('h2.t3') || doc.querySelector('.t3') || doc.querySelector('h2');
           const preEl = doc.querySelector('pre');
-          const tomEl = doc.getElementById('cifra_tom');
+          // O CifraClub às vezes coloca o tom dentro de um link <a> dentro do id #cifra_tom
+          const tomEl = doc.querySelector('#cifra_tom a') || doc.getElementById('cifra_tom');
           
           if (preEl) {
-              // Limpa divs escondidas que o Cifra Club às vezes coloca no meio (propagandas)
-              const hiddens = preEl.querySelectorAll('.sr-only, script, style, [style*="display:none"]');
+              // Limpeza rigorosa de sujeiras escondidas
+              const hiddens = preEl.querySelectorAll('.sr-only, script, style, [style*="display:none"], [style*="display: none"]');
               hiddens.forEach(el => el.remove());
               
-              // O innerText já pega o texto formatado mantendo as quebras de linha e removendo as tags <b>
-              let cifraContent = preEl.innerText || preEl.textContent;
+              // Correção vital: usar textContent ao invés de innerText em documentos não renderizados
+              let cifraContent = preEl.textContent;
               
-              // Preenche no textarea
+              // Normaliza as quebras de linha para evitar espaçamentos duplos excessivos
+              cifraContent = cifraContent.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+              
               document.getElementById('i-content').value = cifraContent;
               
-              // Preenche título e artista caso estejam vazios ou sejam a "Nova Música" padrão
               const currentTitle = document.getElementById('i-title').value;
               if (titleEl && (currentTitle === '' || currentTitle === 'Nova Música')) {
                   document.getElementById('i-title').value = titleEl.textContent.trim();
@@ -337,32 +337,27 @@
                   document.getElementById('i-artist').value = artistEl.textContent.trim();
               }
               
-              // Preenche o tom
               if (tomEl && !document.getElementById('i-tone').value.trim()) {
-                  // O texto do Cifra Club costuma ser "Tom: A"
                   let textoTom = tomEl.textContent.trim();
+                  // Remove a palavra "Tom: " que geralmente vem junto
                   let tomLimpo = textoTom.replace(/Tom:\s*/i, '');
                   document.getElementById('i-tone').value = tomLimpo;
               }
               
-              // Zera a transposição pois a música que puxou já está no tom original do site
               songs[currentIndex].transposeSteps = 0;
               document.getElementById('i-transpose-val').innerText = '0';
               document.getElementById('i-transpose-val').style.color = '#0284c7';
               
-              // Salva as alterações
               saveCurrentSong();
-              
               alert("✅ Cifra importada com sucesso!");
           } else {
-              alert("Não foi possível encontrar a área da cifra neste link.");
+              alert("Não foi possível encontrar a área da cifra neste link. O formato da página pode ser diferente.");
           }
           
       } catch (error) {
           console.error("Erro na importação:", error);
           alert("Ocorreu um erro ao tentar puxar a cifra. Verifique se o link está correto ou tente novamente.");
       } finally {
-          // Retorna o botão ao normal
           btn.innerHTML = originalText;
           btn.disabled = false;
           btn.style.opacity = "1";
