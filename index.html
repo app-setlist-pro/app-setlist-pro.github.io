@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head> : HTML
+<head>
 
 <!-- Link para o Manifest -->
 <link rel="manifest" href="manifest.json">
@@ -193,7 +193,7 @@
         <input type="file" id="file-upload" accept=".json" style="display:none" onchange="loadProject(event)">
         <button class="btn-primary" style="background:#0f766e;" onclick="saveProject()">💾 Salvar Projeto</button>
         <button class="btn-primary" onclick="addNewSong()">➕ Nova Música</button>
-        <button class="btn-success" onclick="window.print()">🖨️ Imprimir PDF</button>
+        <button class="btn-success" onclick="triggerPrint()">🖨️ Imprimir PDF</button>
     </div>
   </div>
   
@@ -669,7 +669,6 @@
       let steps = songs[currentIndex].transposeSteps || 0;
       steps += delta;
       
-      // Limitações práticas de transposição (-11 a +11)
       if (steps > 11) steps = -11;
       if (steps < -11) steps = 11;
       
@@ -706,7 +705,7 @@
   }
 
   // ==========================================
-  // FUNÇÕES DE SALVAR E ABRIR PROJETOS JSON
+  // FUNÇÕES DE SALVAR, IMPRIMIR E ABRIR JSON
   // ==========================================
   
   function saveProject() {
@@ -714,16 +713,39 @@
           alert("O repertório está vazio!");
           return;
       }
-      // Cria um arquivo JSON com todas as músicas do array atual
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(songs, null, 2));
-      const downloadAnchorNode = document.createElement('a');
-      downloadAnchorNode.setAttribute("href", dataStr);
+      try {
+          const jsonStr = JSON.stringify(songs, null, 2);
+          const blob = new Blob([jsonStr], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          
+          const downloadAnchorNode = document.createElement('a');
+          downloadAnchorNode.setAttribute("href", url);
+          downloadAnchorNode.setAttribute("download", "meu_repertorio.json");
+          downloadAnchorNode.setAttribute("target", "_blank");
+          document.body.appendChild(downloadAnchorNode);
+          downloadAnchorNode.click();
+          
+          setTimeout(() => {
+              downloadAnchorNode.remove();
+              URL.revokeObjectURL(url);
+          }, 1000);
+      } catch (err) {
+          alert("Erro ao salvar projeto: " + err.message);
+      }
+  }
+
+  function triggerPrint() {
+      // Verifica se está rodando no modo aplicativo instalado da Tela de Início do iPad/iOS
+      const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
       
-      // Nome sugerido para o arquivo
-      downloadAnchorNode.setAttribute("download", "meu_repertorio.json");
-      document.body.appendChild(downloadAnchorNode); // Necessário para Firefox
-      downloadAnchorNode.click();
-      downloadAnchorNode.remove();
+      if (isStandalone) {
+          if (confirm("No modo 'App Instalado', a Apple desativa a caixa de impressão.\n\nDeseja abrir a página no navegador Safari para imprimir?")) {
+              window.open(window.location.href, '_blank');
+          }
+          return;
+      }
+      
+      window.print();
   }
 
   function loadProject(event) {
@@ -735,24 +757,22 @@
           try {
               const loadedSongs = JSON.parse(e.target.result);
               
-              // Valida se o arquivo tem o formato esperado
               if (Array.isArray(loadedSongs) && loadedSongs.length > 0) {
                   songs = loadedSongs;
-                  currentIndex = 0; // Reseta para a primeira música
-                  selectSong(0);    // Atualiza a tela
+                  currentIndex = 0; 
+                  selectSong(0);    
               } else {
                   alert("O arquivo selecionado não contém um repertório válido.");
               }
           } catch (err) {
               alert("Erro ao ler o arquivo do projeto. Verifique se é um arquivo .json gerado por este sistema.");
           }
-          // Limpa o input para permitir carregar o mesmo arquivo novamente se o usuário quiser
           event.target.value = '';
       };
       reader.readAsText(file);
   }
 
-  // Interceptador de Colagem para o campo INTRO (Remove lixos e formata em 1 linha)
+  // Interceptador de Colagem para o campo INTRO
   document.addEventListener('DOMContentLoaded', () => {
       const inputIntro = document.getElementById('i-intro');
       
@@ -763,7 +783,6 @@
           const html = e.clipboardData.getData('text/html') || '';
           let cleanText = plain;
           
-          // Usa a inteligência do HTML para limpar notas ocultas do CifraClub
           if (html && (html.toLowerCase().includes('cifraclub') || plain.includes('">'))) {
               let tempDiv = document.createElement('div');
               tempDiv.style.position = 'absolute';
@@ -778,14 +797,9 @@
               document.body.removeChild(tempDiv);
           }
           
-          // Remove lixos textuais
           cleanText = cleanText.replace(/">/g, ''); 
           cleanText = cleanText.replace(/\u00A0/g, ' '); 
-          
-          // Remove marcações de partes como [Intro], [Primeira Parte], etc.
           cleanText = cleanText.replace(/\[.*?\]/g, ' ');
-          
-          // Transforma qualquer quebra de linha em espaço e remove espaços duplos
           cleanText = cleanText.replace(/\r?\n/g, ' ').replace(/\s{2,}/g, ' ').trim();
           
           const start = this.selectionStart;
@@ -821,14 +835,12 @@
               let cleanText = "";
               const pre = tempDiv.querySelector('pre');
               
-              // Garante que tags <br> virem quebras reais para não colar palavras grudadas
               const brs = tempDiv.querySelectorAll('br');
               brs.forEach(br => {
                   br.parentNode.insertBefore(document.createTextNode('\n'), br);
                   br.remove();
               });
               
-              // Garante que os containers em bloco respeitem a quebra estrutural
               const blocks = tempDiv.querySelectorAll('div, p, li, h1, h2, h3, h4, h5, h6, pre, blockquote');
               blocks.forEach(block => {
                   block.appendChild(document.createTextNode('\n'));
@@ -848,7 +860,6 @@
               let lines = cleanText.split(/\r?\n/);
               let cleanedLines = [];
               
-              // COMPRESSOR DE ESPAÇOS: Remove linhas em branco excessivas
               for (let i = 0; i < lines.length; i++) {
                   let line = lines[i];
                   
@@ -856,12 +867,10 @@
                       if (cleanedLines.length === 0) continue;
                       
                       let lastAddedLine = cleanedLines[cleanedLines.length - 1];
-                      // Se a linha anterior foi acorde, deleta o enter a seguir para a cifra grudar na letra
                       if (isChordLineStr(lastAddedLine)) {
                           continue; 
                       }
                       
-                      // Evita mais de 1 enter seguido
                       if (cleanedLines[cleanedLines.length - 1].trim() === '') {
                           continue;
                       }
