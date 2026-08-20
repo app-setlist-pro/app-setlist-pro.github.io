@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head> : HTML
+
+<!-- Link para o Manifest -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0284c7">
+<link rel="apple-touch-icon" href="icone-192.png">
+
+<!-- Registro do Service Worker -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('Service Worker registrado!', reg))
+        .catch(err => console.error('Erro no Service Worker', err));
+    });
+  }
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerador de Repertório - Cifras A4 (Transposição)</title>
+<style>
+  :root { --primary: #0284c7; --bg: #f8fafc; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; background: #e2e8f0; color: #1e293b; padding: 20px; }
+  
+  .no-print {
+    max-width: 1200px; margin: 0 auto 20px auto; background: white; padding: 20px; border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+  .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
+  .header-actions h1 { font-size: 1.5rem; color: #0f172a; }
+  button { padding: 10px 16px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+  .btn-primary { background: #0284c7; color: white; }
+  .btn-primary:hover { background: #0369a1; }
+  .btn-success { background: #16a34a; color: white; }
+  .btn-success:hover { background: #15803d; }
+  .btn-danger { background: #dc2626; color: white; padding: 6px 10px; font-size: 12px; }
+  .btn-danger:hover { background: #b91c1c; }
+  
+  /* Song List Panel */
+  .songs-container { display: flex; gap: 20px; }
+  .song-list-sidebar { width: 300px; background: #f1f5f9; border-radius: 8px; padding: 10px; border: 1px solid #cbd5e1; height: 650px; overflow-y: auto; }
+  
+  /* Drag and Drop Styles */
+  .song-item { 
+      display: flex; justify-content: space-between; align-items: center; background: white; 
+      padding: 10px; margin-bottom: 8px; border-radius: 4px; border: 1px solid #cbd5e1; 
+      cursor: grab; transition: background 0.2s;
+  }
+  .song-item:active { cursor: grabbing; }
+  .song-item:hover { border-color: #0284c7; }
+  .song-item.active { border-left: 4px solid #0284c7; background: #e0f2fe; }
+  .song-item.dragging { opacity: 0.4; }
+  .song-item.drag-over { box-shadow: inset 0 3px 0 #0284c7; background: #f8fafc; }
+  
+  .song-item-title { font-weight: bold; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; display: flex; align-items: center; gap: 8px; }
+  .drag-handle { color: #94a3b8; font-size: 16px; cursor: grab; }
+  
+  /* Editor Panel */
+  .editor-panel { flex: 1; display: flex; flex-direction: column; gap: 15px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-group label { font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase; }
+  .form-group input, .form-group select { padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; }
+  
+  /* Transpose Controls */
+  .transpose-controls { display: flex; align-items: center; gap: 6px; }
+  .btn-transpose { background: #e2e8f0; color: #1e293b; padding: 6px 12px; font-size: 14px; border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer; }
+  .btn-transpose:hover { background: #cbd5e1; }
+  .transpose-val { font-weight: bold; font-size: 14px; width: 30px; text-align: center; color: #0284c7; }
+  
+  .text-areas { display: block; }
+  .text-areas textarea { width: 100%; height: 400px; font-family: monospace; font-size: 14px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 4px; white-space: pre; resize: vertical; }
+  
+  /* A4 Preview Canvas */
+  .preview-section { margin-top: 30px; }
+  .preview-title { text-align: center; color: #475569; margin-bottom: 15px; font-size: 1.2rem; font-weight: bold; text-transform: uppercase; }
+  .a4-wrapper { display: flex; flex-direction: column; align-items: center; gap: 30px; padding-bottom: 40px; position: relative; }
+  
+  .a4-page {
+    background: white; width: 210mm; height: 297mm; padding: 15mm 14mm 15mm 14mm;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15); color: black; position: relative;
+    box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column; transition: background-color 0.3s, color 0.3s;
+  }
+  
+  @media screen {
+      .hidden-preview {
+          position: absolute !important;
+          left: -9999px !important;
+          visibility: hidden !important;
+          opacity: 0 !important;
+          pointer-events: none !important;
+      }
+  }
+  
+  .a4-content-area {
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  
+  /* Document Styling */
+  .doc-header { border-bottom: 2px solid #0284c7; padding-bottom: 6px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+  .doc-title { font-size: 18pt; font-weight: 800; text-transform: uppercase; line-height: 1.1; color: #000; }
+  .doc-meta { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+  .meta-left { font-size: 11pt; font-weight: 600; color: #475569; }
+  .meta-left .artist { color: #475569; }
+  .meta-left .separator { color: #cbd5e1; margin: 0 4px; font-weight: normal; }
+  
+  .tone-badge { background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+  
+  .badges { display: flex; gap: 6px; }
+  .badge { color: white !important; text-decoration: none; font-size: 9pt; font-weight: bold; padding: 3px 8px; border-radius: 4px; display: none; }
+  .badge.video { background: #dc2626; }
+  .badge.cifra { background: #d97706; }
+  
+  .doc-body { flex: 1; min-height: 0; width: 100%; display: block; padding-bottom: 5px; } 
+  .cifra-content { font-family: 'Consolas', 'Courier New', monospace; font-size: 10pt; line-height: 1.25; white-space: pre; color: #000000; overflow: visible; }
+  
+  .chord { color: #d97706 !important; font-weight: bold !important; }
+  
+  hr.divider { border: 0; border-top: 2px solid #000000; margin: 10px 0 20px 0; }
+  
+  .split-block { display: flex; width: 100%; gap: 15px; margin-bottom: 2px; }
+  .split-col { flex: 1; min-width: 0; }
+  .split-col-divider { width: 1px; border-left: 2px solid #000000; margin: 0 15px; flex-shrink: 0; }
+
+  /* MODO ESCURO NA TELA (APENAS PREVIEW) */
+  .dark-mode .a4-page { background-color: #121212; color: #e2e8f0; }
+  .dark-mode .doc-title { color: #f8fafc; }
+  .dark-mode .meta-left { color: #94a3b8; }
+  .dark-mode .meta-left .artist { color: #cbd5e1; }
+  .dark-mode .meta-left .separator { color: #475569; }
+  .dark-mode .tone-badge { background: #1e293b; color: #38bdf8; }
+  .dark-mode .cifra-content { color: #e2e8f0; }
+  .dark-mode .chord { color: #fbbf24 !important; }
+  .dark-mode hr.divider { border-top-color: #334155; }
+  .dark-mode .split-col-divider { border-left-color: #334155; }
+
+  /* Print Styles */
+  @media print {
+    @page { size: A4 portrait; margin: 0; }
+    body, html { background: white !important; padding: 0 !important; margin: 0 !important; height: auto !important; }
+    .no-print, .preview-title { display: none !important; }
+    .preview-section { margin: 0 !important; }
+    .a4-wrapper { gap: 0 !important; display: block !important; padding-bottom: 0 !important; }
+    
+    .a4-page { 
+        width: 210mm !important; 
+        height: 297mm !important; 
+        padding: 15mm 14mm 15mm 14mm !important; 
+        box-shadow: none !important; 
+        margin: 0 !important;
+        page-break-after: always;
+        page-break-inside: avoid;
+        box-sizing: border-box !important;
+        background: white !important;
+    }
+    .a4-page:last-child { page-break-after: avoid; }
+    
+    /* REGRAS DE MODO ESCURO PARA IMPRESSÃO / PDF */
+    .dark-mode .a4-page { background-color: #121212 !important; color: #e2e8f0 !important; }
+    .cifra-content { color: #000000 !important; }
+    .dark-mode .cifra-content { color: #e2e8f0 !important; }
+    .chord { color: #d97706 !important; font-weight: bold !important; }
+    .dark-mode .chord { color: #fbbf24 !important; }
+    .doc-title { color: #000000 !important; }
+    .dark-mode .doc-title { color: #f8fafc !important; }
+    .meta-left, .meta-left .artist { color: #475569 !important; }
+    .dark-mode .meta-left, .dark-mode .meta-left .artist { color: #94a3b8 !important; }
+    .dark-mode .meta-left .separator { color: #475569 !important; }
+    .tone-badge { background: #e0f2fe !important; color: #0369a1 !important; }
+    .dark-mode .tone-badge { background: #1e293b !important; color: #38bdf8 !important; }
+    .dark-mode hr.divider { border-top-color: #334155 !important; }
+    .dark-mode .split-col-divider { border-left-color: #334155 !important; }
+    
+    .badge, .tone-badge, .split-col-divider, .a4-page { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    .capo-text { color: #dc2626 !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="no-print">
+  <div class="header-actions">
+    <h1>Gerador de Repertório - Transposição</h1>
+    <div style="display: flex; gap: 8px;">
+        <button class="btn-primary" style="background:#1e293b;" id="btn-dark-mode" onclick="toggleDarkMode()">🌙 Modo Escuro</button>
+        <label for="file-upload" class="btn-primary" style="background:#475569; cursor:pointer; padding: 10px 16px; font-weight: bold; border-radius: 6px; font-size: 13.3333px; display: flex; align-items: center; margin: 0;">📂 Abrir Projeto</label>
+        <input type="file" id="file-upload" accept=".json" style="display:none" onchange="loadProject(event)">
+        <button class="btn-primary" style="background:#0f766e;" onclick="saveProject()">💾 Salvar Projeto</button>
+        <button class="btn-primary" onclick="addNewSong()">➕ Nova Música</button>
+        <button class="btn-success" onclick="window.print()">🖨️ Imprimir PDF</button>
+    </div>
+  </div>
+  
+  <div class="songs-container">
+    <div class="song-list-sidebar" id="song-list">
+      <!-- Song items will be injected here -->
+    </div>
+
+    <div class="editor-panel" id="editor-panel">
+      <div class="grid">
+        <div class="form-group" style="grid-column: span 2;">
+          <label>Música</label>
+          <input type="text" id="i-title" oninput="saveCurrentSong()">
+        </div>
+        <div class="form-group">
+          <label>Artista / Ocasião</label>
+          <input type="text" id="i-artist" oninput="saveCurrentSong()">
+        </div>
+        <div class="form-group">
+          <label>Tom (Formato dos Acordes)</label>
+          <div class="transpose-controls">
+              <input type="text" id="i-tone" oninput="saveCurrentSong()" style="width: 70px;">
+              <button class="btn-transpose" onclick="changeTranspose(-1)" title="Abaixar 1/2 tom">-</button>
+              <span class="transpose-val" id="i-transpose-val">0</span>
+              <button class="btn-transpose" onclick="changeTranspose(1)" title="Subir 1/2 tom">+</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Capotraste</label>
+          <input type="text" id="i-capo" placeholder="Apenas número (Ex: 3)" oninput="saveCurrentSong()">
+        </div>
+        <div class="form-group">
+          <label>Intro</label>
+          <input type="text" id="i-intro" placeholder="Ex: G D Em C" oninput="saveCurrentSong()">
+        </div>
+        <div class="form-group">
+          <label>Link Vídeo</label>
+          <input type="text" id="i-video" placeholder="https://..." oninput="saveCurrentSong()">
+        </div>
+        <div class="form-group">
+          <label>Link Cifra</label>
+          <input type="text" id="i-cifra" placeholder="https://..." oninput="saveCurrentSong()">
+        </div>
+      </div>
+      
+      <div class="text-areas">
+        <div class="form-group">
+          <label>Letra e Cifras</label>
+          <div style="font-size: 13px; color: #475569; margin-bottom: 6px; background: #f1f5f9; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;">
+            💡 <b>Transposição e Capo:</b> O "Tom" exibido na folha A4 será ajustado automaticamente baseando-se na casa do Capotraste informada!<br>
+            💡 <b>Separar partes:</b> Digite <code>___</code> (3 underlines) numa linha vazia.<br>
+            💡 <b>Criar colunas:</b> Digite <code>|</code> numa linha vazia para dividir Lado Esquerdo e Direito!<br>
+            💡 <b>Deixar em Negrito:</b> Digite <code>[b]</code> antes do texto e <code>[/b]</code> depois para destacar trechos. As cifras sempre ficarão em negrito.
+          </div>
+          <textarea id="i-content" placeholder="Cole a cifra aqui..." oninput="saveCurrentSong()"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="preview-section">
+    <div class="preview-title no-print">👇 Pré Visualização da Música 👇</div>
+    <div class="a4-wrapper" id="a4-wrapper"></div>
+</div>
+
+<script>
+  let songs = [];
+  let currentIndex = 0;
+  let renderTimeout = null;
+  let draggedItemIndex = null;
+  
+  // Variável de controle do Modo Escuro
+  let isDarkMode = false;
+
+  function toggleDarkMode() {
+      isDarkMode = !isDarkMode;
+      const btn = document.getElementById('btn-dark-mode');
+      const wrapper = document.getElementById('a4-wrapper');
+      
+      if (isDarkMode) {
+          btn.innerHTML = '☀️ Modo Claro';
+          wrapper.classList.add('dark-mode');
+      } else {
+          btn.innerHTML = '🌙 Modo Escuro';
+          wrapper.classList.remove('dark-mode');
+      }
+  }
+
+  // ==== REGEX UNIFICADO DE ACORDES ====
+  function isChord(w) {
+      const chordRegex = /^[A-G](#|b)?(m|M|maj|min|dim|aug|sus|add)?\d*(M|m)?\d*(\([^)]+\))?(º|°|\+|-)?(\/[A-G](#|b)?)?$/i;
+      return chordRegex.test(w);
+  }
+
+  function isChordLineStr(line) {
+      const trimmed = line.trim();
+      if (!trimmed) return false;
+      if (trimmed.startsWith('[')) return false; 
+      
+      const words = trimmed.split(/\s+/);
+      const chords = words.filter(isChord);
+      return chords.length > 0 && chords.length >= words.length * 0.4;
+  }
+
+  // Lógica de Transposição de Notas
+  const sharpNotes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+  const flatNotes = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+
+  function transposeSingleChord(chord, steps) {
+      if (steps === 0) return chord;
+      
+      return chord.replace(/[A-G][#b]?/g, match => {
+          let index = sharpNotes.indexOf(match);
+          let useFlat = false;
+          
+          if (index === -1) {
+              index = flatNotes.indexOf(match);
+              useFlat = true;
+          }
+          if (index === -1) return match; 
+          
+          let newIndex = (index + steps) % 12;
+          if (newIndex < 0) newIndex += 12;
+          
+          return useFlat ? flatNotes[newIndex] : sharpNotes[newIndex];
+      });
+  }
+
+  function transposeLineText(line, steps) {
+      if (steps === 0) return line;
+      
+      const wordExtractor = /(\S+)(\s*)/g;
+      
+      return line.replace(wordExtractor, (match, word, spaces) => {
+          if (!isChord(word)) return match; 
+          let newChord = transposeSingleChord(word, steps);
+          let diff = newChord.length - chord.length;
+          let newSpaces = spaces;
+          
+          if (diff > 0 && newSpaces.length >= diff) {
+              newSpaces = newSpaces.slice(diff);
+          } else if (diff < 0) {
+              newSpaces = newSpaces + ' '.repeat(-diff);
+          }
+          
+          return newChord + newSpaces;
+      });
+  }
+
+  function parseChords(text, steps = 0) {
+    if (!text) return '';
+    
+    let globalIsBold = false; 
+    
+    const lines = text.split('\n');
+    let blocks = [];
+    let currentBlock = [];
+    
+    for (let line of lines) {
+        if (line.trim().match(/^_{3,}$/) || line.trim().match(/^-{3,}$/)) {
+            if (currentBlock.length > 0) {
+                blocks.push(currentBlock);
+                currentBlock = [];
+            }
+            blocks.push(line.trim());
+        } else {
+            currentBlock.push(line);
+        }
+    }
+    if (currentBlock.length > 0) blocks.push(currentBlock);
+
+    function processLines(linesArray) {
+        while(linesArray.length > 0 && linesArray[0].trim() === '') linesArray.shift();
+        while(linesArray.length > 0 && linesArray[linesArray.length - 1].trim() === '') linesArray.pop();
+
+        let out = '';
+        
+        for (let line of linesArray) {
+            const trimmed = line.trim();
+            
+            if (trimmed.toLowerCase() === '[b]') { globalIsBold = true; continue; }
+            if (trimmed.toLowerCase() === '[/b]') { globalIsBold = false; continue; }
+            
+            if (!trimmed) { out += '\n'; continue; } 
+            
+            let isChordLine = isChordLineStr(line);
+            
+            let finalLine = line;
+            if (isChordLine) {
+                finalLine = transposeLineText(line, steps);
+            }
+            
+            let safeLine = finalLine.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            safeLine = safeLine.replace(/\*(.*?)\*/g, '<b>$1</b>');
+            
+            if (isChordLine) {
+                out += `<span class="chord">${safeLine}</span>\n`;
+            } else {
+                if (globalIsBold) {
+                    out += `<b>${safeLine}</b>\n`;
+                } else {
+                    out += `${safeLine}\n`;
+                }
+            }
+        }
+        return out;
+    }
+
+    let html = '';
+    for (let block of blocks) {
+        if (typeof block === 'string') {
+            html += '<hr class="divider">';
+            continue;
+        }
+        
+        let splitIndex = -1;
+        for (let i = 0; i < block.length; i++) {
+            if (block[i].trim() === '|' || block[i].trim() === '||') {
+                splitIndex = i;
+                break;
+            }
+        }
+        
+        if (splitIndex !== -1) {
+            const leftLines = block.slice(0, splitIndex);
+            const rightLines = block.slice(splitIndex + 1);
+            
+            html += '<div class="split-block">';
+            html += '  <div class="split-col">' + processLines(leftLines) + '</div>';
+            html += '  <div class="split-col-divider"></div>';
+            html += '  <div class="split-col">' + processLines(rightLines) + '</div>';
+            html += '</div>';
+        } else {
+            html += processLines(block);
+        }
+    }
+    
+    return html;
+  }
+
+  function renderSongList() {
+    const list = document.getElementById('song-list');
+    list.innerHTML = '';
+    
+    songs.forEach((song, index) => {
+      const div = document.createElement('div');
+      div.className = `song-item ${index === currentIndex ? 'active' : ''}`;
+      div.draggable = true;
+      
+      div.addEventListener('dragstart', (e) => {
+          draggedItemIndex = index;
+          e.dataTransfer.effectAllowed = 'move';
+          setTimeout(() => div.classList.add('dragging'), 0);
+      });
+      
+      div.addEventListener('dragend', () => {
+          div.classList.remove('dragging');
+          draggedItemIndex = null;
+      });
+      
+      div.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          div.classList.add('drag-over');
+      });
+      
+      div.addEventListener('dragleave', () => {
+          div.classList.remove('drag-over');
+      });
+      
+      div.addEventListener('drop', (e) => {
+          e.preventDefault();
+          div.classList.remove('drag-over');
+          
+          if (draggedItemIndex === null || draggedItemIndex === index) return;
+          
+          const itemToMove = songs.splice(draggedItemIndex, 1)[0];
+          songs.splice(index, 0, itemToMove);
+          
+          if (currentIndex === draggedItemIndex) {
+              currentIndex = index;
+          } else {
+              if (draggedItemIndex < currentIndex && index >= currentIndex) {
+                  currentIndex--;
+              } else if (draggedItemIndex > currentIndex && index <= currentIndex) {
+                  currentIndex++;
+              }
+          }
+          
+          renderSongList();
+          renderPreview();
+      });
+      
+      div.onclick = () => selectSong(index);
+      
+      let toneSuffix = song.transposeSteps ? ` <span style="font-weight:normal; color:#64748b; font-size:12px;">(${song.transposeSteps > 0 ? '+' : ''}${song.transposeSteps})</span>` : '';
+      
+      const titleSpan = document.createElement('span');
+      titleSpan.className = 'song-item-title';
+      titleSpan.innerHTML = `<span class="drag-handle">☰</span> ${index + 1}. ${song.title || 'Nova Música'} ${toneSuffix}`;
+      
+      const delBtn = document.createElement('button');
+      delBtn.className = 'btn-danger';
+      delBtn.innerText = 'X';
+      delBtn.title = "Remover música";
+      delBtn.onclick = (e) => { e.stopPropagation(); deleteSong(index); };
+      
+      div.appendChild(titleSpan);
+      div.appendChild(delBtn);
+      list.appendChild(div);
+    });
+  }
+
+  function autoFitText() {
+      const pages = document.querySelectorAll('.a4-page');
+      
+      pages.forEach(page => {
+          const contentArea = page.querySelector('.a4-content-area');
+          const contentBlock = page.querySelector('.cifra-content');
+          
+          if (!contentBlock || !contentArea) return;
+          
+          let min = 6.0;  
+          let max = 22.0;
+          let best = min;
+          
+          for (let i = 0; i < 15; i++) {
+              let mid = (min + max) / 2;
+              contentBlock.style.fontSize = mid + 'pt';
+              
+              if (contentArea.scrollHeight > contentArea.clientHeight || contentArea.scrollWidth > contentArea.clientWidth) {
+                  max = mid;
+              } else {
+                  best = mid;
+                  min = mid;
+              }
+          }
+          contentBlock.style.fontSize = Math.max(6.0, best - 0.2) + 'pt';
+      });
+  }
+
+  function renderPreview() {
+    const wrapper = document.getElementById('a4-wrapper');
+    wrapper.innerHTML = '';
+    
+    songs.forEach((song, idx) => {
+      const page = document.createElement('div');
+      
+      // ESCONDE AS PÁGINAS QUE NÃO SÃO A ATUAL DA TELA (MAS MANTÉM PARA O PRINT)
+      page.className = 'a4-page' + (idx === currentIndex ? '' : ' hidden-preview');
+      
+      const vBadge = song.video ? `<a href="${song.video}" target="_blank" class="badge video" style="display:inline-block;">▶ VÍDEO</a>` : '';
+      const cBadge = song.cifra ? `<a href="${song.cifra}" target="_blank" class="badge cifra" style="display:inline-block;">♩ CIFRA</a>` : '';
+      
+      let capoText = '';
+      let capoValue = 0;
+      
+      if (song.capo && song.capo.trim() !== '') {
+          let numeroCasa = song.capo.replace(/\D/g, ''); 
+          if (numeroCasa !== '') {
+              capoValue = parseInt(numeroCasa, 10);
+              capoText = `<span class="capo-text" style="color: #dc2626; font-weight: 800; text-transform: uppercase; font-size: 16pt; white-space: nowrap;">CAPO NA ${numeroCasa}ª CASA</span>`;
+          }
+      }
+      
+      let displayTone = song.tone || '';
+      
+      let totalToneSteps = (song.transposeSteps || 0) + capoValue;
+      
+      if (displayTone && totalToneSteps !== 0) {
+          displayTone = transposeSingleChord(displayTone, totalToneSteps);
+      }
+      
+      // CONSTRUÇÃO DA INTRODUÇÃO
+      let introHtml = '';
+      if (song.intro && song.intro.trim() !== '') {
+          let cleanIntro = song.intro.replace(/^\[?Intro\]?:?\s*/i, '').trim();
+          let transposedIntro = transposeLineText(cleanIntro, song.transposeSteps || 0);
+          
+          let words = transposedIntro.split(/(\s+)/);
+          let colorizedIntro = words.map(w => {
+              if (w.trim() === '') return w;
+              if(isChord(w)) return `<span class="chord">${w}</span>`;
+              return w;
+          }).join('');
+          
+          introHtml = `[Intro] ${colorizedIntro}\n\n`;
+      }
+      
+      page.innerHTML = `
+        <div class="a4-content-area">
+            <div class="doc-header">
+              <div class="doc-title">${song.title || 'Música Sem Título'}</div>
+              
+              <div class="doc-meta">
+                <div class="meta-left" style="flex: 1; text-align: left;">
+                  <span class="artist">${song.artist || ''}</span> <span class="separator">|</span> <span class="tone-badge">Tom: <span>${displayTone}</span></span>
+                </div>
+                
+                <div style="flex: 1; display: flex; justify-content: center; align-items: center; text-align: center; min-width: max-content;">
+                    ${capoText}
+                </div>
+                
+                <div style="flex: 1; display: flex; justify-content: flex-end; align-items: center;">
+                    <div class="badges">${vBadge}${cBadge}</div>
+                </div>
+              </div>
+              
+            </div>
+            
+            <div class="doc-body">
+                <div class="cifra-content">${introHtml}${parseChords(song.content, song.transposeSteps || 0)}</div>
+            </div>
+        </div>
+      `;
+      wrapper.appendChild(page);
+    });
+    
+    requestAnimationFrame(() => {
+        autoFitText();
+    });
+  }
+
+  function selectSong(index) {
+    currentIndex = index;
+    const song = songs[index];
+    
+    document.getElementById('i-title').value = song.title || '';
+    document.getElementById('i-artist').value = song.artist || '';
+    document.getElementById('i-tone').value = song.tone || '';
+    document.getElementById('i-capo').value = song.capo || '';
+    document.getElementById('i-intro').value = song.intro || '';
+    document.getElementById('i-video').value = song.video || '';
+    document.getElementById('i-cifra').value = song.cifra || '';
+    document.getElementById('i-content').value = song.content || '';
+    
+    let steps = song.transposeSteps || 0;
+    document.getElementById('i-transpose-val').innerText = (steps > 0 ? '+' : '') + steps;
+    document.getElementById('i-transpose-val').style.color = steps !== 0 ? '#dc2626' : '#0284c7';
+    
+    renderSongList();
+    renderPreview();
+  }
+
+  function saveCurrentSong() {
+    if (songs.length === 0) return;
+    
+    let steps = songs[currentIndex].transposeSteps || 0;
+    
+    songs[currentIndex] = {
+      title: document.getElementById('i-title').value,
+      artist: document.getElementById('i-artist').value,
+      tone: document.getElementById('i-tone').value,
+      capo: document.getElementById('i-capo').value,
+      intro: document.getElementById('i-intro').value,
+      video: document.getElementById('i-video').value,
+      cifra: document.getElementById('i-cifra').value,
+      content: document.getElementById('i-content').value,
+      transposeSteps: steps
+    };
+    
+    renderSongList();
+    
+    clearTimeout(renderTimeout);
+    renderTimeout = setTimeout(() => {
+        renderPreview();
+    }, 300);
+  }
+  
+  function changeTranspose(delta) {
+      if (songs.length === 0) return;
+      
+      let steps = songs[currentIndex].transposeSteps || 0;
+      steps += delta;
+      
+      // Limitações práticas de transposição (-11 a +11)
+      if (steps > 11) steps = -11;
+      if (steps < -11) steps = 11;
+      
+      songs[currentIndex].transposeSteps = steps;
+      
+      let valEl = document.getElementById('i-transpose-val');
+      valEl.innerText = (steps > 0 ? '+' : '') + steps;
+      valEl.style.color = steps !== 0 ? '#dc2626' : '#0284c7';
+      
+      renderSongList();
+      renderPreview();
+  }
+
+  function addNewSong() {
+    songs.push({
+      title: 'Nova Música', artist: '', tone: '', capo: '', intro: '', video: '', cifra: '', content: '', transposeSteps: 0
+    });
+    selectSong(songs.length - 1);
+  }
+
+  function deleteSong(index) {
+    if (songs.length === 1) {
+        alert("O repertório precisa ter pelo menos uma música.");
+        return;
+    }
+    songs.splice(index, 1);
+    if (currentIndex >= index && currentIndex > 0) {
+        currentIndex--;
+    }
+    if (currentIndex >= songs.length) {
+        currentIndex = songs.length - 1;
+    }
+    selectSong(currentIndex);
+  }
+
+  // ==========================================
+  // FUNÇÕES DE SALVAR E ABRIR PROJETOS JSON
+  // ==========================================
+  
+  function saveProject() {
+      if (songs.length === 0) {
+          alert("O repertório está vazio!");
+          return;
+      }
+      // Cria um arquivo JSON com todas as músicas do array atual
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(songs, null, 2));
+      const downloadAnchorNode = document.createElement('a');
+      downloadAnchorNode.setAttribute("href", dataStr);
+      
+      // Nome sugerido para o arquivo
+      downloadAnchorNode.setAttribute("download", "meu_repertorio.json");
+      document.body.appendChild(downloadAnchorNode); // Necessário para Firefox
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
+  }
+
+  function loadProject(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+          try {
+              const loadedSongs = JSON.parse(e.target.result);
+              
+              // Valida se o arquivo tem o formato esperado
+              if (Array.isArray(loadedSongs) && loadedSongs.length > 0) {
+                  songs = loadedSongs;
+                  currentIndex = 0; // Reseta para a primeira música
+                  selectSong(0);    // Atualiza a tela
+              } else {
+                  alert("O arquivo selecionado não contém um repertório válido.");
+              }
+          } catch (err) {
+              alert("Erro ao ler o arquivo do projeto. Verifique se é um arquivo .json gerado por este sistema.");
+          }
+          // Limpa o input para permitir carregar o mesmo arquivo novamente se o usuário quiser
+          event.target.value = '';
+      };
+      reader.readAsText(file);
+  }
+
+  // Interceptador de Colagem para o campo INTRO (Remove lixos e formata em 1 linha)
+  document.addEventListener('DOMContentLoaded', () => {
+      const inputIntro = document.getElementById('i-intro');
+      
+      inputIntro.addEventListener('paste', function(e) {
+          e.preventDefault(); 
+          
+          const plain = e.clipboardData.getData('text/plain') || '';
+          const html = e.clipboardData.getData('text/html') || '';
+          let cleanText = plain;
+          
+          // Usa a inteligência do HTML para limpar notas ocultas do CifraClub
+          if (html && (html.toLowerCase().includes('cifraclub') || plain.includes('">'))) {
+              let tempDiv = document.createElement('div');
+              tempDiv.style.position = 'absolute';
+              tempDiv.style.left = '-9999px';
+              tempDiv.innerHTML = html;
+              document.body.appendChild(tempDiv);
+              
+              const hiddens = tempDiv.querySelectorAll('.sr-only, [style*="display:none"], [style*="display: none"], [style*="opacity: 0"], input, button, select, script, noscript, style');
+              hiddens.forEach(el => el.remove());
+              
+              cleanText = tempDiv.textContent || plain;
+              document.body.removeChild(tempDiv);
+          }
+          
+          // Remove lixos textuais
+          cleanText = cleanText.replace(/">/g, ''); 
+          cleanText = cleanText.replace(/\u00A0/g, ' '); 
+          
+          // Remove marcações de partes como [Intro], [Primeira Parte], etc.
+          cleanText = cleanText.replace(/\[.*?\]/g, ' ');
+          
+          // Transforma qualquer quebra de linha em espaço e remove espaços duplos
+          cleanText = cleanText.replace(/\r?\n/g, ' ').replace(/\s{2,}/g, ' ').trim();
+          
+          const start = this.selectionStart;
+          const end = this.selectionEnd;
+          this.value = this.value.substring(0, start) + cleanText + this.value.substring(end);
+          this.selectionStart = this.selectionEnd = start + cleanText.length;
+          
+          saveCurrentSong();
+      });
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+      const textarea = document.getElementById('i-content');
+      
+      textarea.addEventListener('paste', function(e) {
+          const plain = e.clipboardData.getData('text/plain') || '';
+          const html = e.clipboardData.getData('text/html') || '';
+          
+          if (html && (html.toLowerCase().includes('cifraclub') || plain.includes('">'))) {
+              e.preventDefault(); 
+              
+              let tempDiv = document.createElement('div');
+              tempDiv.style.position = 'absolute';
+              tempDiv.style.left = '-9999px';
+              tempDiv.style.whiteSpace = 'pre'; 
+              tempDiv.innerHTML = html;
+              
+              document.body.appendChild(tempDiv);
+              
+              const hiddens = tempDiv.querySelectorAll('.sr-only, [style*="display:none"], [style*="display: none"], [style*="opacity: 0"], input, button, select, script, noscript, style');
+              hiddens.forEach(el => el.remove());
+              
+              let cleanText = "";
+              const pre = tempDiv.querySelector('pre');
+              
+              // Garante que tags <br> virem quebras reais para não colar palavras grudadas
+              const brs = tempDiv.querySelectorAll('br');
+              brs.forEach(br => {
+                  br.parentNode.insertBefore(document.createTextNode('\n'), br);
+                  br.remove();
+              });
+              
+              // Garante que os containers em bloco respeitem a quebra estrutural
+              const blocks = tempDiv.querySelectorAll('div, p, li, h1, h2, h3, h4, h5, h6, pre, blockquote');
+              blocks.forEach(block => {
+                  block.appendChild(document.createTextNode('\n'));
+              });
+              
+              if (pre) {
+                  cleanText = pre.textContent;
+              } else {
+                  cleanText = tempDiv.textContent || plain;
+              }
+              
+              document.body.removeChild(tempDiv);
+              
+              cleanText = cleanText.replace(/">/g, ''); 
+              cleanText = cleanText.replace(/\u00A0/g, ' '); 
+              
+              let lines = cleanText.split(/\r?\n/);
+              let cleanedLines = [];
+              
+              // COMPRESSOR DE ESPAÇOS: Remove linhas em branco excessivas
+              for (let i = 0; i < lines.length; i++) {
+                  let line = lines[i];
+                  
+                  if (line.trim() === '') {
+                      if (cleanedLines.length === 0) continue;
+                      
+                      let lastAddedLine = cleanedLines[cleanedLines.length - 1];
+                      // Se a linha anterior foi acorde, deleta o enter a seguir para a cifra grudar na letra
+                      if (isChordLineStr(lastAddedLine)) {
+                          continue; 
+                      }
+                      
+                      // Evita mais de 1 enter seguido
+                      if (cleanedLines[cleanedLines.length - 1].trim() === '') {
+                          continue;
+                      }
+                  }
+                  cleanedLines.push(line.replace(/\r/g, ''));
+              }
+              
+              while(cleanedLines.length > 0 && cleanedLines[cleanedLines.length - 1].trim() === '') {
+                  cleanedLines.pop();
+              }
+              
+              let finalText = cleanedLines.join('\n');
+              
+              const start = this.selectionStart;
+              const end = this.selectionEnd;
+              this.value = this.value.substring(0, start) + finalText + this.value.substring(end);
+              this.selectionStart = this.selectionEnd = start + finalText.length;
+              
+              saveCurrentSong();
+          }
+      });
+  });
+
+  window.onload = () => {
+    songs.push({
+      title: 'Eis-me Aqui, Senhor',
+      artist: 'Músicas Católicas',
+      tone: 'D',
+      capo: '',
+      intro: '',
+      video: 'https://youtube.com',
+      cifra: 'https://cifraclub.com',
+      transposeSteps: 0,
+      content: `[b]
+[Refrão]
+
+D
+Eis-me aqui, Senhor!
+G               D  A
+Eis-me aqui, Senhor!
+    D              G
+Pra fazer tua vontade
+               A
+Pra viver no Teu amor
+|
+                 G
+Pra fazer tua vontade
+                 A
+Pra viver no Teu amor
+                 D
+Eis-me aqui, Senhor!
+[/b]
+_______________________________________
+
+[Primeira Parte]
+
+G               A/G
+O Senhor é o Pastor que me conduz
+            D               Bm
+Por caminhos nunca vistos me enviou
+            Em              A
+Sou chamado a ser fermento sal e luz
+            Bm  G   A
+E por isso respondi: aqui estou!`
+    });
+    
+    songs.push({
+      title: 'Ato Penitencial - Kyrie Eleison',
+      artist: 'JMJ RIO 2013',
+      tone: 'Bm',
+      capo: '3',
+      intro: '',
+      video: '',
+      cifra: '',
+      transposeSteps: 0,
+      content: `   Bm7        A         G7M
+Senhor, que viestes salvar
+        Bm7        A/C#  F#
+Os corações arrependi____dos
+    D      G   A/C#
+Senhor Pieda___de
+  F#7/A#  Bm
+Pieda_____de
+    E   A
+Pieda___de
+    D      G   A/C#
+Senhor Pieda___de
+  F#7/A#  Bm
+Pieda_____de
+    E   A
+Pieda___de
+_______________________________________
+
+    Bm7          A         G7M
+Ó, Cristo, que viestes chamar
+       Bm7        A/C#  F#
+Os pecadores humilha___dos
+    D      G   A/C#
+Cristo Pieda___de
+  F#7/A#  Bm
+Pieda_____de
+    E   A
+Pieda___de
+    D      G   A/C#
+Cristo Pieda___de
+  F#7/A#  Bm
+Pieda_____de
+    E   A
+Pieda___de`
+    });
+
+    selectSong(0); 
+  };
+</script>
+</body>
+</html>
