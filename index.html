@@ -69,16 +69,18 @@
   .song-item { 
       display: flex; justify-content: space-between; align-items: center; background: white; 
       padding: 10px; margin-bottom: 8px; border-radius: 4px; border: 1px solid #cbd5e1; 
-      cursor: grab; 
-      /* NOVO: Proíbe o iOS de selecionar o texto de azul */
+      cursor: grab; transition: background 0.2s;
+      /* NOVO: Proíbe o iOS de selecionar o texto de azul ao segurar */
       -webkit-user-select: none; user-select: none; 
   }
+  .song-item:active { cursor: grabbing; }
+  .song-item:hover { border-color: #0284c7; }
   .song-item.active { border-left: 4px solid #0284c7; background: #e0f2fe; }
   .song-item-title { font-weight: bold; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 8px; }
   
   .drag-handle { 
       color: #94a3b8; font-size: 18px; cursor: grab; 
-      /* NOVO: Aumenta a área de toque invisível e trava a tela de rolar */
+      /* NOVO: Aumenta a área de toque invisível e facilita segurar no celular */
       padding: 10px 15px 10px 0; margin: -10px 0; touch-action: none; 
   }
   
@@ -431,7 +433,7 @@
     const list = document.getElementById('song-list');
     list.innerHTML = '';
     
-    // Função de reordenação inteligente (serve para Mouse e Touch)
+    // Função central que salva a nova ordem matematicamente
     function reordenarMusicas(deIndex, paraIndex) {
         if (deIndex === null || deIndex === paraIndex) return;
         const item = songs.splice(deIndex, 1)[0];
@@ -444,12 +446,17 @@
         renderSongList(); renderPreview();
     }
     
+    // Variáveis que vão controlar o "Fantasma" no celular
+    let ghostElement = null;
+    let originalElement = null;
+    let touchOffsetY = 0;
+    
     songs.forEach((song, index) => {
       const div = document.createElement('div');
       div.className = `song-item ${index === currentIndex ? 'active' : ''}`;
       div.draggable = true;
       
-      // === EVENTOS PARA COMPUTADOR (MOUSE) ===
+      // === EVENTOS PARA COMPUTADOR (MANTIDOS INTACTOS) ===
       div.addEventListener('dragstart', (e) => { draggedItemIndex = index; e.dataTransfer.effectAllowed = 'move'; setTimeout(() => div.classList.add('dragging'), 0); });
       div.addEventListener('dragend', () => { div.classList.remove('dragging'); draggedItemIndex = null; });
       div.addEventListener('dragover', (e) => { e.preventDefault(); div.classList.add('drag-over'); });
@@ -459,48 +466,85 @@
           reordenarMusicas(draggedItemIndex, index);
       });
       
-      // === EVENTOS PARA MOBILE/TABLET (TOUCH) ===
+      // === NOVO MOTOR FLUIDO PARA CELULAR E TABLET (TOUCH) ===
       div.addEventListener('touchstart', (e) => {
           if (e.target.classList.contains('drag-handle')) {
               draggedItemIndex = index;
-              setTimeout(() => div.classList.add('dragging'), 0);
+              originalElement = div;
+              
+              const touch = e.touches[0];
+              const rect = div.getBoundingClientRect();
+              touchOffsetY = touch.clientY - rect.top; // Lembra onde o dedo tocou na música
+              
+              // 1. Cria o "Fantasma" que vai descolar e flutuar pela tela
+              ghostElement = div.cloneNode(true);
+              ghostElement.style.position = 'fixed';
+              ghostElement.style.top = rect.top + 'px';
+              ghostElement.style.left = rect.left + 'px';
+              ghostElement.style.width = rect.width + 'px';
+              ghostElement.style.opacity = '0.95';
+              ghostElement.style.zIndex = '9999';
+              ghostElement.style.pointerEvents = 'none'; // Permite que o celular leia as músicas que estão DEBAIXO do fantasma
+              ghostElement.style.boxShadow = '0 15px 25px rgba(0,0,0,0.2)';
+              ghostElement.style.transform = 'scale(1.03)';
+              document.body.appendChild(ghostElement);
+              
+              // 2. Transforma a música original em um "buraco" temporário
+              div.style.opacity = '0.4';
+              div.style.transform = 'scale(0.98)';
           }
       }, {passive: true});
 
       div.addEventListener('touchmove', (e) => {
-          if (draggedItemIndex === null) return;
-          e.preventDefault(); // Impede a tela de rolar enquanto arrasta a música
+          if (!ghostElement) return;
+          e.preventDefault(); // Trava a tela de rolar enquanto você organiza as músicas
           
           const touch = e.touches[0];
-          const target = document.elementFromPoint(touch.clientX, touch.clientY);
+          // Movimenta o Fantasma junto com o seu dedo
+          ghostElement.style.top = (touch.clientY - touchOffsetY) + 'px';
           
-          if (target) {
-              const item = target.closest('.song-item');
-              document.querySelectorAll('.song-item').forEach(el => el.classList.remove('drag-over'));
-              if (item && item !== div) item.classList.add('drag-over');
+          // Inteligência: O celular lê qual música está passando por baixo do seu dedo
+          const elementUnderFinger = document.elementFromPoint(touch.clientX, touch.clientY);
+          if (elementUnderFinger) {
+              const itemHovered = elementUnderFinger.closest('.song-item');
+              
+              // Se passou por cima de outra música, elas trocam de lugar no HTML ao vivo!
+              if (itemHovered && itemHovered !== originalElement) {
+                  const allItems = Array.from(list.children);
+                  const originalIndexDOM = allItems.indexOf(originalElement);
+                  const hoveredIndexDOM = allItems.indexOf(itemHovered);
+                  
+                  if (originalIndexDOM < hoveredIndexDOM) {
+                      itemHovered.after(originalElement);
+                  } else {
+                      itemHovered.before(originalElement);
+                  }
+              }
           }
       }, {passive: false});
 
       div.addEventListener('touchend', (e) => {
-          if (draggedItemIndex === null) return;
-          div.classList.remove('dragging');
+          if (!ghostElement) return;
           
-          const touch = e.changedTouches[0];
-          const target = document.elementFromPoint(touch.clientX, touch.clientY);
+          // Apaga o Fantasma e restaura a música original da aparência de "buraco"
+          ghostElement.remove();
+          ghostElement = null;
+          originalElement.style.opacity = '1';
+          originalElement.style.transform = 'none';
           
-          if (target) {
-              const item = target.closest('.song-item');
-              if (item && item !== div) {
-                  const allItems = Array.from(list.children);
-                  const targetIndex = allItems.indexOf(item);
-                  if (targetIndex !== -1) reordenarMusicas(draggedItemIndex, targetIndex);
-              }
+          // Lê onde a música parou de verdade no HTML e salva no sistema
+          const allItems = Array.from(list.children);
+          const newIndexDOM = allItems.indexOf(originalElement);
+          
+          if (newIndexDOM !== draggedItemIndex && newIndexDOM !== -1) {
+              reordenarMusicas(draggedItemIndex, newIndexDOM);
           }
-          document.querySelectorAll('.song-item').forEach(el => el.classList.remove('drag-over'));
+          
           draggedItemIndex = null;
+          originalElement = null;
       });
       
-      // Abre a música apenas se não estiver clicando no ícone de apagar ou arrastar
+      // Clique normal para abrir a música
       div.onclick = (e) => { 
           if (!e.target.classList.contains('drag-handle') && !e.target.classList.contains('btn-danger')) {
               selectSong(index); 
