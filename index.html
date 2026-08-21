@@ -601,13 +601,34 @@
       btn.innerHTML = "⏳...";
       btn.disabled = true;
 
+      // Lista de 3 Proxies. Se o site bloquear um, o código pula para o próximo automaticamente.
+      const proxies = [
+          `https://corsproxy.io/?${encodeURIComponent(urlInput)}`,
+          `https://api.allorigins.win/raw?url=${encodeURIComponent(urlInput)}`,
+          `https://api.codetabs.com/v1/proxy?quest=${urlInput}`
+      ];
+
+      let htmlText = null;
+
       try {
-          // No App, voltamos a usar o Proxy porque não temos a liberação nativa do Electron
-          const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(urlInput)}`;
-          const response = await fetch(proxyUrl);
-          if (!response.ok) throw new Error("Proxy falhou.");
+          for (let proxy of proxies) {
+              try {
+                  const response = await fetch(proxy, { cache: 'no-store' });
+                  if (response.ok) {
+                      const text = await response.text();
+                      // Garante que o texto puxado realmente contém a cifra
+                      if (text.includes('<pre>')) {
+                          htmlText = text;
+                          break; // Sucesso! Sai do loop de tentativas.
+                      }
+                  }
+              } catch (e) {
+                  console.warn("Proxy falhou, tentando o backup...");
+              }
+          }
+
+          if (!htmlText) throw new Error("Todos os proxies falharam ou foram bloqueados.");
           
-          const htmlText = await response.text();
           const parser = new DOMParser();
           const doc = parser.parseFromString(htmlText, "text/html");
           
