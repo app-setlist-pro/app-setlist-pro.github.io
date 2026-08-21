@@ -58,9 +58,14 @@
     
     .songs-container { flex-direction: column; }
     .sidebar-wrapper { width: 100%; }
-    .song-list-sidebar { height: 250px; } /* Menor no celular para sobrar tela */
+    .song-list-sidebar { height: 250px; } 
     .grid { grid-template-columns: 1fr !important; }
     .form-group { grid-column: span 1 !important; }
+    
+    /* NOVO: Encolhe visualmente a folha em telas pequenas para caber no celular! */
+    .a4-wrapper {
+        zoom: 0.5; 
+    }
   }
   
   /* Drag and Drop Styles */
@@ -87,11 +92,18 @@
   .a4-wrapper { display: flex; flex-direction: column; align-items: center; gap: 30px; padding-bottom: 40px; position: relative; overflow-x: auto; }
   
   .a4-page {
-    background: white; width: 210mm; height: 297mm; padding: 15mm 14mm 15mm 14mm;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.15); color: black; position: relative;
-    box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column; transition: background-color 0.3s, color 0.3s;
-    /* Adaptação para caber na tela do celular */
-    max-width: 100%; height: auto; min-height: 297mm;
+    background: white; 
+    width: 210mm; 
+    height: 297mm; /* O segredo está aqui: altura sempre fixa! */
+    padding: 15mm 14mm 15mm 14mm;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15); 
+    color: black; 
+    position: relative;
+    box-sizing: border-box; 
+    overflow: hidden; 
+    display: flex; 
+    flex-direction: column; 
+    transition: background-color 0.3s, color 0.3s;
   }
   
   @media screen {
