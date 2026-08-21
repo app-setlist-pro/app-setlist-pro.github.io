@@ -64,7 +64,9 @@
     
     /* NOVO: Encolhe visualmente a folha em telas pequenas para caber no celular! */
     .a4-wrapper {
-        zoom: 0.5; 
+        transform: scale(0.42); 
+        transform-origin: top center;
+        margin-bottom: -170mm; /* Tira o espaço em branco que sobra no fundo */
     }
   }
   
@@ -93,17 +95,15 @@
   
   .a4-page {
     background: white; 
-    width: 210mm; 
-    height: 297mm; /* O segredo está aqui: altura sempre fixa! */
-    padding: 15mm 14mm 15mm 14mm;
+    width: 210mm !important; 
+    height: 297mm !important; 
+    min-height: 297mm !important; 
+    max-height: 297mm !important; 
+    padding: 10mm 14mm !important; /* Margem reduzida para caber mais cifra */
     box-shadow: 0 10px 20px rgba(0,0,0,0.15); 
-    color: black; 
-    position: relative;
-    box-sizing: border-box; 
-    overflow: hidden; 
-    display: flex; 
-    flex-direction: column; 
-    transition: background-color 0.3s, color 0.3s;
+    color: black; position: relative;
+    box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column; 
+    transition: background-color 0.3s, color 0.3s; margin: 0 auto;
   }
   
   @media screen {
@@ -113,14 +113,14 @@
   .a4-content-area { width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
   
   /* Document Styling */
-  .doc-header { border-bottom: 2px solid #0284c7; padding-bottom: 2px; margin-bottom: 4px; display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
-  .doc-title { font-size: 14pt; font-weight: 800; text-transform: uppercase; line-height: 1.1; color: #000; }
+  .doc-header { border-bottom: 2px solid #0284c7; padding-bottom: 4px; margin-bottom: 6px; display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
+  .doc-title { font-size: 14pt !important; font-weight: 800; text-transform: uppercase; line-height: 1.1; color: #000; }
   .doc-meta { display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: nowrap;}
-  .meta-left { font-size: 9pt; font-weight: 600; color: #475569; }
+  .meta-left { font-size: 10pt !important; font-weight: 600; color: #475569; }
   .meta-left .separator { color: #cbd5e1; margin: 0 4px; font-weight: normal; }
   .tone-badge { background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
   .badges { display: flex; gap: 6px; }
-  .badge { color: white !important; text-decoration: none; font-size: 9pt; font-weight: bold; padding: 3px 8px; border-radius: 4px; display: none; }
+  .badge { color: white !important; text-decoration: none; font-size: 9pt; font-weight: bold; padding: 3px 8px; border-radius: 4px; display: inline-block; }
   
   .doc-body { flex: 1; min-height: 0; width: 100%; display: block; padding-bottom: 5px; overflow: hidden; } 
   .cifra-content { font-family: 'Consolas', 'Courier New', monospace; font-size: 10pt; line-height: 1.25; white-space: pre; color: #000000; overflow: visible; }
@@ -225,6 +225,11 @@
           </div>
         </div>
         
+	<div class="form-group" style="grid-column: span 2;">
+          <label>Link Vídeo</label>
+          <input type="text" id="i-video" placeholder="https://youtube.com..." oninput="saveCurrentSong()">
+        </div>
+
         <div class="form-group">
           <label>Tom</label>
           <div class="transpose-controls">
@@ -446,21 +451,20 @@
           const contentBlock = page.querySelector('.cifra-content');
           if (!contentBlock || !contentArea) return;
           
-          let min = 6.0, max = 22.0, best = min;
+          let min = 5.0, max = 22.0, best = min;
           for (let i = 0; i < 15; i++) {
               let mid = (min + max) / 2;
               contentBlock.style.fontSize = mid + 'pt';
               
-              // Hack para o iOS/Safari: forçar a re-renderização antes da leitura matemática
-              let forceReflow = contentArea.offsetHeight; 
-              
-              if (contentArea.scrollHeight > (contentArea.clientHeight + 2) || contentArea.scrollWidth > (contentArea.clientWidth + 2)) {
+              // Verifica matematicamente se vazou da página na horizontal ou vertical
+              if (contentArea.scrollHeight > contentArea.clientHeight || contentArea.scrollWidth > contentArea.clientWidth) {
                   max = mid;
               } else { 
                   best = mid; min = mid; 
               }
           }
-          contentBlock.style.fontSize = Math.max(6.0, best - 0.2) + 'pt';
+          // Aplica com uma margem de segurança de 0.2
+          contentBlock.style.fontSize = Math.max(5.0, best - 0.2) + 'pt';
       });
   }
 
@@ -472,9 +476,9 @@
       const page = document.createElement('div');
       page.className = 'a4-page' + (idx === currentIndex ? '' : ' hidden-preview');
       
-      // AQUI ESTAVA O ERRO! Precisamos recriar as variáveis dos botões para o celular
-      const vBadge = song.video ? `<a href="${song.video}" target="_blank" class="badge video" style="display:inline-block;">▶ VÍDEO</a>` : '';
-      const cBadge = song.cifra ? `<a href="${song.cifra}" target="_blank" class="badge cifra" style="display:inline-block;">♩ CIFRA</a>` : '';
+      // RECRIANDO OS ÍCONES DE VÍDEO E CIFRA PARA A PRÉ-VISUALIZAÇÃO
+      const vBadge = song.video ? `<a href="${song.video}" target="_blank" class="badge video">▶ VÍDEO</a>` : '';
+      const cBadge = song.cifra ? `<a href="${song.cifra}" target="_blank" class="badge cifra">♩ CIFRA</a>` : '';
       
       let capoText = ''; let capoValue = 0;
       if (song.capo && song.capo.trim() !== '') {
@@ -509,9 +513,9 @@
                 </div>
                 <div style="flex: 1; display: flex; justify-content: center; align-items: center; text-align: center; min-width: max-content;">${capoText}</div>
                 
-                <!-- OS BOTÕES AGORA VÃO APARECER CORRETAMENTE -->
-                <div style="flex: 1; display: flex; justify-content: flex-end; align-items: center;">
-                    <div class="badges">${vBadge}${cBadge}</div>
+                <!-- ÍCONES SÃO INJETADOS AQUI -->
+                <div style="flex: 1; display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
+                    ${vBadge}${cBadge}
                 </div>
               </div>
             </div>
@@ -521,8 +525,6 @@
         </div>`;
       wrapper.appendChild(page);
     });
-    
-    // Chama o redimensionamento corrigido para o Safari
     requestAnimationFrame(() => autoFitText());
   }
 
@@ -534,6 +536,7 @@
     document.getElementById('i-capo').value = song.capo || '';
     document.getElementById('i-intro').value = song.intro || '';
     document.getElementById('i-cifra').value = song.cifra || '';
+    document.getElementById('i-video').value = song.video || ''; // VÍDEO ADICIONADO
     document.getElementById('i-content').value = song.content || '';
     
     let steps = song.transposeSteps || 0;
@@ -546,10 +549,15 @@
   function saveCurrentSong() {
     if (songs.length === 0) return;
     songs[currentIndex] = {
-      title: document.getElementById('i-title').value, artist: document.getElementById('i-artist').value,
-      tone: document.getElementById('i-tone').value, capo: document.getElementById('i-capo').value,
-      intro: document.getElementById('i-intro').value, cifra: document.getElementById('i-cifra').value,
-      content: document.getElementById('i-content').value, transposeSteps: songs[currentIndex].transposeSteps || 0
+      title: document.getElementById('i-title').value, 
+      artist: document.getElementById('i-artist').value,
+      tone: document.getElementById('i-tone').value, 
+      capo: document.getElementById('i-capo').value,
+      intro: document.getElementById('i-intro').value, 
+      cifra: document.getElementById('i-cifra').value,
+      video: document.getElementById('i-video').value, // VÍDEO ADICIONADO
+      content: document.getElementById('i-content').value, 
+      transposeSteps: songs[currentIndex].transposeSteps || 0
     };
     renderSongList();
     clearTimeout(renderTimeout); renderTimeout = setTimeout(() => renderPreview(), 300);
@@ -568,7 +576,7 @@
   }
 
   function addNewSong() {
-    songs.push({ title: 'Nova Música', artist: '', tone: '', capo: '', intro: '', cifra: '', content: '', transposeSteps: 0 });
+    songs.push({ title: 'Nova Música', artist: '', tone: '', capo: '', intro: '', cifra: '', video: '', content: '', transposeSteps: 0 }); // VÍDEO ADICIONADO
     selectSong(songs.length - 1);
   }
 
