@@ -472,6 +472,10 @@
       const page = document.createElement('div');
       page.className = 'a4-page' + (idx === currentIndex ? '' : ' hidden-preview');
       
+      // AQUI ESTAVA O ERRO! Precisamos recriar as variáveis dos botões para o celular
+      const vBadge = song.video ? `<a href="${song.video}" target="_blank" class="badge video" style="display:inline-block;">▶ VÍDEO</a>` : '';
+      const cBadge = song.cifra ? `<a href="${song.cifra}" target="_blank" class="badge cifra" style="display:inline-block;">♩ CIFRA</a>` : '';
+      
       let capoText = ''; let capoValue = 0;
       if (song.capo && song.capo.trim() !== '') {
           let numeroCasa = song.capo.replace(/\D/g, ''); 
@@ -505,7 +509,7 @@
                 </div>
                 <div style="flex: 1; display: flex; justify-content: center; align-items: center; text-align: center; min-width: max-content;">${capoText}</div>
                 
-                <!-- DEVOLVENDO O ESPAÇO DO BOTÃO DA CIFRA AQUI -->
+                <!-- OS BOTÕES AGORA VÃO APARECER CORRETAMENTE -->
                 <div style="flex: 1; display: flex; justify-content: flex-end; align-items: center;">
                     <div class="badges">${vBadge}${cBadge}</div>
                 </div>
@@ -517,6 +521,8 @@
         </div>`;
       wrapper.appendChild(page);
     });
+    
+    // Chama o redimensionamento corrigido para o Safari
     requestAnimationFrame(() => autoFitText());
   }
 
