@@ -112,17 +112,30 @@
   
   .a4-content-area { width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
   
-  /* Document Styling */
+  /* 1. CABEÇALHO MENOR E ÍCONES VISÍVEIS */
   .doc-header { border-bottom: 2px solid #0284c7; padding-bottom: 4px; margin-bottom: 6px; display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
-  .doc-title { font-size: 14pt !important; font-weight: 800; text-transform: uppercase; line-height: 1.1; color: #000; }
+  .doc-title { font-size: 14pt !important; font-weight: 800; text-transform: uppercase; line-height: 1.1; color: #000; word-wrap: break-word; white-space: normal; }
   .doc-meta { display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: nowrap;}
   .meta-left { font-size: 10pt !important; font-weight: 600; color: #475569; }
-  .meta-left .separator { color: #cbd5e1; margin: 0 4px; font-weight: normal; }
-  .tone-badge { background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
-  .badges { display: flex; gap: 6px; }
-  .badge { color: white !important; text-decoration: none; font-size: 9pt; font-weight: bold; padding: 3px 8px; border-radius: 4px; display: inline-block; }
   
-  .doc-body { flex: 1; min-height: 0; width: 100%; display: block; padding-bottom: 5px; overflow: hidden; } 
+  /* AQUI: Força a exibição dos ícones que estavam sumindo */
+  .badge { color: white !important; text-decoration: none; font-size: 9pt; font-weight: bold; padding: 4px 8px; border-radius: 4px; display: inline-block !important; }
+
+  /* 2. TRAVA ABSOLUTA DA FOLHA A4 PARA O IPAD OBEDECER */
+  .a4-page {
+    background: white; 
+    width: 210mm !important; 
+    height: 297mm !important; 
+    min-height: 297mm !important; 
+    max-height: 297mm !important; 
+    padding: 10mm 14mm !important; 
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15); 
+    color: black; position: relative;
+    box-sizing: border-box !important; overflow: hidden !important; 
+    display: flex; flex-direction: column; 
+    transition: background-color 0.3s, color 0.3s; margin: 0 auto;
+  }
+  .doc-body { flex: 1; min-height: 0; width: 100%; display: block; padding-bottom: 5px; overflow: hidden !important; } 
   .cifra-content { font-family: 'Consolas', 'Courier New', monospace; font-size: 10pt; line-height: 1.25; white-space: pre; color: #000000; overflow: visible; }
   .chord { color: #d97706 !important; font-weight: bold !important; }
   hr.divider { border: 0; border-top: 2px solid #000000; margin: 10px 0 20px 0; }
@@ -447,23 +460,26 @@
   function autoFitText() {
       const pages = document.querySelectorAll('.a4-page');
       pages.forEach(page => {
-          const contentArea = page.querySelector('.a4-content-area');
+          const docBody = page.querySelector('.doc-body'); // AGORA MEDIMOS SÓ A ÁREA DA CIFRA
           const contentBlock = page.querySelector('.cifra-content');
-          if (!contentBlock || !contentArea) return;
+          if (!contentBlock || !docBody) return;
           
           let min = 5.0, max = 22.0, best = min;
           for (let i = 0; i < 15; i++) {
               let mid = (min + max) / 2;
               contentBlock.style.fontSize = mid + 'pt';
               
-              // Verifica matematicamente se vazou da página na horizontal ou vertical
-              if (contentArea.scrollHeight > contentArea.clientHeight || contentArea.scrollWidth > contentArea.clientWidth) {
-                  max = mid;
+              // Força o iPad/Safari a recalcular a tela antes de medir
+              let forceReflow = docBody.offsetHeight;
+              
+              // Verifica matematicamente se VAZOU da área reservada
+              if (docBody.scrollHeight > (docBody.clientHeight + 2) || docBody.scrollWidth > (docBody.clientWidth + 2)) {
+                  max = mid; // Vazou, precisa diminuir
               } else { 
-                  best = mid; min = mid; 
+                  best = mid; min = mid; // Coube, tenta aumentar
               }
           }
-          // Aplica com uma margem de segurança de 0.2
+          // Aplica o tamanho perfeito encontrado
           contentBlock.style.fontSize = Math.max(5.0, best - 0.2) + 'pt';
       });
   }
@@ -513,7 +529,7 @@
                 </div>
                 <div style="flex: 1; display: flex; justify-content: center; align-items: center; text-align: center; min-width: max-content;">${capoText}</div>
                 
-                <!-- ÍCONES SÃO INJETADOS AQUI -->
+                <!-- ÍCONES INJETADOS CORRETAMENTE AQUI -->
                 <div style="flex: 1; display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
                     ${vBadge}${cBadge}
                 </div>
