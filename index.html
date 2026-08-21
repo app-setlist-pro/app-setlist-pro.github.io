@@ -371,15 +371,34 @@
       }
   }
 
-  function triggerPrint() {
-      // Bloqueio específico da Apple para PWAs
+  async function triggerPrint() {
+      // Verifica se está rodando como App Instalado (PWA) no celular
       const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+      
       if (isStandalone) {
-          if (confirm("No modo 'App Instalado', a Apple desativa a caixa de impressão.\nDeseja abrir a página no navegador Safari para imprimir?")) { 
-              window.open(window.location.href, '_blank'); 
+          // Usa o menu oficial de compartilhamento nativo da Apple (Share Sheet)
+          if (navigator.share) {
+              try {
+                  await navigator.share({
+                      title: 'JR Cifras - Repertório',
+                      url: window.location.href
+                  });
+              } catch (err) {
+                  console.log("Menu de compartilhamento fechado pelo usuário.");
+              }
+          } else {
+              // Plano B (Força a abertura sem usar a caixa de "confirm" para não ser bloqueado)
+              const a = document.createElement('a');
+              a.href = window.location.href;
+              a.target = '_blank';
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
           }
           return;
       }
+      
+      // Se estiver no PC ou navegador comum, abre a caixa de impressão direta
       window.print();
   }
 
