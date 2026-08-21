@@ -216,10 +216,13 @@
     </div>
     
     <div class="btn-group">
-        <label for="file-upload" class="btn-primary btn-label" style="background:#475569; display: flex; align-items: center; justify-content: center; margin: 0;">📂 Abrir</label>
+        <button class="btn-primary" style="background:#475569;" onclick="novoProjeto()">📄 Novo</button>
+        
+        <label for="file-upload" class="btn-primary btn-label" style="background:#334155; display: flex; align-items: center; justify-content: center; margin: 0;">📂 Abrir</label>
         <input type="file" id="file-upload" accept=".json" style="display:none" onchange="loadProject(event)">
-        <button class="btn-primary" style="background:#0f766e;" onclick="saveProject()">💾 Salvar</button>
-        <button class="btn-success" onclick="triggerPrint()">🖨️ Imprimir PDF</button>
+        
+        <button class="btn-primary" style="background:#0f766e;" onclick="exportarProjeto()">💾 Exportar</button>
+        <button class="btn-success" onclick="triggerPrint()">🖨️ PDF</button>
         <button class="btn-primary" style="background:#e2e8f0; color: #1e293b;" id="btn-dark-mode" onclick="toggleDarkMode()">☀️ Modo Claro</button>
     </div>
   </div>
@@ -301,6 +304,54 @@
   let renderTimeout = null;
   let draggedItemIndex = null;
   let isDarkMode = false;
+  let isDirty = false; // Indica se há alterações que não foram exportadas para o PC
+
+  // 1. Salva tudo na memória oculta do celular
+  function autoSaveToMemory() {
+      localStorage.setItem('jrCifras_MobileBackup', JSON.stringify(songs));
+      isDirty = true;
+  }
+
+  // 2. Tenta puxar da memória ao abrir o aplicativo
+  function loadFromMemory() {
+      const saved = localStorage.getItem('jrCifras_MobileBackup');
+      if (saved) {
+          try {
+              const parsed = JSON.parse(saved);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                  songs = parsed;
+                  isDirty = false; // Acabou de carregar, consideramos "limpo"
+                  return true;
+              }
+          } catch(e) {}
+      }
+      return false;
+  }
+
+  // 3. Alerta de Segurança
+  function checkUnsaved() {
+      if (!isDirty) return true;
+      return confirm("Você tem alterações recentes que ainda não foram Exportadas (baixadas em arquivo). Se continuar, o que está na tela será apagado. Deseja continuar?");
+  }
+
+  // 4. Iniciar um projeto do zero
+  function novoProjeto() {
+      if (!checkUnsaved()) return;
+      songs = [{ title: 'Nova Música', artist: '', tone: '', capo: '', intro: '', cifra: '', video: '', content: '', transposeSteps: 0 }];
+      currentIndex = 0;
+      isDirty = false;
+      localStorage.removeItem('jrCifras_MobileBackup'); // Limpa a memória
+      selectSong(0);
+  }
+
+  // Aviso caso o usuário tente fechar a aba do navegador
+  window.onbeforeunload = function (e) {
+      if (isDirty) {
+          const msg = "Você tem alterações não exportadas.";
+          e.returnValue = msg;
+          return msg;
+      }
+  };
 
   function toggleDarkMode() {
       isDarkMode = !isDarkMode;
@@ -590,6 +641,7 @@
       
       div.appendChild(titleSpan); div.appendChild(delBtn); list.appendChild(div);
     });
+      autoSaveToMemory()
   }
 
   function autoFitText() {
@@ -748,6 +800,7 @@
     };
     renderSongList();
     clearTimeout(renderTimeout); renderTimeout = setTimeout(() => renderPreview(), 300);
+    autoSaveToMemory()
   }
   
   function changeTranspose(delta) {
@@ -760,11 +813,13 @@
       valEl.innerText = (steps > 0 ? '+' : '') + steps;
       valEl.style.color = steps !== 0 ? '#dc2626' : '#0284c7';
       renderSongList(); renderPreview();
+      autoSaveToMemory()
   }
 
   function addNewSong() {
     songs.push({ title: 'Nova Música', artist: '', tone: '', capo: '', intro: '', cifra: '', video: '', content: '', transposeSteps: 0 }); // VÍDEO ADICIONADO
     selectSong(songs.length - 1);
+    autoSaveToMemory()
   }
 
   function deleteSong(index) {
@@ -773,6 +828,7 @@
     if (currentIndex >= index && currentIndex > 0) currentIndex--;
     if (currentIndex >= songs.length) currentIndex = songs.length - 1;
     selectSong(currentIndex);
+    autoSaveToMemory()
   }
 
   async function fetchCifraClubData() {
@@ -848,7 +904,7 @@
       }
   }
 
-  function saveProject() {
+  function exportarProjeto() {
       if (songs.length === 0) { alert("Repertório vazio!"); return; }
       try {
           const jsonStr = JSON.stringify(songs, null, 2);
@@ -857,17 +913,34 @@
           const a = document.createElement('a');
           a.href = url; a.download = "meu_repertorio.json";
           document.body.appendChild(a); a.click();
-          setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 1000); // Essencial para iOS
-      } catch (err) { alert("Erro ao salvar: " + err.message); }
+          setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 1000); 
+          isDirty = false; // Exportou com sucesso, tira o status de "pendente"
+      } catch (err) { alert("Erro ao exportar: " + err.message); }
   }
 
   function loadProject(event) {
       const file = event.target.files[0]; if (!file) return;
+      
+      // Barra o carregamento se houver coisas não salvas
+      if (!checkUnsaved()) {
+          event.target.value = '';
+          return;
+      }
+
       const reader = new FileReader();
       reader.onload = function(e) {
           try {
               const loadedSongs = JSON.parse(e.target.result);
-              if (Array.isArray(loadedSongs) && loadedSongs.length > 0) { songs = loadedSongs; currentIndex = 0; selectSong(0); } 
+              if (Array.isArray(loadedSongs) && loadedSongs.length > 0) { 
+                  songs = loadedSongs; 
+                  currentIndex = 0; 
+                  
+                  // Atualiza a memória com o arquivo novo e marca como "salvo"
+                  localStorage.setItem('jrCifras_MobileBackup', JSON.stringify(songs));
+                  isDirty = false; 
+                  
+                  selectSong(0); 
+              } 
           } catch (err) { alert("Erro ao ler arquivo."); }
           event.target.value = '';
       };
@@ -929,7 +1002,11 @@
   });
 
   window.onload = () => {
-    songs.push({ title: 'Nova Música', artist: '', tone: '', capo: '', intro: '', cifra: '', content: '', transposeSteps: 0 });
+    // Tenta puxar a última sessão salva na memória do celular
+    if (!loadFromMemory()) {
+        // Se não tiver nada salvo, inicia um repertório limpo
+        songs.push({ title: 'Nova Música', artist: '', tone: '', capo: '', intro: '', cifra: '', video: '', content: '', transposeSteps: 0 });
+    }
     selectSong(0); 
   };
 </script>
