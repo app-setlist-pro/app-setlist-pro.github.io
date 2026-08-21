@@ -104,16 +104,16 @@
   .a4-page {
     background: white; 
     width: 210mm !important; 
-    min-width: 210mm !important; /* NOVO: Impede o iPhone de esmagar a folha */
+    min-width: 210mm !important; 
     height: 297mm !important; 
     min-height: 297mm !important; 
     max-height: 297mm !important; 
-    padding: 10mm 14mm !important; 
+    padding: 7.5mm !important; /* Margens simétricas reduzidas */
     box-shadow: 0 10px 20px rgba(0,0,0,0.15); 
     color: black; position: relative;
     box-sizing: border-box !important; overflow: hidden !important; 
     display: flex; flex-direction: column; 
-    flex-shrink: 0 !important; /* NOVO: Proíbe a tela de apertar as laterais */
+    flex-shrink: 0 !important; 
     transition: background-color 0.3s, color 0.3s; margin: 0 auto;
   }
   
@@ -138,17 +138,22 @@
   .a4-page {
     background: white; 
     width: 210mm !important; 
+    min-width: 210mm !important; 
     height: 297mm !important; 
     min-height: 297mm !important; 
     max-height: 297mm !important; 
-    padding: 10mm 14mm !important; 
+    padding: 7.5mm !important; /* Margens simétricas reduzidas */
     box-shadow: 0 10px 20px rgba(0,0,0,0.15); 
     color: black; position: relative;
     box-sizing: border-box !important; overflow: hidden !important; 
     display: flex; flex-direction: column; 
+    flex-shrink: 0 !important; 
     transition: background-color 0.3s, color 0.3s; margin: 0 auto;
   }
-  .doc-body { flex: 1; min-height: 0; width: 100%; display: block; padding-bottom: 5px; overflow: hidden !important; } 
+  .doc-body { 
+    flex: 1; min-height: 0; width: 100%; display: block; padding-bottom: 5px; 
+    overflow: hidden; /* Liberado temporariamente para o JS poder medir */ 
+  } 
   .cifra-content { font-family: 'Consolas', 'Courier New', monospace; font-size: 10pt; line-height: 1.25; white-space: pre; color: #000000; overflow: visible; }
   .chord { color: #d97706 !important; font-weight: bold !important; }
   hr.divider { border: 0; border-top: 2px solid #000000; margin: 10px 0 20px 0; }
@@ -180,7 +185,7 @@
     width: 210mm; 
     height: 297mm; 
     max-height: 297mm; /* Força o limite de altura */
-    padding: 10mm 14mm 10mm 14mm; /* Diminuí a margem para caber mais música */
+    padding: 7.5mm !important; /* Margens simétricas reduzidas */
     box-shadow: 0 10px 20px rgba(0,0,0,0.15); 
     color: black; position: relative;
     box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column; 
@@ -445,6 +450,21 @@
       });
   }
 
+// Função inteligente que caça e destroi blocos de tablatura
+  function limparTablaturas(texto) {
+      if (!texto) return '';
+      const blocos = texto.split(/\n\s*\n/); // Separa a música em parágrafos
+      const blocosLimpos = blocos.filter(bloco => {
+          const temTab = bloco.split('\n').some(linha => {
+              const l = linha.trim();
+              // Se a linha começar com E|, e|, B|, G|, tiver "---", ou marcações de tab, é sentenciada!
+              return l.match(/^[eBGDAM]\s*\|/i) || l.includes('|---') || l.match(/^\[Tab/i) || l.match(/Parte \d+ de \d+/i);
+          });
+          return !temTab; // Só mantém o bloco se NÃO tiver tablatura
+      });
+      return blocosLimpos.join('\n\n');
+  }
+
   function parseChords(text, steps = 0) {
     if (!text) return '';
     let globalIsBold = false; 
@@ -465,13 +485,15 @@
         while(linesArray.length > 0 && linesArray[linesArray.length - 1].trim() === '') linesArray.pop();
         let out = '';
         for (let line of linesArray) {
-            const trimmed = line.trim();
+            let currentLine = line.replace(/\s+$/, ''); // Remove espaços invisíveis no fim da linha
+            const trimmed = currentLine.trim();
+            
             if (trimmed.toLowerCase() === '[b]') { globalIsBold = true; continue; }
             if (trimmed.toLowerCase() === '[/b]') { globalIsBold = false; continue; }
             if (!trimmed) { out += '\n'; continue; } 
             
-            let isChordLine = isChordLineStr(line);
-            let finalLine = isChordLine ? transposeLineText(line, steps) : line;
+            let isChordLine = isChordLineStr(currentLine);
+            let finalLine = isChordLine ? transposeLineText(currentLine, steps) : currentLine;
             let safeLine = finalLine.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\*(.*?)\*/g, '<b>$1</b>');
             
             if (isChordLine) out += `<span class="chord">${safeLine}</span>\n`;
@@ -666,27 +688,32 @@
   function autoFitText() {
       const pages = document.querySelectorAll('.a4-page');
       pages.forEach(page => {
-          const docBody = page.querySelector('.doc-body'); // AGORA MEDIMOS SÓ A ÁREA DA CIFRA
+          const docBody = page.querySelector('.doc-body'); 
           const contentBlock = page.querySelector('.cifra-content');
           if (!contentBlock || !docBody) return;
           
-          let min = 5.0, max = 22.0, best = min;
+          contentBlock.innerHTML = contentBlock.innerHTML.replace(/\n$/, ''); // Remove Enter final
+          docBody.style.overflow = 'auto'; // Destrava para medir
+          
+          let min = 3.0, max = 22.0, best = min;
           for (let i = 0; i < 15; i++) {
               let mid = (min + max) / 2;
               contentBlock.style.fontSize = mid + 'pt';
               
-              // Força o iPad/Safari a recalcular a tela antes de medir
-              let forceReflow = docBody.offsetHeight;
+              let forceReflow = contentBlock.offsetHeight; 
+              let textHeight = contentBlock.getBoundingClientRect().height;
+              let spaceHeight = docBody.clientHeight;
+              let textWidth = contentBlock.scrollWidth;
+              let spaceWidth = docBody.clientWidth;
               
-              // Verifica matematicamente se VAZOU da área reservada
-              if (docBody.scrollHeight > (docBody.clientHeight + 2) || docBody.scrollWidth > (docBody.clientWidth + 2)) {
-                  max = mid; // Vazou, precisa diminuir
+              if (textHeight > spaceHeight + 1 || textWidth > spaceWidth + 1) {
+                  max = mid; // Vazou
               } else { 
-                  best = mid; min = mid; // Coube, tenta aumentar
+                  best = mid; min = mid; // Coube
               }
           }
-          // Aplica o tamanho perfeito encontrado
-          contentBlock.style.fontSize = Math.max(5.0, best - 0.2) + 'pt';
+          contentBlock.style.fontSize = Math.max(3.0, best - 0.2) + 'pt';
+          docBody.style.overflow = 'hidden'; // Trava novamente
       });
   }
 
@@ -888,7 +915,8 @@
 
           const preEl = doc.querySelector('pre');
           if (preEl) {
-              preEl.querySelectorAll('.sr-only, script, style, [style*="display:none"], [style*="display: none"]').forEach(el => el.remove());
+              // Adicionamos a classe .tablature aqui para ajudar a limpar o lixo do site
+              preEl.querySelectorAll('.sr-only, script, style, [style*="display:none"], [style*="display: none"], .tablature').forEach(el => el.remove());
               let lines = preEl.textContent.replace(/\r/g, '').split('\n'), newLines = [], inIntroBlock = false, introChords = [];
 
               for (let line of lines) {
@@ -905,7 +933,10 @@
                   } else newLines.push(line);
               }
 
-              document.getElementById('i-content').value = newLines.join('\n').trim();
+              // AQUI ENTRA O EXTERMINADOR! Ele limpa o texto antes de jogar na tela
+              let textoExtraido = newLines.join('\n').trim();
+              document.getElementById('i-content').value = limparTablaturas(textoExtraido); 
+              
               document.getElementById('i-title').value = titleStr;
               document.getElementById('i-artist').value = artistStr;
               document.getElementById('i-tone').value = tomStr;
@@ -993,7 +1024,9 @@
           if (html && (html.toLowerCase().includes('cifraclub') || plain.includes('">'))) {
               e.preventDefault(); 
               let tempDiv = document.createElement('div'); tempDiv.innerHTML = html;
-              tempDiv.querySelectorAll('.sr-only, [style*="display:none"], [style*="display: none"]').forEach(el => el.remove());
+              
+              // Adicionamos a classe .tablature aqui também
+              tempDiv.querySelectorAll('.sr-only, [style*="display:none"], [style*="display: none"], .tablature').forEach(el => el.remove());
               
               tempDiv.querySelectorAll('br').forEach(br => { br.parentNode.insertBefore(document.createTextNode('\n'), br); br.remove(); });
               tempDiv.querySelectorAll('div, p, pre, blockquote').forEach(block => block.appendChild(document.createTextNode('\n')));
@@ -1012,6 +1045,10 @@
               while(cleanedLines.length > 0 && cleanedLines[cleanedLines.length - 1].trim() === '') cleanedLines.pop();
               
               let finalText = cleanedLines.join('\n');
+              
+              // AQUI ENTRA O EXTERMINADOR PARA O TEXTO COLADO!
+              finalText = limparTablaturas(finalText);
+              
               const start = this.selectionStart, end = this.selectionEnd;
               this.value = this.value.substring(0, start) + finalText + this.value.substring(end);
               this.selectionStart = this.selectionEnd = start + finalText.length;
