@@ -66,10 +66,21 @@
   }
   
   /* Drag and Drop Styles */
-  .song-item { display: flex; justify-content: space-between; align-items: center; background: white; padding: 10px; margin-bottom: 8px; border-radius: 4px; border: 1px solid #cbd5e1; cursor: grab; }
+  .song-item { 
+      display: flex; justify-content: space-between; align-items: center; background: white; 
+      padding: 10px; margin-bottom: 8px; border-radius: 4px; border: 1px solid #cbd5e1; 
+      cursor: grab; 
+      /* NOVO: Proíbe o iOS de selecionar o texto de azul */
+      -webkit-user-select: none; user-select: none; 
+  }
   .song-item.active { border-left: 4px solid #0284c7; background: #e0f2fe; }
   .song-item-title { font-weight: bold; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 8px; }
-  .drag-handle { color: #94a3b8; font-size: 16px; cursor: grab; }
+  
+  .drag-handle { 
+      color: #94a3b8; font-size: 18px; cursor: grab; 
+      /* NOVO: Aumenta a área de toque invisível e trava a tela de rolar */
+      padding: 10px 15px 10px 0; margin: -10px 0; touch-action: none; 
+  }
   
   /* Grid de Inputs */
   .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
@@ -420,29 +431,82 @@
     const list = document.getElementById('song-list');
     list.innerHTML = '';
     
+    // Função de reordenação inteligente (serve para Mouse e Touch)
+    function reordenarMusicas(deIndex, paraIndex) {
+        if (deIndex === null || deIndex === paraIndex) return;
+        const item = songs.splice(deIndex, 1)[0];
+        songs.splice(paraIndex, 0, item);
+        
+        if (currentIndex === deIndex) currentIndex = paraIndex;
+        else if (deIndex < currentIndex && paraIndex >= currentIndex) currentIndex--;
+        else if (deIndex > currentIndex && paraIndex <= currentIndex) currentIndex++;
+        
+        renderSongList(); renderPreview();
+    }
+    
     songs.forEach((song, index) => {
       const div = document.createElement('div');
       div.className = `song-item ${index === currentIndex ? 'active' : ''}`;
       div.draggable = true;
       
+      // === EVENTOS PARA COMPUTADOR (MOUSE) ===
       div.addEventListener('dragstart', (e) => { draggedItemIndex = index; e.dataTransfer.effectAllowed = 'move'; setTimeout(() => div.classList.add('dragging'), 0); });
       div.addEventListener('dragend', () => { div.classList.remove('dragging'); draggedItemIndex = null; });
       div.addEventListener('dragover', (e) => { e.preventDefault(); div.classList.add('drag-over'); });
       div.addEventListener('dragleave', () => { div.classList.remove('drag-over'); });
       div.addEventListener('drop', (e) => {
           e.preventDefault(); div.classList.remove('drag-over');
-          if (draggedItemIndex === null || draggedItemIndex === index) return;
-          const itemToMove = songs.splice(draggedItemIndex, 1)[0];
-          songs.splice(index, 0, itemToMove);
-          
-          if (currentIndex === draggedItemIndex) currentIndex = index;
-          else if (draggedItemIndex < currentIndex && index >= currentIndex) currentIndex--;
-          else if (draggedItemIndex > currentIndex && index <= currentIndex) currentIndex++;
-          
-          renderSongList(); renderPreview();
+          reordenarMusicas(draggedItemIndex, index);
       });
       
-      div.onclick = () => selectSong(index);
+      // === EVENTOS PARA MOBILE/TABLET (TOUCH) ===
+      div.addEventListener('touchstart', (e) => {
+          if (e.target.classList.contains('drag-handle')) {
+              draggedItemIndex = index;
+              setTimeout(() => div.classList.add('dragging'), 0);
+          }
+      }, {passive: true});
+
+      div.addEventListener('touchmove', (e) => {
+          if (draggedItemIndex === null) return;
+          e.preventDefault(); // Impede a tela de rolar enquanto arrasta a música
+          
+          const touch = e.touches[0];
+          const target = document.elementFromPoint(touch.clientX, touch.clientY);
+          
+          if (target) {
+              const item = target.closest('.song-item');
+              document.querySelectorAll('.song-item').forEach(el => el.classList.remove('drag-over'));
+              if (item && item !== div) item.classList.add('drag-over');
+          }
+      }, {passive: false});
+
+      div.addEventListener('touchend', (e) => {
+          if (draggedItemIndex === null) return;
+          div.classList.remove('dragging');
+          
+          const touch = e.changedTouches[0];
+          const target = document.elementFromPoint(touch.clientX, touch.clientY);
+          
+          if (target) {
+              const item = target.closest('.song-item');
+              if (item && item !== div) {
+                  const allItems = Array.from(list.children);
+                  const targetIndex = allItems.indexOf(item);
+                  if (targetIndex !== -1) reordenarMusicas(draggedItemIndex, targetIndex);
+              }
+          }
+          document.querySelectorAll('.song-item').forEach(el => el.classList.remove('drag-over'));
+          draggedItemIndex = null;
+      });
+      
+      // Abre a música apenas se não estiver clicando no ícone de apagar ou arrastar
+      div.onclick = (e) => { 
+          if (!e.target.classList.contains('drag-handle') && !e.target.classList.contains('btn-danger')) {
+              selectSong(index); 
+          }
+      };
+      
       let toneSuffix = song.transposeSteps ? ` <span style="font-weight:normal; color:#64748b; font-size:12px;">(${song.transposeSteps > 0 ? '+' : ''}${song.transposeSteps})</span>` : '';
       
       const titleSpan = document.createElement('span');
