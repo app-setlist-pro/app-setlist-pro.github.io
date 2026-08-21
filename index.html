@@ -551,8 +551,11 @@
     document.getElementById('i-tone').value = song.tone || '';
     document.getElementById('i-capo').value = song.capo || '';
     document.getElementById('i-intro').value = song.intro || '';
+    
+    // AQUI ESTAVA O PROBLEMA: Faltava puxar os links para a tela
     document.getElementById('i-cifra').value = song.cifra || '';
-    document.getElementById('i-video').value = song.video || ''; // VÍDEO ADICIONADO
+    document.getElementById('i-video').value = song.video || ''; 
+    
     document.getElementById('i-content').value = song.content || '';
     
     let steps = song.transposeSteps || 0;
