@@ -503,7 +503,8 @@
           let numeroCasa = song.capo.replace(/\D/g, ''); 
           if (numeroCasa !== '') {
               capoValue = parseInt(numeroCasa, 10);
-              capoText = `<span class="capo-text" style="color: #dc2626; font-weight: 800; text-transform: uppercase; font-size: 16pt; white-space: nowrap;">CAPO NA ${numeroCasa}ª</span>`;
+              // AQUI: Adicionamos a palavra " CASA" logo após o símbolo ª
+              capoText = `<span class="capo-text" style="color: #dc2626; font-weight: 800; text-transform: uppercase; font-size: 16pt; white-space: nowrap;">CAPO NA ${numeroCasa}ª CASA</span>`;
           }
       }
       
