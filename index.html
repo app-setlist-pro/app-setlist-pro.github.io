@@ -433,7 +433,6 @@
     const list = document.getElementById('song-list');
     list.innerHTML = '';
     
-    // Função central que salva a nova ordem matematicamente
     function reordenarMusicas(deIndex, paraIndex) {
         if (deIndex === null || deIndex === paraIndex) return;
         const item = songs.splice(deIndex, 1)[0];
@@ -446,17 +445,18 @@
         renderSongList(); renderPreview();
     }
     
-    // Variáveis que vão controlar o "Fantasma" no celular
     let ghostElement = null;
     let originalElement = null;
     let touchOffsetY = 0;
+    
+    // NOVO: Variável que vai controlar a rolagem automática
+    let scrollInterval = null; 
     
     songs.forEach((song, index) => {
       const div = document.createElement('div');
       div.className = `song-item ${index === currentIndex ? 'active' : ''}`;
       div.draggable = true;
       
-      // === EVENTOS PARA COMPUTADOR (MANTIDOS INTACTOS) ===
       div.addEventListener('dragstart', (e) => { draggedItemIndex = index; e.dataTransfer.effectAllowed = 'move'; setTimeout(() => div.classList.add('dragging'), 0); });
       div.addEventListener('dragend', () => { div.classList.remove('dragging'); draggedItemIndex = null; });
       div.addEventListener('dragover', (e) => { e.preventDefault(); div.classList.add('drag-over'); });
@@ -466,7 +466,6 @@
           reordenarMusicas(draggedItemIndex, index);
       });
       
-      // === NOVO MOTOR FLUIDO PARA CELULAR E TABLET (TOUCH) ===
       div.addEventListener('touchstart', (e) => {
           if (e.target.classList.contains('drag-handle')) {
               draggedItemIndex = index;
@@ -474,9 +473,8 @@
               
               const touch = e.touches[0];
               const rect = div.getBoundingClientRect();
-              touchOffsetY = touch.clientY - rect.top; // Lembra onde o dedo tocou na música
+              touchOffsetY = touch.clientY - rect.top; 
               
-              // 1. Cria o "Fantasma" que vai descolar e flutuar pela tela
               ghostElement = div.cloneNode(true);
               ghostElement.style.position = 'fixed';
               ghostElement.style.top = rect.top + 'px';
@@ -484,12 +482,11 @@
               ghostElement.style.width = rect.width + 'px';
               ghostElement.style.opacity = '0.95';
               ghostElement.style.zIndex = '9999';
-              ghostElement.style.pointerEvents = 'none'; // Permite que o celular leia as músicas que estão DEBAIXO do fantasma
+              ghostElement.style.pointerEvents = 'none'; 
               ghostElement.style.boxShadow = '0 15px 25px rgba(0,0,0,0.2)';
               ghostElement.style.transform = 'scale(1.03)';
               document.body.appendChild(ghostElement);
               
-              // 2. Transforma a música original em um "buraco" temporário
               div.style.opacity = '0.4';
               div.style.transform = 'scale(0.98)';
           }
@@ -497,18 +494,45 @@
 
       div.addEventListener('touchmove', (e) => {
           if (!ghostElement) return;
-          e.preventDefault(); // Trava a tela de rolar enquanto você organiza as músicas
+          e.preventDefault(); 
           
           const touch = e.touches[0];
-          // Movimenta o Fantasma junto com o seu dedo
           ghostElement.style.top = (touch.clientY - touchOffsetY) + 'px';
           
-          // Inteligência: O celular lê qual música está passando por baixo do seu dedo
+          // ==========================================
+          // NOVO: RADAR DE BORDA (AUTO-SCROLL)
+          // ==========================================
+          const listRect = list.getBoundingClientRect();
+          const radarDistancia = 50; // Se chegar a 50px da borda, começa a rolar
+          let velocidadeRolagem = 0;
+          
+          // Verifica se o dedo está no topo ou no fundo da caixa
+          if (touch.clientY < listRect.top + radarDistancia) {
+              velocidadeRolagem = -10; // Rola para cima
+          } else if (touch.clientY > listRect.bottom - radarDistancia) {
+              velocidadeRolagem = 10; // Rola para baixo
+          }
+
+          // Se ativou o radar, liga o motor de rolagem
+          if (velocidadeRolagem !== 0) {
+              if (!scrollInterval) {
+                  scrollInterval = setInterval(() => {
+                      list.scrollTop += velocidadeRolagem;
+                  }, 20); // Velocidade suave e constante
+              }
+          } else {
+              // Se o dedo saiu da borda, desliga a rolagem
+              if (scrollInterval) {
+                  clearInterval(scrollInterval);
+                  scrollInterval = null;
+              }
+          }
+          // ==========================================
+          
           const elementUnderFinger = document.elementFromPoint(touch.clientX, touch.clientY);
           if (elementUnderFinger) {
               const itemHovered = elementUnderFinger.closest('.song-item');
               
-              // Se passou por cima de outra música, elas trocam de lugar no HTML ao vivo!
               if (itemHovered && itemHovered !== originalElement) {
                   const allItems = Array.from(list.children);
                   const originalIndexDOM = allItems.indexOf(originalElement);
@@ -526,13 +550,17 @@
       div.addEventListener('touchend', (e) => {
           if (!ghostElement) return;
           
-          // Apaga o Fantasma e restaura a música original da aparência de "buraco"
+          // NOVO: Desliga o motor de rolagem ao soltar o dedo
+          if (scrollInterval) {
+              clearInterval(scrollInterval);
+              scrollInterval = null;
+          }
+          
           ghostElement.remove();
           ghostElement = null;
           originalElement.style.opacity = '1';
           originalElement.style.transform = 'none';
           
-          // Lê onde a música parou de verdade no HTML e salva no sistema
           const allItems = Array.from(list.children);
           const newIndexDOM = allItems.indexOf(originalElement);
           
@@ -544,7 +572,6 @@
           originalElement = null;
       });
       
-      // Clique normal para abrir a música
       div.onclick = (e) => { 
           if (!e.target.classList.contains('drag-handle') && !e.target.classList.contains('btn-danger')) {
               selectSong(index); 
