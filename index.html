@@ -62,12 +62,7 @@
     .grid { grid-template-columns: 1fr !important; }
     .form-group { grid-column: span 1 !important; }
     
-    /* NOVO: Encolhe visualmente a folha em telas pequenas para caber no celular! */
-    .a4-wrapper {
-        transform: scale(0.42); 
-        transform-origin: top center;
-        margin-bottom: -170mm; /* Tira o espaço em branco que sobra no fundo */
-    }
+    /* A REGRA DO .a4-wrapper FOI APAGADA DAQUI! */
   }
   
   /* Drag and Drop Styles */
@@ -162,7 +157,7 @@
     html, body { background: white !important; padding: 0 !important; margin: 0 !important; width: 100% !important; height: auto !important; overflow: visible !important; }
     .no-print, .preview-title { display: none !important; }
     .preview-section { margin: 0 !important; padding: 0 !important; }
-    .a4-wrapper { gap: 0 !important; display: block !important; padding: 0 !important; margin: 0 !important; width: 100% !important; }
+    .a4-wrapper { gap: 0 !important; display: block !important; padding: 0 !important; margin: 0 !important; width: 100% !important; transform: none !important; }
     
     .a4-page {
     background: white; 
@@ -486,6 +481,38 @@
       });
   }
 
+  // Nova função para dar o "Zoom Perfeito" em qualquer tela
+  function ajustarEscalaA4() {
+      const wrapper = document.getElementById('a4-wrapper');
+      if (!wrapper) return;
+      
+      // Medidas absolutas da folha A4 em pixels (96dpi)
+      const larguraA4 = 794; 
+      const alturaA4 = 1122; 
+      
+      // Largura disponível na tela atual (descontando 20px de respiro lateral)
+      const larguraTela = window.innerWidth - 20; 
+      
+      if (larguraTela < larguraA4) {
+          // Calcula a porcentagem exata para preencher a tela inteira
+          const escala = larguraTela / larguraA4;
+          wrapper.style.transform = `scale(${escala})`;
+          wrapper.style.transformOrigin = 'top center';
+          
+          // Compensa a margem de baixo para não deixar um "buraco" em branco no fim da página
+          const alturaSobrando = alturaA4 - (alturaA4 * escala);
+          wrapper.style.marginBottom = `-${alturaSobrando}px`;
+      } else {
+          // Telas grandes de PC
+          wrapper.style.transform = 'none';
+          wrapper.style.marginBottom = '0';
+      }
+  }
+
+  // Faz a folha se adaptar em tempo real se você girar o iPad
+  window.addEventListener('resize', ajustarEscalaA4);
+
+
   function renderPreview() {
     const wrapper = document.getElementById('a4-wrapper');
     wrapper.innerHTML = '';
@@ -544,7 +571,12 @@
         </div>`;
       wrapper.appendChild(page);
     });
-    requestAnimationFrame(() => autoFitText());
+    
+    // Atualizado: Executa o ajuste de texto e depois o Zoom dinâmico!
+    requestAnimationFrame(() => {
+        autoFitText();
+        ajustarEscalaA4();
+    });
   }
 
   function selectSong(index) {
