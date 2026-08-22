@@ -244,6 +244,9 @@
       align-self: flex-end; background: transparent; color: #60a5fa; 
       border: none; font-size: 15px; font-weight: 700; cursor: pointer; 
       padding: 5px 10px; text-transform: uppercase;
+  .custom-confirm-btns { display: flex; gap: 15px; justify-content: flex-end; width: 100%; margin-top: 5px; }
+  .custom-btn-cancel { background: transparent; color: #94a3b8; border: none; font-size: 15px; font-weight: 700; cursor: pointer; text-transform: uppercase; }
+  .custom-btn-ok { background: transparent; color: #ef4444; border: none; font-size: 15px; font-weight: 700; cursor: pointer; text-transform: uppercase; }
   }
 </style>
 </head>
@@ -346,43 +349,44 @@
   let isDarkMode = false;
   let isDirty = false; // Indica se há alterações que não foram exportadas para o PC
 
-// ==========================================
-  // SUBSTITUI O ALERTA PADRÃO DO NAVEGADOR
   // ==========================================
-  window.alert = function(mensagem) {
-      let existente = document.getElementById('custom-alert');
-      if (existente) existente.remove();
+  // SUBSTITUI O CONFIRM (PERGUNTA) DO NAVEGADOR
+  // ==========================================
+  window.customConfirm = function(mensagem) {
+      return new Promise((resolve) => {
+          let existente = document.getElementById('custom-alert');
+          if (existente) existente.remove();
 
-      let overlay = document.createElement('div');
-      overlay.id = 'custom-alert';
-      overlay.className = 'custom-alert-overlay';
-      
-      // Coloca ícone de check verde se for sucesso, ou um alerta amarelo pros demais
-      let icon = mensagem.includes('sucesso') || mensagem.includes('✅') ? '✅' : '⚠️';
-      let textoLimpo = mensagem.replace('✅ ', ''); // Limpa o emoji antigo do texto
+          let overlay = document.createElement('div');
+          overlay.id = 'custom-alert';
+          overlay.className = 'custom-alert-overlay';
 
-      overlay.innerHTML = `
-          <div class="custom-alert-box">
-              <div class="custom-alert-content">
-                  <span style="font-size: 22px;">${icon}</span>
-                  <span>${textoLimpo}</span>
+          overlay.innerHTML = `
+              <div class="custom-alert-box">
+                  <div class="custom-alert-content" style="align-items: flex-start;">
+                      <span style="font-size: 22px;">❓</span>
+                      <span>${mensagem}</span>
+                  </div>
+                  <div class="custom-confirm-btns">
+                      <button class="custom-btn-cancel" id="btn-confirm-cancel">Cancelar</button>
+                      <button class="custom-btn-ok" id="btn-confirm-ok">Sim, apagar</button>
+                  </div>
               </div>
-              <button class="custom-alert-btn" onclick="fecharAlerta()">Fechar</button>
-          </div>
-      `;
-      
-      document.body.appendChild(overlay);
-      
-      // Pequeno atraso para a animação suave funcionar
-      setTimeout(() => overlay.classList.add('show'), 10);
-  };
+          `;
+          document.body.appendChild(overlay);
+          setTimeout(() => overlay.classList.add('show'), 10);
 
-  window.fecharAlerta = function() {
-      let overlay = document.getElementById('custom-alert');
-      if (overlay) {
-          overlay.classList.remove('show');
-          setTimeout(() => overlay.remove(), 200);
-      }
+          document.getElementById('btn-confirm-cancel').onclick = () => {
+              overlay.classList.remove('show');
+              setTimeout(() => overlay.remove(), 200);
+              resolve(false); // Responde "Não" para o código
+          };
+          document.getElementById('btn-confirm-ok').onclick = () => {
+              overlay.classList.remove('show');
+              setTimeout(() => overlay.remove(), 200);
+              resolve(true); // Responde "Sim" para o código
+          };
+      });
   };
 
   // 1. Salva tudo na memória oculta do celular
@@ -407,20 +411,50 @@
       return false;
   }
 
-  // 3. Alerta de Segurança
-  function checkUnsaved() {
+  // 3. Alerta de Segurança (Agora Espera a Resposta)
+  async function checkUnsaved() {
       if (!isDirty) return true;
-      return confirm("Você tem alterações recentes que ainda não foram Exportadas (baixadas em arquivo). Se continuar, o que está na tela será apagado. Deseja continuar?");
+      return await window.customConfirm("Você tem alterações recentes que ainda não foram Exportadas. Se continuar, o que está na tela será apagado. Deseja continuar?");
   }
 
   // 4. Iniciar um projeto do zero
-  function novoProjeto() {
-      if (!checkUnsaved()) return;
+  async function novoProjeto() {
+      const podeContinuar = await checkUnsaved();
+      if (!podeContinuar) return; // Se clicou em cancelar, para tudo!
+      
       songs = [{ title: 'Nova Música', artist: '', tone: '', capo: '', intro: '', cifra: '', video: '', content: '', transposeSteps: 0 }];
       currentIndex = 0;
       isDirty = false;
       localStorage.removeItem('jrCifras_MobileBackup'); // Limpa a memória
       selectSong(0);
+  }
+
+  // 5. Abrir um arquivo
+  async function loadProject(event) {
+      const file = event.target.files[0]; if (!file) return;
+      
+      // Barra o carregamento e espera o usuário confirmar
+      const podeContinuar = await checkUnsaved();
+      if (!podeContinuar) {
+          event.target.value = '';
+          return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+          try {
+              const loadedSongs = JSON.parse(e.target.result);
+              if (Array.isArray(loadedSongs) && loadedSongs.length > 0) { 
+                  songs = loadedSongs; 
+                  currentIndex = 0; 
+                  localStorage.setItem('jrCifras_MobileBackup', JSON.stringify(songs));
+                  isDirty = false; 
+                  selectSong(0); 
+              } 
+          } catch (err) { alert("Erro ao ler arquivo."); }
+          event.target.value = '';
+      };
+      reader.readAsText(file);
   }
 
   // Aviso caso o usuário tente fechar a aba do navegador
@@ -1062,35 +1096,7 @@
       } catch (err) { alert("Erro ao exportar: " + err.message); }
   }
 
-  function loadProject(event) {
-      const file = event.target.files[0]; if (!file) return;
-      
-      // Barra o carregamento se houver coisas não salvas
-      if (!checkUnsaved()) {
-          event.target.value = '';
-          return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-          try {
-              const loadedSongs = JSON.parse(e.target.result);
-              if (Array.isArray(loadedSongs) && loadedSongs.length > 0) { 
-                  songs = loadedSongs; 
-                  currentIndex = 0; 
-                  
-                  // Atualiza a memória com o arquivo novo e marca como "salvo"
-                  localStorage.setItem('jrCifras_MobileBackup', JSON.stringify(songs));
-                  isDirty = false; 
-                  
-                  selectSong(0); 
-              } 
-          } catch (err) { alert("Erro ao ler arquivo."); }
-          event.target.value = '';
-      };
-      reader.readAsText(file);
-  }
-
+  
   document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('i-intro').addEventListener('paste', function(e) {
           e.preventDefault(); 
