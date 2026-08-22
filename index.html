@@ -717,29 +717,13 @@
 
           const cloneBody = clone.querySelector('.doc-body');
           const cloneContent = clone.querySelector('.cifra-content');
-          const cloneContentArea = clone.querySelector('.a4-content-area');
-          const cloneHeader = clone.querySelector('.doc-header');
           
           // Limpa qualquer sobra de texto invisível no fundo
           cloneContent.innerHTML = cloneContent.innerHTML.replace(/(\s|<br>)+$/g, '');
           cloneBody.style.overflow = 'visible';
 
-          // CORREÇÃO CORRETA: Mede a área de conteúdo e deduz o header
-          let spaceH = cloneContentArea.clientHeight;
-          if (cloneHeader) {
-              spaceH -= cloneHeader.clientHeight;
-              spaceH -= 6; // margin-bottom do header
-          }
-          spaceH -= 8; // buffer de segurança
-          
+          let spaceH = cloneBody.clientHeight;
           let spaceW = cloneBody.clientWidth;
-          
-          // CORREÇÃO: Deduz a altura do cabeçalho
-          if (cloneHeader) {
-              spaceH -= cloneHeader.clientHeight;
-              spaceH -= 6;
-          }
-          spaceH -= 3;
 
           // Se conseguiu medir a folha real (sem ser enganado pelo celular)...
           if (spaceH > 0 && spaceW > 0) {
