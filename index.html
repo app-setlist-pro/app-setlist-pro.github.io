@@ -696,7 +696,12 @@
 
   function autoFitText() {
       const wrapper = document.getElementById('a4-wrapper');
-      if (wrapper) { wrapper.style.transform = 'none'; }
+      
+      if (wrapper) { 
+          wrapper.style.transform = 'none'; 
+          // A BALA DE PRATA: O "chicote" que obriga o Android a recalcular o tamanho real da folha AGORA, sem preguiça.
+          void wrapper.offsetHeight; 
+      }
 
       const pages = document.querySelectorAll('.a4-page');
       pages.forEach(page => {
@@ -704,39 +709,36 @@
           const contentBlock = page.querySelector('.cifra-content');
           if (!contentBlock || !docBody) return;
           
+          // Limpa qualquer quebra de linha fantasma no final da cifra
           contentBlock.innerHTML = contentBlock.innerHTML.replace(/(\s|<br>)+$/g, ''); 
           
-          // A ARMA SECRETA: Embala a caixa a vácuo nas letras para o Android medir o tamanho real
-          contentBlock.style.display = 'inline-block'; 
-          
-          // TRAVA ABSOLUTA: Proíbe o Chrome de imaginar barras de rolagem durante a medição
-          docBody.style.overflow = 'hidden'; 
+          contentBlock.style.display = 'block'; 
+          docBody.style.overflow = 'visible'; 
           
           let min = 3.0, max = 25.0, best = min;
+          
+          // Agora sim o JavaScript pega o tamanho verdadeiro e gigante do papel A4!
+          let spaceH = docBody.clientHeight;
+          let spaceW = docBody.clientWidth;
           
           for (let i = 0; i < 20; i++) {
               let mid = (min + max) / 2;
               contentBlock.style.fontSize = mid + 'pt';
               
-              // Mede a altura e largura exatas da "tinta"
-              let textH = contentBlock.offsetHeight;
-              let textW = contentBlock.offsetWidth;
-              let spaceH = docBody.clientHeight;
-              let spaceW = docBody.clientWidth;
+              let textH = contentBlock.scrollHeight;
+              let textW = contentBlock.scrollWidth;
               
-              if (textH > spaceH || textW > spaceW) {
+              if (textH > spaceH + 2 || textW > spaceW + 2) {
                   max = mid; // Vazou
               } else { 
-                  best = mid; min = mid; // Coube com folga, continua inflando
+                  best = mid; min = mid; // Coube e continua crescendo
               }
           }
           
-          // Aplica o tamanho, dá um respiro de 0.2pt e devolve o display original
           contentBlock.style.fontSize = Math.max(3.0, best - 0.2) + 'pt';
-          contentBlock.style.display = 'block'; 
+          docBody.style.overflow = 'hidden'; 
       });
       
-      // Religa o zoom perfeito
       if (typeof ajustarEscalaA4 === 'function') ajustarEscalaA4();
   }
 
