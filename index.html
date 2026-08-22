@@ -715,15 +715,23 @@
           // Joga o clone no sistema para poder medir
           document.body.appendChild(clone);
 
-                    const cloneBody = clone.querySelector('.doc-body');
+          const cloneBody = clone.querySelector('.doc-body');
           const cloneContent = clone.querySelector('.cifra-content');
-          const cloneHeader = clone.querySelector('.doc-header');  // ← ADICIONADA
+          const cloneContentArea = clone.querySelector('.a4-content-area');
+          const cloneHeader = clone.querySelector('.doc-header');
           
           // Limpa qualquer sobra de texto invisível no fundo
           cloneContent.innerHTML = cloneContent.innerHTML.replace(/(\s|<br>)+$/g, '');
           cloneBody.style.overflow = 'visible';
 
-          let spaceH = cloneBody.clientHeight;
+          // CORREÇÃO CORRETA: Mede a área de conteúdo e deduz o header
+          let spaceH = cloneContentArea.clientHeight;
+          if (cloneHeader) {
+              spaceH -= cloneHeader.clientHeight;
+              spaceH -= 6; // margin-bottom do header
+          }
+          spaceH -= 8; // buffer de segurança
+          
           let spaceW = cloneBody.clientWidth;
           
           // CORREÇÃO: Deduz a altura do cabeçalho
