@@ -832,53 +832,79 @@
 
   function autoFitText() {
       const pages = document.querySelectorAll('.a4-page:not(.hidden-preview)');
+      
       pages.forEach(page => {
-          const docBody = page.querySelector('.doc-body'); 
-          const contentBlock = page.querySelector('.cifra-content');
-          if (!contentBlock || !docBody) return;
+          const realContent = page.querySelector('.cifra-content');
+          const realBody = page.querySelector('.doc-body');
+          if (!realContent || !realBody) return;
           
-          contentBlock.innerHTML = contentBlock.innerHTML.replace(/(\s|<br>)+$/g, ''); 
-          
-          let spaceH = docBody.clientHeight;
-          let spaceW = docBody.clientWidth;
-          if (spaceH === 0 || spaceW === 0) return;
-          
-          contentBlock.style.lineHeight = '1.25';
-          
-          let minF = 3.0, maxF = 25.0, bestF = minF;
-          
-          // ESTÁGIO 1: Aumenta a fonte
-          for (let i = 0; i < 20; i++) {
-              let mid = (minF + maxF) / 2;
-              contentBlock.style.fontSize = mid + 'pt';
+          realContent.innerHTML = realContent.innerHTML.replace(/(\s|<br>)+$/g, ''); 
+
+          // 1. O CLONE FANTASMA: Cria uma cópia invisível, imune ao bug de zoom do iPhone
+          const clone = page.cloneNode(true);
+          clone.style.position = 'absolute';
+          clone.style.visibility = 'hidden';
+          clone.style.pointerEvents = 'none';
+          clone.style.top = '-9999px';
+          clone.style.left = '-9999px';
+          clone.style.transform = 'none'; // AQUI: Remove o zoom para o Safari não bugar!
+          clone.style.width = '210mm';    // Trava o tamanho A4 puro
+          clone.style.height = '297mm';
+          clone.style.margin = '0';
+
+          document.body.appendChild(clone);
+
+          const cloneBody = clone.querySelector('.doc-body');
+          const cloneContent = clone.querySelector('.cifra-content');
+
+          let spaceH = cloneBody.clientHeight;
+          let spaceW = cloneBody.clientWidth;
+
+          // Se a folha existe, a mágica acontece no clone
+          if (spaceH > 0 && spaceW > 0) {
+              cloneContent.style.lineHeight = '1.25';
+              let minF = 3.0, maxF = 25.0, bestF = minF;
               
-              if (contentBlock.scrollHeight > spaceH || contentBlock.scrollWidth > spaceW) {
-                  maxF = mid; 
-              } else { 
-                  bestF = mid; minF = mid; 
-              }
-          }
-          contentBlock.style.fontSize = Math.max(3.0, bestF - 0.2) + 'pt';
-          
-          // ESTÁGIO 2 (O ACORDEÃO SEM FREIOS): 
-          // Diminuímos a margem de tolerância e tiramos o recuo final.
-          if (contentBlock.scrollHeight < spaceH - 2) {
-              let minL = 1.25, maxL = 3.5, bestL = minL;
-              for (let i = 0; i < 15; i++) {
-                  let midL = (minL + maxL) / 2;
-                  contentBlock.style.lineHeight = midL;
+              // ESTÁGIO 1: Aumenta a fonte até o limite lateral/fundo
+              for (let i = 0; i < 20; i++) {
+                  let mid = (minF + maxF) / 2;
+                  cloneContent.style.fontSize = mid + 'pt';
                   
-                  if (contentBlock.scrollHeight > spaceH) {
-                      maxL = midL; 
-                  } else {
-                      bestL = midL; minL = midL; 
+                  if (cloneContent.scrollHeight > spaceH || cloneContent.scrollWidth > spaceW) {
+                      maxF = mid; 
+                  } else { 
+                      bestF = mid; minF = mid; 
                   }
               }
-              // Aplica o espaçamento exato e puro!
-              contentBlock.style.lineHeight = bestL;
+              cloneContent.style.fontSize = Math.max(3.0, bestF - 0.2) + 'pt';
+              
+              // ESTÁGIO 2 (ACORDEÃO): Estica a linha até lamber a margem inferior
+              let finalLineHeight = '1.25';
+              if (cloneContent.scrollHeight < spaceH - 2) {
+                  let minL = 1.25, maxL = 3.5, bestL = minL;
+                  for (let i = 0; i < 15; i++) {
+                      let midL = (minL + maxL) / 2;
+                      cloneContent.style.lineHeight = midL;
+                      
+                      if (cloneContent.scrollHeight > spaceH) {
+                          maxL = midL; 
+                      } else {
+                          bestL = midL; minL = midL; 
+                      }
+                  }
+                  finalLineHeight = bestL;
+              }
+
+              // 2. APLICAÇÃO CIRÚRGICA: Transfere os valores perfeitos do clone para a tela real!
+              realContent.style.fontSize = cloneContent.style.fontSize;
+              realContent.style.lineHeight = finalLineHeight;
           }
+
+          // 3. Destrói o clone sem deixar vestígios
+          document.body.removeChild(clone);
       });
       
+      // Ajusta o zoom visual na tela
       if (typeof ajustarEscalaA4 === 'function') ajustarEscalaA4();
   }
 
