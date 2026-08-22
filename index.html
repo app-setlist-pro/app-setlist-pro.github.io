@@ -221,6 +221,30 @@
     .badge, .tone-badge, .split-col-divider, .a4-page { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
     .capo-text { color: #dc2626 !important; }
   }
+
+/* ========================================== */
+  /* ALERTA CUSTOMIZADO (ESTILO APP NATIVO)     */
+  /* ========================================== */
+  .custom-alert-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); z-index: 99999;
+      display: flex; justify-content: center; align-items: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+  }
+  .custom-alert-overlay.show { opacity: 1; pointer-events: auto; }
+  .custom-alert-box {
+      background: #1e1e1e; color: #f3f4f6; padding: 20px 24px; border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 85%; max-width: 320px;
+      transform: scale(0.95); transition: transform 0.2s ease;
+      display: flex; flex-direction: column; gap: 20px; font-family: system-ui, sans-serif;
+  }
+  .custom-alert-overlay.show .custom-alert-box { transform: scale(1); }
+  .custom-alert-content { display: flex; align-items: center; gap: 12px; font-size: 16px; font-weight: 500; line-height: 1.4; }
+  .custom-alert-btn {
+      align-self: flex-end; background: transparent; color: #60a5fa; 
+      border: none; font-size: 15px; font-weight: 700; cursor: pointer; 
+      padding: 5px 10px; text-transform: uppercase;
+  }
 </style>
 </head>
 <body>
@@ -321,6 +345,45 @@
   let draggedItemIndex = null;
   let isDarkMode = false;
   let isDirty = false; // Indica se há alterações que não foram exportadas para o PC
+
+// ==========================================
+  // SUBSTITUI O ALERTA PADRÃO DO NAVEGADOR
+  // ==========================================
+  window.alert = function(mensagem) {
+      let existente = document.getElementById('custom-alert');
+      if (existente) existente.remove();
+
+      let overlay = document.createElement('div');
+      overlay.id = 'custom-alert';
+      overlay.className = 'custom-alert-overlay';
+      
+      // Coloca ícone de check verde se for sucesso, ou um alerta amarelo pros demais
+      let icon = mensagem.includes('sucesso') || mensagem.includes('✅') ? '✅' : '⚠️';
+      let textoLimpo = mensagem.replace('✅ ', ''); // Limpa o emoji antigo do texto
+
+      overlay.innerHTML = `
+          <div class="custom-alert-box">
+              <div class="custom-alert-content">
+                  <span style="font-size: 22px;">${icon}</span>
+                  <span>${textoLimpo}</span>
+              </div>
+              <button class="custom-alert-btn" onclick="fecharAlerta()">Fechar</button>
+          </div>
+      `;
+      
+      document.body.appendChild(overlay);
+      
+      // Pequeno atraso para a animação suave funcionar
+      setTimeout(() => overlay.classList.add('show'), 10);
+  };
+
+  window.fecharAlerta = function() {
+      let overlay = document.getElementById('custom-alert');
+      if (overlay) {
+          overlay.classList.remove('show');
+          setTimeout(() => overlay.remove(), 200);
+      }
+  };
 
   // 1. Salva tudo na memória oculta do celular
   function autoSaveToMemory() {
