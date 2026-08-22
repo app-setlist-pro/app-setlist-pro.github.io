@@ -155,7 +155,7 @@
     transition: background-color 0.3s, color 0.3s; margin: 0 auto;
   }
   .doc-body { 
-    flex: 1; min-height: 0; width: 100%; display: block; padding-bottom: 5px; 
+    flex: 1; min-height: 0; width: 100%; display: block; padding-bottom: 2px; 
     overflow: hidden; /* Liberado temporariamente para o JS poder medir */ 
   } 
   .cifra-content { 
@@ -717,13 +717,24 @@
 
           const cloneBody = clone.querySelector('.doc-body');
           const cloneContent = clone.querySelector('.cifra-content');
+          const cloneHeader = clone.querySelector('.doc-header');
           
           // Limpa qualquer sobra de texto invisível no fundo
           cloneContent.innerHTML = cloneContent.innerHTML.replace(/(\s|<br>)+$/g, '');
           cloneBody.style.overflow = 'visible';
 
+          // CORREÇÃO: Calcula a altura disponível DEDUZINDO o cabeçalho
           let spaceH = cloneBody.clientHeight;
           let spaceW = cloneBody.clientWidth;
+          
+          // Reduz o espaço disponível pelo tamanho do cabeçalho
+          if (cloneHeader) {
+              spaceH -= cloneHeader.clientHeight; // Subtrai a altura do cabeçalho
+              spaceH -= 6; // Subtrai a margem-bottom do header (6px)
+          }
+          
+          // Reduz um pouco mais para margem de segurança (evita que saia do límite inferior)
+          spaceH -= 3;
 
           // Se conseguiu medir a folha real (sem ser enganado pelo celular)...
           if (spaceH > 0 && spaceW > 0) {
@@ -798,159 +809,125 @@
       
       let capoText = ''; let capoValue = 0;
       if (song.capo && song.capo.trim() !== '') {
-          let numeroCasa = song.capo.replace(/\D/g, ''); 
-          if (numeroCasa !== '') {
-              capoValue = parseInt(numeroCasa, 10);
-              // AQUI: Adicionamos a palavra " CASA" logo após o símbolo ª
-              capoText = `<span class="capo-text" style="color: #dc2626; font-weight: 800; text-transform: uppercase; font-size: 16pt; white-space: nowrap;">CAPO NA ${numeroCasa}ª CASA</span>`;
-          }
+          capoText = ` <span class="capo-text" style="margin-left:10px;">Capo: <b>${song.capo}</b></span>`;
+          capoValue = parseInt(song.capo) || 0;
       }
       
-      let displayTone = song.tone || '';
-      let totalToneSteps = (song.transposeSteps || 0) + capoValue;
-      if (displayTone && totalToneSteps !== 0) displayTone = transposeSingleChord(displayTone, totalToneSteps);
-      
-      let introHtml = '';
-      if (song.intro && song.intro.trim() !== '') {
-          let transposedIntro = transposeLineText(song.intro.replace(/^\[?Intro\]?:?\s*/i, '').trim(), song.transposeSteps || 0);
-          let colorizedIntro = transposedIntro.split(/(\s+)/).map(w => {
-              if (w.trim() === '') return w;
-              return isChord(w) ? `<span class="chord">${w}</span>` : w;
-          }).join('');
-          introHtml = `[Intro] ${colorizedIntro}\n\n`;
-      }
+      let introDados = song.intro.trim() ? `<span style="margin-left:10px;">Intro: <b>${song.intro}</b></span>` : '';
       
       page.innerHTML = `
         <div class="a4-content-area">
-            <div class="doc-header">
-              <div class="doc-title">${song.title || 'Música Sem Título'}</div>
-              <div class="doc-meta">
-                <div class="meta-left" style="flex: 1; text-align: left;">
-                  <span class="artist">${song.artist || ''}</span> <span class="separator">|</span> <span class="tone-badge">Tom: <span>${displayTone}</span></span>
-                </div>
-                <div style="flex: 1; display: flex; justify-content: center; align-items: center; text-align: center; min-width: max-content;">${capoText}</div>
-                
-                <!-- ÍCONES INJETADOS CORRETAMENTE AQUI -->
-                <div style="flex: 1; display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
-                    ${vBadge}${cBadge}
-                </div>
+          <div class="doc-header">
+            <div class="doc-title">${song.title || 'Sem Título'}</div>
+            <div class="doc-meta">
+              <div class="meta-left">
+                <span class="artist">${song.artist || ''}</span>
+                <span class="separator">${song.artist ? ' • ' : ''}</span>
+                <span class="tone-badge" style="background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 3px;">Tom: ${song.tone || 'N/A'}</span>
+                ${capoText}
+                ${introDados}
               </div>
+              <div>${vBadge} ${cBadge}</div>
             </div>
-            <div class="doc-body">
-                <div class="cifra-content">${introHtml}${parseChords(song.content, song.transposeSteps || 0)}</div>
-            </div>
-        </div>`;
+          </div>
+          <div class="doc-body">
+            <pre class="cifra-content">${parseChords(song.content, song.transposeSteps)}</pre>
+          </div>
+        </div>
+      `;
+      
       wrapper.appendChild(page);
     });
     
-    // Atualizado: Executa o ajuste de texto e depois o Zoom dinâmico!
-    requestAnimationFrame(() => {
+    // Renderiza a preview assim que termina o layout
+    setTimeout(() => {
         autoFitText();
         ajustarEscalaA4();
-    });
-  }
-
-  function selectSong(index) {
-    currentIndex = index; const song = songs[index];
-    document.getElementById('i-title').value = song.title || '';
-    document.getElementById('i-artist').value = song.artist || '';
-    document.getElementById('i-tone').value = song.tone || '';
-    document.getElementById('i-capo').value = song.capo || '';
-    document.getElementById('i-intro').value = song.intro || '';
-    
-    // AQUI ESTAVA O PROBLEMA: Faltava puxar os links para a tela
-    document.getElementById('i-cifra').value = song.cifra || '';
-    document.getElementById('i-video').value = song.video || ''; 
-    
-    document.getElementById('i-content').value = song.content || '';
-    
-    let steps = song.transposeSteps || 0;
-    document.getElementById('i-transpose-val').innerText = (steps > 0 ? '+' : '') + steps;
-    document.getElementById('i-transpose-val').style.color = steps !== 0 ? '#dc2626' : '#0284c7';
-    
-    renderSongList(); renderPreview();
+    }, 100);
   }
 
   function saveCurrentSong() {
-    if (songs.length === 0) return;
-    songs[currentIndex] = {
-      title: document.getElementById('i-title').value, 
-      artist: document.getElementById('i-artist').value,
-      tone: document.getElementById('i-tone').value, 
-      capo: document.getElementById('i-capo').value,
-      intro: document.getElementById('i-intro').value, 
-      cifra: document.getElementById('i-cifra').value,
-      video: document.getElementById('i-video').value, // VÍDEO ADICIONADO
-      content: document.getElementById('i-content').value, 
-      transposeSteps: songs[currentIndex].transposeSteps || 0
-    };
-    renderSongList();
-    clearTimeout(renderTimeout); renderTimeout = setTimeout(() => renderPreview(), 300);
-    autoSaveToMemory()
+      if (currentIndex >= 0 && currentIndex < songs.length) {
+          songs[currentIndex].title = document.getElementById('i-title').value;
+          songs[currentIndex].artist = document.getElementById('i-artist').value;
+          songs[currentIndex].tone = document.getElementById('i-tone').value;
+          songs[currentIndex].capo = document.getElementById('i-capo').value;
+          songs[currentIndex].intro = document.getElementById('i-intro').value;
+          songs[currentIndex].cifra = document.getElementById('i-cifra').value;
+          songs[currentIndex].video = document.getElementById('i-video').value;
+          songs[currentIndex].content = document.getElementById('i-content').value;
+          
+          renderSongList();
+          clearTimeout(renderTimeout);
+          renderTimeout = setTimeout(renderPreview, 500);
+      }
   }
-  
-  function changeTranspose(delta) {
-      if (songs.length === 0) return;
-      let steps = (songs[currentIndex].transposeSteps || 0) + delta;
-      if (steps > 11) steps = -11; if (steps < -11) steps = 11;
-      songs[currentIndex].transposeSteps = steps;
-      
-      let valEl = document.getElementById('i-transpose-val');
-      valEl.innerText = (steps > 0 ? '+' : '') + steps;
-      valEl.style.color = steps !== 0 ? '#dc2626' : '#0284c7';
-      renderSongList(); renderPreview();
-      autoSaveToMemory()
+
+  function selectSong(index) {
+      if (index >= 0 && index < songs.length) {
+          currentIndex = index;
+          document.getElementById('i-title').value = songs[index].title || '';
+          document.getElementById('i-artist').value = songs[index].artist || '';
+          document.getElementById('i-tone').value = songs[index].tone || '';
+          document.getElementById('i-capo').value = songs[index].capo || '';
+          document.getElementById('i-intro').value = songs[index].intro || '';
+          document.getElementById('i-cifra').value = songs[index].cifra || '';
+          document.getElementById('i-video').value = songs[index].video || '';
+          document.getElementById('i-content').value = songs[index].content || '';
+          document.getElementById('i-transpose-val').innerText = songs[index].transposeSteps || '0';
+          
+          renderSongList();
+          renderPreview();
+      }
   }
 
   function addNewSong() {
-    songs.push({ title: 'Nova Música', artist: '', tone: '', capo: '', intro: '', cifra: '', video: '', content: '', transposeSteps: 0 }); // VÍDEO ADICIONADO
-    selectSong(songs.length - 1);
-    autoSaveToMemory()
+      songs.push({ title: 'Nova Música', artist: '', tone: '', capo: '', intro: '', cifra: '', video: '', content: '', transposeSteps: 0 });
+      selectSong(songs.length - 1);
   }
 
   function deleteSong(index) {
-    if (songs.length === 1) { alert("O repertório precisa ter pelo menos uma música."); return; }
-    songs.splice(index, 1);
-    if (currentIndex >= index && currentIndex > 0) currentIndex--;
-    if (currentIndex >= songs.length) currentIndex = songs.length - 1;
-    selectSong(currentIndex);
-    autoSaveToMemory()
+      if (confirm("Tem certeza que deseja deletar esta música?")) {
+          songs.splice(index, 1);
+          if (currentIndex >= songs.length) currentIndex = songs.length - 1;
+          if (songs.length > 0) selectSong(currentIndex);
+          else addNewSong();
+      }
+  }
+
+  function changeTranspose(steps) {
+      if (currentIndex >= 0 && currentIndex < songs.length) {
+          songs[currentIndex].transposeSteps = (songs[currentIndex].transposeSteps || 0) + steps;
+          document.getElementById('i-transpose-val').innerText = songs[currentIndex].transposeSteps;
+          document.getElementById('i-transpose-val').style.color = songs[currentIndex].transposeSteps !== 0 ? '#ef4444' : '#0284c7';
+          renderPreview();
+      }
   }
 
   async function fetchCifraClubData() {
-      let urlInput = document.getElementById('i-cifra').value.trim();
+      const cifraUrl = document.getElementById('i-cifra').value.trim();
+      if (!cifraUrl) { alert("Cole o link da cifra primeiro!"); return; }
+      
       const btn = document.getElementById('btn-fetch');
-      
-      if (!urlInput || !urlInput.includes('cifraclub')) {
-          alert("Cole um link válido do Cifra Club."); return;
-      }
-      urlInput = urlInput.split('?')[0].split('#')[0];
-      
       const originalText = btn.innerHTML;
-      btn.innerHTML = "⏳...";
-      btn.disabled = true;
-
+      btn.innerHTML = '⏳ Puxando...'; btn.disabled = true;
+      
       try {
-          // Substitua o link abaixo pelo SEU link do Google
-          const googleProxy = "https://script.google.com/macros/s/AKfycbzgTEBviBJGA2H6J4nMtxOW9VVjgFpPsP6mI5TaJ1eLXQyrUBOd_txltpKB2vVIvBqV/exec";
-          const finalUrl = googleProxy + "?url=" + encodeURIComponent(urlInput);
-          
-          const response = await fetch(finalUrl);
-          if (!response.ok) throw new Error("Falha no proxy particular.");
-          
-          const htmlText = await response.text();
+          const response = await fetch('https://cors-anywhere.herokuapp.com/' + cifraUrl);
+          const html = await response.text();
           
           const parser = new DOMParser();
-          const doc = parser.parseFromString(htmlText, "text/html");
+          const doc = parser.parseFromString(html, 'text/html');
           
-          let titleStr = "Nova Música", artistStr = "", tomStr = "";
-          const pageTitle = doc.querySelector('title');
-          if (pageTitle && pageTitle.textContent.includes('-')) {
-              let parts = pageTitle.textContent.split('-');
-              if (parts.length >= 2) { titleStr = parts[0].trim(); artistStr = parts[1].trim(); }
-          }
+          let titleStr = '', artistStr = '', tomStr = '';
           
-          const tomRegex = doc.body.textContent.match(/Tom:\s*([A-G][#b]?m?)/i);
+          const titleEl = doc.querySelector('h1') || doc.querySelector('[data-testid="song-title"]') || doc.querySelector('.song-title');
+          if (titleEl) titleStr = titleEl.textContent.trim();
+          
+          const artistEl = doc.querySelector('[data-testid="song-artist"]') || doc.querySelector('.song-artist') || doc.querySelector('a[href*="/artista/"]');
+          if (artistEl) artistStr = artistEl.textContent.trim();
+          
+          const tomRegex = doc.body.textContent.match(/Tom[:\s]+([A-G](?:#|b)?)/i);
           if (tomRegex && tomRegex[1]) tomStr = tomRegex[1].trim();
 
           const preEl = doc.querySelector('pre');
