@@ -20,6 +20,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JR Cifras</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root { --primary: #0284c7; --bg: #f8fafc; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -159,9 +160,9 @@
     overflow: hidden; /* Liberado temporariamente para o JS poder medir */ 
   } 
   .cifra-content { 
-      font-family: 'Consolas', 'Courier New', monospace; font-size: 10pt; line-height: 1.25; 
+      font-family: 'Roboto Mono', monospace; /* FONTE UNIVERSAL TRAVADA */
+      font-size: 10pt; line-height: 1.25; 
       white-space: pre; color: #000000; overflow: visible; 
-      /* NOVO: Proíbe o celular de inflar fontes secretamente */
       -webkit-text-size-adjust: none; text-size-adjust: none; 
   }
   .chord { color: #d97706 !important; font-weight: bold !important; }
@@ -695,65 +696,55 @@
   }
 
   function autoFitText() {
-      // Pega apenas as páginas que estão na tela
       const pages = document.querySelectorAll('.a4-page:not(.hidden-preview)');
-      
       pages.forEach(page => {
+          const docBody = page.querySelector('.doc-body'); 
           const contentBlock = page.querySelector('.cifra-content');
-          if (!contentBlock) return;
-
-          // 1. O PULO DO GATO: Cria um clone invisível da página
-          const clone = page.cloneNode(true);
+          if (!contentBlock || !docBody) return;
           
-          // 2. Coloca o clone fora da tela, travado em tamanho real e sem zoom
-          clone.style.position = 'fixed';
-          clone.style.top = '-9999px';
-          clone.style.left = '-9999px';
-          clone.style.transform = 'none'; // Garante imunidade contra o bug do celular
-          clone.style.visibility = 'hidden';
+          // Limpa as sobras finais
+          contentBlock.innerHTML = contentBlock.innerHTML.replace(/(\s|<br>)+$/g, ''); 
           
-          // Joga o clone no sistema para poder medir
-          document.body.appendChild(clone);
-
-          const cloneBody = clone.querySelector('.doc-body');
-          const cloneContent = clone.querySelector('.cifra-content');
+          let spaceH = docBody.clientHeight;
+          let spaceW = docBody.clientWidth;
+          if (spaceH === 0 || spaceW === 0) return;
           
-          // Limpa qualquer sobra de texto invisível no fundo
-          cloneContent.innerHTML = cloneContent.innerHTML.replace(/(\s|<br>)+$/g, '');
-          cloneBody.style.overflow = 'visible';
-
-          let spaceH = cloneBody.clientHeight;
-          let spaceW = cloneBody.clientWidth;
-
-          // Se conseguiu medir a folha real (sem ser enganado pelo celular)...
-          if (spaceH > 0 && spaceW > 0) {
-              let min = 3.0, max = 25.0, best = min;
+          // Reseta o espaçamento de linha antes de começar
+          contentBlock.style.lineHeight = '1.25';
+          
+          let minF = 3.0, maxF = 25.0, bestF = minF;
+          
+          // ESTÁGIO 1: Aumenta o tamanho da letra até bater na lateral ou no fundo
+          for (let i = 0; i < 20; i++) {
+              let mid = (minF + maxF) / 2;
+              contentBlock.style.fontSize = mid + 'pt';
               
-              for (let i = 0; i < 20; i++) {
-                  let mid = (min + max) / 2;
-                  cloneContent.style.fontSize = mid + 'pt';
-
-                  let textH = cloneContent.scrollHeight;
-                  let textW = cloneContent.scrollWidth;
-
-                  // Testa a colisão no clone perfeito
-                  if (textH > spaceH || textW > spaceW) {
-                      max = mid; // Vazou
+              if (contentBlock.scrollHeight > spaceH || contentBlock.scrollWidth > spaceW) {
+                  maxF = mid; // Vazou
+              } else { 
+                  bestF = mid; minF = mid; // Coube
+              }
+          }
+          contentBlock.style.fontSize = Math.max(3.0, bestF - 0.2) + 'pt';
+          
+          // ESTÁGIO 2 (O ACORDEÃO): Se travou por causa da largura, sobrou espaço no fundo.
+          // Então nós esticamos o espaço entre as linhas até o texto chegar lá embaixo!
+          if (contentBlock.scrollHeight < spaceH - 10) {
+              let minL = 1.25, maxL = 3.5, bestL = minL;
+              for (let i = 0; i < 15; i++) {
+                  let midL = (minL + maxL) / 2;
+                  contentBlock.style.lineHeight = midL;
+                  
+                  if (contentBlock.scrollHeight > spaceH) {
+                      maxL = midL; // Passou do fundo
                   } else {
-                      best = mid; min = mid; // Coube
+                      bestL = midL; minL = midL; // Coube
                   }
               }
-              
-              // 3. Aplica a matemática exata na página REAL que você está vendo
-              contentBlock.innerHTML = contentBlock.innerHTML.replace(/(\s|<br>)+$/g, '');
-              contentBlock.style.fontSize = Math.max(3.0, best - 0.2) + 'pt';
+              contentBlock.style.lineHeight = Math.max(1.25, bestL - 0.02);
           }
-
-          // 4. Destrói o clone fantasma
-          document.body.removeChild(clone);
       });
-
-      // Aplica o enquadramento de zoom visual para o celular
+      
       if (typeof ajustarEscalaA4 === 'function') ajustarEscalaA4();
   }
 
