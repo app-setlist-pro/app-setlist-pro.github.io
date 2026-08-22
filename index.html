@@ -156,8 +156,9 @@
     transition: background-color 0.3s, color 0.3s; margin: 0 auto;
   }
   .doc-body { 
-    flex: 1; min-height: 0; width: 100%; display: block; padding-bottom: 5px; 
-    overflow: hidden; /* Liberado temporariamente para o JS poder medir */ 
+    flex: 1; min-height: 0; width: 100%; display: block; 
+    padding-bottom: 0; /* AQUI: Zeramos o empurrão fantasma! */
+    overflow: hidden; 
   } 
   .cifra-content { 
       font-family: 'Roboto Mono', monospace; /* FONTE UNIVERSAL TRAVADA */
@@ -702,46 +703,45 @@
           const contentBlock = page.querySelector('.cifra-content');
           if (!contentBlock || !docBody) return;
           
-          // Limpa as sobras finais
           contentBlock.innerHTML = contentBlock.innerHTML.replace(/(\s|<br>)+$/g, ''); 
           
           let spaceH = docBody.clientHeight;
           let spaceW = docBody.clientWidth;
           if (spaceH === 0 || spaceW === 0) return;
           
-          // Reseta o espaçamento de linha antes de começar
           contentBlock.style.lineHeight = '1.25';
           
           let minF = 3.0, maxF = 25.0, bestF = minF;
           
-          // ESTÁGIO 1: Aumenta o tamanho da letra até bater na lateral ou no fundo
+          // ESTÁGIO 1: Aumenta a fonte
           for (let i = 0; i < 20; i++) {
               let mid = (minF + maxF) / 2;
               contentBlock.style.fontSize = mid + 'pt';
               
               if (contentBlock.scrollHeight > spaceH || contentBlock.scrollWidth > spaceW) {
-                  maxF = mid; // Vazou
+                  maxF = mid; 
               } else { 
-                  bestF = mid; minF = mid; // Coube
+                  bestF = mid; minF = mid; 
               }
           }
           contentBlock.style.fontSize = Math.max(3.0, bestF - 0.2) + 'pt';
           
-          // ESTÁGIO 2 (O ACORDEÃO): Se travou por causa da largura, sobrou espaço no fundo.
-          // Então nós esticamos o espaço entre as linhas até o texto chegar lá embaixo!
-          if (contentBlock.scrollHeight < spaceH - 10) {
+          // ESTÁGIO 2 (O ACORDEÃO SEM FREIOS): 
+          // Diminuímos a margem de tolerância e tiramos o recuo final.
+          if (contentBlock.scrollHeight < spaceH - 2) {
               let minL = 1.25, maxL = 3.5, bestL = minL;
               for (let i = 0; i < 15; i++) {
                   let midL = (minL + maxL) / 2;
                   contentBlock.style.lineHeight = midL;
                   
                   if (contentBlock.scrollHeight > spaceH) {
-                      maxL = midL; // Passou do fundo
+                      maxL = midL; 
                   } else {
-                      bestL = midL; minL = midL; // Coube
+                      bestL = midL; minL = midL; 
                   }
               }
-              contentBlock.style.lineHeight = Math.max(1.25, bestL - 0.02);
+              // Aplica o espaçamento exato e puro!
+              contentBlock.style.lineHeight = bestL;
           }
       });
       
