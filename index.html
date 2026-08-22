@@ -23,7 +23,11 @@
 <style>
   :root { --primary: #0284c7; --bg: #f8fafc; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: system-ui, sans-serif; background: #e2e8f0; color: #1e293b; padding: 20px; }
+  body { 
+      font-family: system-ui, sans-serif; background: #e2e8f0; color: #1e293b; padding: 20px; 
+      /* NOVO: Proíbe o celular de inflar fontes secretamente */
+      -webkit-text-size-adjust: none; text-size-adjust: none; 
+  }
   
   .no-print {
     width: 100%; margin: 0 auto 20px auto; background: white; padding: 20px; border-radius: 8px;
@@ -154,7 +158,12 @@
     flex: 1; min-height: 0; width: 100%; display: block; padding-bottom: 5px; 
     overflow: hidden; /* Liberado temporariamente para o JS poder medir */ 
   } 
-  .cifra-content { font-family: 'Consolas', 'Courier New', monospace; font-size: 10pt; line-height: 1.25; white-space: pre; color: #000000; overflow: visible; }
+  .cifra-content { 
+      font-family: 'Consolas', 'Courier New', monospace; font-size: 10pt; line-height: 1.25; 
+      white-space: pre; color: #000000; overflow: visible; 
+      /* NOVO: Proíbe o celular de inflar fontes secretamente */
+      -webkit-text-size-adjust: none; text-size-adjust: none; 
+  }
   .chord { color: #d97706 !important; font-weight: bold !important; }
   hr.divider { border: 0; border-top: 2px solid #000000; margin: 10px 0 20px 0; }
   .split-block { display: flex; width: 100%; gap: 15px; margin-bottom: 2px; }
@@ -686,7 +695,7 @@
   }
 
   function autoFitText() {
-      // A GRANDE MÁGICA PRO ANDROID: Tira o zoom da tela por 1 milissegundo para medir a margem real!
+      // 1. Tira o zoom da tela por 1 milissegundo para medir a margem real
       const wrapper = document.getElementById('a4-wrapper');
       if (wrapper) { wrapper.style.transform = 'none'; }
 
@@ -696,9 +705,9 @@
           const contentBlock = page.querySelector('.cifra-content');
           if (!contentBlock || !docBody) return;
           
-          contentBlock.innerHTML = contentBlock.innerHTML.replace(/\n$/, ''); 
+          // A GRANDE MÁGICA: Suga TODOS os espaços e quebras de linha fantasmas do final da música!
+          contentBlock.innerHTML = contentBlock.innerHTML.replace(/\s+$/, ''); 
           
-          // Libera a caixa e usa o offsetHeight que é mais preciso no Android Chrome
           docBody.style.overflow = 'visible'; 
           
           let min = 3.0, max = 22.0, best = min;
@@ -706,13 +715,13 @@
               let mid = (min + max) / 2;
               contentBlock.style.fontSize = mid + 'pt';
               
-              let textHeight = contentBlock.offsetHeight;
-              let textWidth = contentBlock.offsetWidth;
-              let spaceHeight = docBody.offsetHeight;
-              let spaceWidth = docBody.offsetWidth;
+              // Scroll pega o tamanho real do texto; Client pega o espaço real do papel
+              let textHeight = contentBlock.scrollHeight;
+              let textWidth = contentBlock.scrollWidth;
+              let spaceHeight = docBody.clientHeight;
+              let spaceWidth = docBody.clientWidth;
               
-              // Compara os pixels com precisão e tolerância de 2px
-              if (textHeight > spaceHeight + 2 || textWidth > spaceWidth + 2) {
+              if (textHeight > spaceHeight + 1 || textWidth > spaceWidth + 1) {
                   max = mid; // Vazou
               } else { 
                   best = mid; min = mid; // Coube e continua crescendo
@@ -723,8 +732,10 @@
           docBody.style.overflow = 'hidden'; 
       });
       
-      // A função ajustarEscalaA4() será disparada logo em seguida lá no renderPreview() 
-      // e vai devolver o zoom perfeito para a tela!
+      // 2. Religa o zoom da tela
+      if (typeof ajustarEscalaA4 === 'function') {
+          ajustarEscalaA4();
+      }
   }
 
   // Nova função para dar o "Zoom Perfeito" em qualquer tela
