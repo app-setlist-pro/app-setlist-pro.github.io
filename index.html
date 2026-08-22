@@ -695,46 +695,65 @@
   }
 
   function autoFitText() {
-      const pages = document.querySelectorAll('.a4-page');
+      // Pega apenas as páginas que estão na tela
+      const pages = document.querySelectorAll('.a4-page:not(.hidden-preview)');
       
       pages.forEach(page => {
-          const docBody = page.querySelector('.doc-body'); 
           const contentBlock = page.querySelector('.cifra-content');
-          if (!contentBlock || !docBody) return;
+          if (!contentBlock) return;
+
+          // 1. O PULO DO GATO: Cria um clone invisível da página
+          const clone = page.cloneNode(true);
           
-          // 1. Limpa espaços e quebras de linha fantasmas no final da cifra
-          contentBlock.innerHTML = contentBlock.innerHTML.replace(/(\s|<br>)+$/g, ''); 
+          // 2. Coloca o clone fora da tela, travado em tamanho real e sem zoom
+          clone.style.position = 'fixed';
+          clone.style.top = '-9999px';
+          clone.style.left = '-9999px';
+          clone.style.transform = 'none'; // Garante imunidade contra o bug do celular
+          clone.style.visibility = 'hidden';
           
-          // 2. Medidas reais da folha A4 (Imunes ao zoom do celular)
-          let spaceH = docBody.clientHeight;
-          let spaceW = docBody.clientWidth;
+          // Joga o clone no sistema para poder medir
+          document.body.appendChild(clone);
+
+          const cloneBody = clone.querySelector('.doc-body');
+          const cloneContent = clone.querySelector('.cifra-content');
           
-          // Trava de Segurança: Se o celular bugar e zerar a caixa, aborta!
-          if (spaceH === 0 || spaceW === 0) return;
-          
-          let min = 3.0, max = 25.0, best = min;
-          
-          // 3. Motor de Cálculo Limpo
-          for (let i = 0; i < 20; i++) {
-              let mid = (min + max) / 2;
-              contentBlock.style.fontSize = mid + 'pt';
+          // Limpa qualquer sobra de texto invisível no fundo
+          cloneContent.innerHTML = cloneContent.innerHTML.replace(/(\s|<br>)+$/g, '');
+          cloneBody.style.overflow = 'visible';
+
+          let spaceH = cloneBody.clientHeight;
+          let spaceW = cloneBody.clientWidth;
+
+          // Se conseguiu medir a folha real (sem ser enganado pelo celular)...
+          if (spaceH > 0 && spaceW > 0) {
+              let min = 3.0, max = 25.0, best = min;
               
-              let textH = contentBlock.scrollHeight;
-              let textW = contentBlock.scrollWidth;
-              
-              // Se a tinta encostar no fundo OU nas laterais, ele recua.
-              if (textH > spaceH || textW > spaceW) {
-                  max = mid; 
-              } else { 
-                  best = mid; min = mid; 
+              for (let i = 0; i < 20; i++) {
+                  let mid = (min + max) / 2;
+                  cloneContent.style.fontSize = mid + 'pt';
+
+                  let textH = cloneContent.scrollHeight;
+                  let textW = cloneContent.scrollWidth;
+
+                  // Testa a colisão no clone perfeito
+                  if (textH > spaceH || textW > spaceW) {
+                      max = mid; // Vazou
+                  } else {
+                      best = mid; min = mid; // Coube
+                  }
               }
+              
+              // 3. Aplica a matemática exata na página REAL que você está vendo
+              contentBlock.innerHTML = contentBlock.innerHTML.replace(/(\s|<br>)+$/g, '');
+              contentBlock.style.fontSize = Math.max(3.0, best - 0.2) + 'pt';
           }
-          
-          // 4. Aplica o tamanho mágico e dá um leve respiro (0.2pt) para não colar na borda
-          contentBlock.style.fontSize = Math.max(3.0, best - 0.2) + 'pt';
+
+          // 4. Destrói o clone fantasma
+          document.body.removeChild(clone);
       });
-      
-      // Ajusta o enquadramento da tela por último
+
+      // Aplica o enquadramento de zoom visual para o celular
       if (typeof ajustarEscalaA4 === 'function') ajustarEscalaA4();
   }
 
