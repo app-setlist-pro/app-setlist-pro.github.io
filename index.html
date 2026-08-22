@@ -695,7 +695,6 @@
   }
 
   function autoFitText() {
-      // 1. Tira o zoom da tela por 1 milissegundo para o Android medir a régua real
       const wrapper = document.getElementById('a4-wrapper');
       if (wrapper) { wrapper.style.transform = 'none'; }
 
@@ -705,38 +704,39 @@
           const contentBlock = page.querySelector('.cifra-content');
           if (!contentBlock || !docBody) return;
           
-          // O ASPIRADOR DE PÓ: Arranca linhas e espaços vazios do final da música!
-          let htmlLimpo = contentBlock.innerHTML.replace(/(\s|<br>)+$/g, '');
-          contentBlock.innerHTML = htmlLimpo; 
+          contentBlock.innerHTML = contentBlock.innerHTML.replace(/(\s|<br>)+$/g, ''); 
           
-          docBody.style.overflow = 'auto'; 
+          // A ARMA SECRETA: Embala a caixa a vácuo nas letras para o Android medir o tamanho real
+          contentBlock.style.display = 'inline-block'; 
+          
+          // TRAVA ABSOLUTA: Proíbe o Chrome de imaginar barras de rolagem durante a medição
+          docBody.style.overflow = 'hidden'; 
           
           let min = 3.0, max = 25.0, best = min;
           
-          // Motor de Busca Binária
           for (let i = 0; i < 20; i++) {
               let mid = (min + max) / 2;
               contentBlock.style.fontSize = mid + 'pt';
               
-              let textH = contentBlock.scrollHeight;
-              let textW = contentBlock.scrollWidth;
+              // Mede a altura e largura exatas da "tinta"
+              let textH = contentBlock.offsetHeight;
+              let textW = contentBlock.offsetWidth;
               let spaceH = docBody.clientHeight;
               let spaceW = docBody.clientWidth;
               
-              // Verifica se a música bateu no Fundo OU bateu nas Laterais
               if (textH > spaceH || textW > spaceW) {
-                  max = mid; // Bateu na parede, recua
+                  max = mid; // Vazou
               } else { 
-                  best = mid; min = mid; // Tem espaço, continua crescendo
+                  best = mid; min = mid; // Coube com folga, continua inflando
               }
           }
           
-          // Aplica o tamanho perfeito e trava a caixa
+          // Aplica o tamanho, dá um respiro de 0.2pt e devolve o display original
           contentBlock.style.fontSize = Math.max(3.0, best - 0.2) + 'pt';
-          docBody.style.overflow = 'hidden'; 
+          contentBlock.style.display = 'block'; 
       });
       
-      // 2. Religa o zoom perfeito da tela
+      // Religa o zoom perfeito
       if (typeof ajustarEscalaA4 === 'function') ajustarEscalaA4();
   }
 
