@@ -18,7 +18,7 @@
 </script>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JR Cifras</title>
 <style>
   :root { --primary: #0284c7; --bg: #f8fafc; }
@@ -686,9 +686,9 @@
   }
 
   function autoFitText() {
-      // 1. DESLIGA O ZOOM ANTES DE MEDIR (Evita que o Android seja enganado)
+      // A GRANDE MÁGICA PRO ANDROID: Tira o zoom da tela por 1 milissegundo para medir a margem real!
       const wrapper = document.getElementById('a4-wrapper');
-      if (wrapper) wrapper.style.transform = 'none';
+      if (wrapper) { wrapper.style.transform = 'none'; }
 
       const pages = document.querySelectorAll('.a4-page');
       pages.forEach(page => {
@@ -697,33 +697,34 @@
           if (!contentBlock || !docBody) return;
           
           contentBlock.innerHTML = contentBlock.innerHTML.replace(/\n$/, ''); 
-          docBody.style.overflow = 'auto'; 
+          
+          // Libera a caixa e usa o offsetHeight que é mais preciso no Android Chrome
+          docBody.style.overflow = 'visible'; 
           
           let min = 3.0, max = 22.0, best = min;
           for (let i = 0; i < 15; i++) {
               let mid = (min + max) / 2;
               contentBlock.style.fontSize = mid + 'pt';
               
-              let forceReflow = contentBlock.offsetHeight; 
-              let textHeight = contentBlock.getBoundingClientRect().height;
-              let spaceHeight = docBody.clientHeight;
-              let textWidth = contentBlock.scrollWidth;
-              let spaceWidth = docBody.clientWidth;
+              let textHeight = contentBlock.offsetHeight;
+              let textWidth = contentBlock.offsetWidth;
+              let spaceHeight = docBody.offsetHeight;
+              let spaceWidth = docBody.offsetWidth;
               
-              if (textHeight > spaceHeight + 1 || textWidth > spaceWidth + 1) {
+              // Compara os pixels com precisão e tolerância de 2px
+              if (textHeight > spaceHeight + 2 || textWidth > spaceWidth + 2) {
                   max = mid; // Vazou
               } else { 
-                  best = mid; min = mid; // Coube
+                  best = mid; min = mid; // Coube e continua crescendo
               }
           }
+          // Aplica o tamanho perfeito e trava a caixa
           contentBlock.style.fontSize = Math.max(3.0, best - 0.2) + 'pt';
           docBody.style.overflow = 'hidden'; 
       });
-
-      // 2. RELIGA O ZOOM AUTOMATICAMENTE APÓS TERMINAR AS MEDIDAS
-      if (typeof ajustarEscalaA4 === 'function') {
-          ajustarEscalaA4();
-      }
+      
+      // A função ajustarEscalaA4() será disparada logo em seguida lá no renderPreview() 
+      // e vai devolver o zoom perfeito para a tela!
   }
 
   // Nova função para dar o "Zoom Perfeito" em qualquer tela
