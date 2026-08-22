@@ -838,81 +838,82 @@
           const realBody = page.querySelector('.doc-body');
           if (!realContent || !realBody) return;
           
-          realContent.innerHTML = realContent.innerHTML.replace(/(\s|<br>)+$/g, ''); 
+          // Limpa quebras de linha fantasmas
+          let cleanHTML = realContent.innerHTML.replace(/(\s|<br>)+$/g, ''); 
+          realContent.innerHTML = cleanHTML;
 
-          // 1. CAIXA DE MEDIÇÃO BLINDADA PARA O IPHONE
-          // Mantém o elemento ativo no DOM, mas fora do alcance visual
-          const measureBox = document.createElement('div');
-          measureBox.style.position = 'fixed';
-          measureBox.style.top = '0';
-          measureBox.style.left = '200%'; 
-          measureBox.style.width = '210mm';
-          measureBox.style.height = '297mm';
-          measureBox.style.visibility = 'hidden';
-          measureBox.style.pointerEvents = 'none';
-          measureBox.style.zIndex = '-1';
+          // Pega o tamanho REAL da área de texto (imune ao zoom)
+          let spaceH = realBody.offsetHeight;
+          let spaceW = realBody.offsetWidth;
+
+          if (spaceH === 0 || spaceW === 0) return;
+
+          // ==============================================================
+          // 1. O SIMULADOR ISOLADO: A Mágica Anti-Bug do iPhone
+          // ==============================================================
+          const sandbox = document.createElement('div');
+          sandbox.style.position = 'absolute';
+          sandbox.style.top = '0';
+          sandbox.style.left = '0';
+          sandbox.style.width = spaceW + 'px';
+          sandbox.style.height = spaceH + 'px';
+          sandbox.style.opacity = '0'; // Mantém invisível, mas obriga o iPhone a renderizar!
+          sandbox.style.pointerEvents = 'none';
+          sandbox.style.zIndex = '-9999';
+          sandbox.style.overflow = 'visible';
+
+          // Copia as propriedades tipográficas perfeitamente
+          sandbox.style.fontFamily = "'Roboto Mono', monospace";
+          sandbox.style.whiteSpace = "pre";
+          sandbox.style.color = "#000";
+          sandbox.innerHTML = cleanHTML;
+
+          // Joga o simulador no celular (fora da zona de zoom)
+          document.body.appendChild(sandbox);
+
+          let minF = 3.0, maxF = 25.0, bestF = minF;
           
-          const clone = page.cloneNode(true);
-          clone.style.transform = 'none'; // Sem zoom
-          clone.style.margin = '0';
-          
-          measureBox.appendChild(clone);
-          document.body.appendChild(measureBox);
-
-          const cloneBody = clone.querySelector('.doc-body');
-          const cloneContent = clone.querySelector('.cifra-content');
-
-          let spaceH = cloneBody.clientHeight;
-          let spaceW = cloneBody.clientWidth;
-
-          if (spaceH > 0 && spaceW > 0) {
-              cloneContent.style.lineHeight = '1.25';
-              let minF = 3.0, maxF = 25.0, bestF = minF;
+          // ESTÁGIO 1: Aumenta a Fonte
+          sandbox.style.lineHeight = '1.25';
+          for (let i = 0; i < 20; i++) {
+              let mid = (minF + maxF) / 2;
+              sandbox.style.fontSize = mid + 'pt';
               
-              // ESTÁGIO 1: Aumenta a fonte
-              for (let i = 0; i < 20; i++) {
-                  let mid = (minF + maxF) / 2;
-                  cloneContent.style.fontSize = mid + 'pt';
+              if (sandbox.scrollHeight > spaceH || sandbox.scrollWidth > spaceW) {
+                  maxF = mid; 
+              } else { 
+                  bestF = mid; minF = mid; 
+              }
+          }
+          
+          let bestFontSize = Math.max(3.0, bestF - 0.2);
+          sandbox.style.fontSize = bestFontSize + 'pt';
+          
+          // ESTÁGIO 2 (O ACORDEÃO): Estica a linha
+          let finalLineHeight = 1.25;
+          if (sandbox.scrollHeight < spaceH - 2) {
+              let minL = 1.25, maxL = 3.5, bestL = minL;
+              for (let i = 0; i < 15; i++) {
+                  let midL = (minL + maxL) / 2;
+                  sandbox.style.lineHeight = midL;
                   
-                  // O CHICOTE NO SAFARI: Obriga o iOS a recalcular a tela na hora!
-                  void cloneContent.offsetHeight; 
-                  
-                  if (cloneContent.scrollHeight > spaceH || cloneContent.scrollWidth > spaceW) {
-                      maxF = mid; 
-                  } else { 
-                      bestF = mid; minF = mid; 
+                  if (sandbox.scrollHeight > spaceH) {
+                      maxL = midL; 
+                  } else {
+                      bestL = midL; minL = midL; 
                   }
               }
-              cloneContent.style.fontSize = Math.max(3.0, bestF - 0.2) + 'pt';
-              void cloneContent.offsetHeight; 
-              
-              // ESTÁGIO 2: O Acordeão (Estica as linhas)
-              let finalLineHeight = '1.25';
-              if (cloneContent.scrollHeight < spaceH - 2) {
-                  let minL = 1.25, maxL = 3.5, bestL = minL;
-                  for (let i = 0; i < 15; i++) {
-                      let midL = (minL + maxL) / 2;
-                      cloneContent.style.lineHeight = midL;
-                      
-                      // O CHICOTE NO SAFARI 2: Obriga a medir o acordeão
-                      void cloneContent.offsetHeight; 
-                      
-                      if (cloneContent.scrollHeight > spaceH) {
-                          maxL = midL; 
-                      } else {
-                          bestL = midL; minL = midL; 
-                      }
-                  }
-                  finalLineHeight = bestL;
-              }
-
-              // 2. APLICAÇÃO CIRÚRGICA: Transfere os valores perfeitos do clone para a tela real
-              realContent.style.fontSize = cloneContent.style.fontSize;
-              realContent.style.lineHeight = finalLineHeight;
+              finalLineHeight = bestL;
           }
 
-          // 3. Destrói a caixa fantasma
-          document.body.removeChild(measureBox);
+          // ==============================================================
+          // 2. APLICAÇÃO CIRÚRGICA: Transfere os valores para a tela real!
+          // ==============================================================
+          realContent.style.fontSize = bestFontSize + 'pt';
+          realContent.style.lineHeight = finalLineHeight;
+
+          // 3. Destrói o simulador sem deixar rastros
+          document.body.removeChild(sandbox);
       });
       
       // Ajusta o zoom visual na tela
