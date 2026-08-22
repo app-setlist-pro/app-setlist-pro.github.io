@@ -695,7 +695,7 @@
   }
 
   function autoFitText() {
-      // 1. Tira o zoom da tela por 1 milissegundo para medir a margem real
+      // 1. Tira o zoom da tela por 1 milissegundo para o Android medir a régua real
       const wrapper = document.getElementById('a4-wrapper');
       if (wrapper) { wrapper.style.transform = 'none'; }
 
@@ -705,37 +705,39 @@
           const contentBlock = page.querySelector('.cifra-content');
           if (!contentBlock || !docBody) return;
           
-          // A GRANDE MÁGICA: Suga TODOS os espaços e quebras de linha fantasmas do final da música!
-          contentBlock.innerHTML = contentBlock.innerHTML.replace(/\s+$/, ''); 
+          // O ASPIRADOR DE PÓ: Arranca linhas e espaços vazios do final da música!
+          let htmlLimpo = contentBlock.innerHTML.replace(/(\s|<br>)+$/g, '');
+          contentBlock.innerHTML = htmlLimpo; 
           
-          docBody.style.overflow = 'visible'; 
+          docBody.style.overflow = 'auto'; 
           
-          let min = 3.0, max = 22.0, best = min;
-          for (let i = 0; i < 15; i++) {
+          let min = 3.0, max = 25.0, best = min;
+          
+          // Motor de Busca Binária
+          for (let i = 0; i < 20; i++) {
               let mid = (min + max) / 2;
               contentBlock.style.fontSize = mid + 'pt';
               
-              // Scroll pega o tamanho real do texto; Client pega o espaço real do papel
-              let textHeight = contentBlock.scrollHeight;
-              let textWidth = contentBlock.scrollWidth;
-              let spaceHeight = docBody.clientHeight;
-              let spaceWidth = docBody.clientWidth;
+              let textH = contentBlock.scrollHeight;
+              let textW = contentBlock.scrollWidth;
+              let spaceH = docBody.clientHeight;
+              let spaceW = docBody.clientWidth;
               
-              if (textHeight > spaceHeight + 1 || textWidth > spaceWidth + 1) {
-                  max = mid; // Vazou
+              // Verifica se a música bateu no Fundo OU bateu nas Laterais
+              if (textH > spaceH || textW > spaceW) {
+                  max = mid; // Bateu na parede, recua
               } else { 
-                  best = mid; min = mid; // Coube e continua crescendo
+                  best = mid; min = mid; // Tem espaço, continua crescendo
               }
           }
+          
           // Aplica o tamanho perfeito e trava a caixa
           contentBlock.style.fontSize = Math.max(3.0, best - 0.2) + 'pt';
           docBody.style.overflow = 'hidden'; 
       });
       
-      // 2. Religa o zoom da tela
-      if (typeof ajustarEscalaA4 === 'function') {
-          ajustarEscalaA4();
-      }
+      // 2. Religa o zoom perfeito da tela
+      if (typeof ajustarEscalaA4 === 'function') ajustarEscalaA4();
   }
 
   // Nova função para dar o "Zoom Perfeito" em qualquer tela
