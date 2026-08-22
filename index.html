@@ -686,14 +686,18 @@
   }
 
   function autoFitText() {
+      // 1. DESLIGA O ZOOM ANTES DE MEDIR (Evita que o Android seja enganado)
+      const wrapper = document.getElementById('a4-wrapper');
+      if (wrapper) wrapper.style.transform = 'none';
+
       const pages = document.querySelectorAll('.a4-page');
       pages.forEach(page => {
           const docBody = page.querySelector('.doc-body'); 
           const contentBlock = page.querySelector('.cifra-content');
           if (!contentBlock || !docBody) return;
           
-          contentBlock.innerHTML = contentBlock.innerHTML.replace(/\n$/, ''); // Remove Enter final
-          docBody.style.overflow = 'auto'; // Destrava para medir
+          contentBlock.innerHTML = contentBlock.innerHTML.replace(/\n$/, ''); 
+          docBody.style.overflow = 'auto'; 
           
           let min = 3.0, max = 22.0, best = min;
           for (let i = 0; i < 15; i++) {
@@ -713,8 +717,13 @@
               }
           }
           contentBlock.style.fontSize = Math.max(3.0, best - 0.2) + 'pt';
-          docBody.style.overflow = 'hidden'; // Trava novamente
+          docBody.style.overflow = 'hidden'; 
       });
+
+      // 2. RELIGA O ZOOM AUTOMATICAMENTE APÓS TERMINAR AS MEDIDAS
+      if (typeof ajustarEscalaA4 === 'function') {
+          ajustarEscalaA4();
+      }
   }
 
   // Nova função para dar o "Zoom Perfeito" em qualquer tela
