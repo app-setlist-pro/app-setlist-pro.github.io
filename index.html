@@ -840,19 +840,24 @@
           
           realContent.innerHTML = realContent.innerHTML.replace(/(\s|<br>)+$/g, ''); 
 
-          // 1. O CLONE FANTASMA: Cria uma cópia invisível, imune ao bug de zoom do iPhone
+          // 1. CAIXA DE MEDIÇÃO BLINDADA PARA O IPHONE
+          // Mantém o elemento ativo no DOM, mas fora do alcance visual
+          const measureBox = document.createElement('div');
+          measureBox.style.position = 'fixed';
+          measureBox.style.top = '0';
+          measureBox.style.left = '200%'; 
+          measureBox.style.width = '210mm';
+          measureBox.style.height = '297mm';
+          measureBox.style.visibility = 'hidden';
+          measureBox.style.pointerEvents = 'none';
+          measureBox.style.zIndex = '-1';
+          
           const clone = page.cloneNode(true);
-          clone.style.position = 'absolute';
-          clone.style.visibility = 'hidden';
-          clone.style.pointerEvents = 'none';
-          clone.style.top = '-9999px';
-          clone.style.left = '-9999px';
-          clone.style.transform = 'none'; // AQUI: Remove o zoom para o Safari não bugar!
-          clone.style.width = '210mm';    // Trava o tamanho A4 puro
-          clone.style.height = '297mm';
+          clone.style.transform = 'none'; // Sem zoom
           clone.style.margin = '0';
-
-          document.body.appendChild(clone);
+          
+          measureBox.appendChild(clone);
+          document.body.appendChild(measureBox);
 
           const cloneBody = clone.querySelector('.doc-body');
           const cloneContent = clone.querySelector('.cifra-content');
@@ -860,15 +865,17 @@
           let spaceH = cloneBody.clientHeight;
           let spaceW = cloneBody.clientWidth;
 
-          // Se a folha existe, a mágica acontece no clone
           if (spaceH > 0 && spaceW > 0) {
               cloneContent.style.lineHeight = '1.25';
               let minF = 3.0, maxF = 25.0, bestF = minF;
               
-              // ESTÁGIO 1: Aumenta a fonte até o limite lateral/fundo
+              // ESTÁGIO 1: Aumenta a fonte
               for (let i = 0; i < 20; i++) {
                   let mid = (minF + maxF) / 2;
                   cloneContent.style.fontSize = mid + 'pt';
+                  
+                  // O CHICOTE NO SAFARI: Obriga o iOS a recalcular a tela na hora!
+                  void cloneContent.offsetHeight; 
                   
                   if (cloneContent.scrollHeight > spaceH || cloneContent.scrollWidth > spaceW) {
                       maxF = mid; 
@@ -877,14 +884,18 @@
                   }
               }
               cloneContent.style.fontSize = Math.max(3.0, bestF - 0.2) + 'pt';
+              void cloneContent.offsetHeight; 
               
-              // ESTÁGIO 2 (ACORDEÃO): Estica a linha até lamber a margem inferior
+              // ESTÁGIO 2: O Acordeão (Estica as linhas)
               let finalLineHeight = '1.25';
               if (cloneContent.scrollHeight < spaceH - 2) {
                   let minL = 1.25, maxL = 3.5, bestL = minL;
                   for (let i = 0; i < 15; i++) {
                       let midL = (minL + maxL) / 2;
                       cloneContent.style.lineHeight = midL;
+                      
+                      // O CHICOTE NO SAFARI 2: Obriga a medir o acordeão
+                      void cloneContent.offsetHeight; 
                       
                       if (cloneContent.scrollHeight > spaceH) {
                           maxL = midL; 
@@ -895,13 +906,13 @@
                   finalLineHeight = bestL;
               }
 
-              // 2. APLICAÇÃO CIRÚRGICA: Transfere os valores perfeitos do clone para a tela real!
+              // 2. APLICAÇÃO CIRÚRGICA: Transfere os valores perfeitos do clone para a tela real
               realContent.style.fontSize = cloneContent.style.fontSize;
               realContent.style.lineHeight = finalLineHeight;
           }
 
-          // 3. Destrói o clone sem deixar vestígios
-          document.body.removeChild(clone);
+          // 3. Destrói a caixa fantasma
+          document.body.removeChild(measureBox);
       });
       
       // Ajusta o zoom visual na tela
