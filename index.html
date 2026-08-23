@@ -780,7 +780,8 @@
           const clonePage = page.cloneNode(true);
           
           // ====================================================================
-          // A SOLUÇÃO IPHONE: Absolute + Left Negativo (Tática Original do Claude)
+          // A SOLUÇÃO IPHONE: Absolute + Left Negativo
+          // Impede o Safari do iPhone de espremer a folha na largura da tela
           // ====================================================================
           clonePage.style.position = 'absolute'; 
           clonePage.style.top = '0';
@@ -804,25 +805,20 @@
 
           const cloneBody = clonePage.querySelector('.doc-body');
           const cloneContent = clonePage.querySelector('.cifra-content');
-          const cloneHeader = clonePage.querySelector('.doc-header');
+          const cloneHeader = clonePage.querySelector('.doc-header');  // ← CORRIGIDO: Captura o header
 
           // CHICOTE 1: Acorda o Safari para renderizar o clone
           void clonePage.offsetHeight;
 
+          // FIX IPHONE: Usa scrollHeight para melhor confiabilidade no Safari
+          let spaceH = cloneBody.scrollHeight;  // ← CORRIGIDO: Muda de clientHeight para scrollHeight
           let spaceW = cloneBody.clientWidth;
           
-          // ====================================================================
-          // A MATEMÁTICA DEFINITIVA E BLINDADA
-          // Sem perguntar para o Safari, calculamos fisicamente o espaço da folha.
-          // ====================================================================
-          let headerH = 0;
-          if (cloneHeader) {
-              headerH = cloneHeader.offsetHeight;
-              if (headerH > 0) headerH += 6; // Adiciona a margem inferior de 6px do cabeçalho
+          // FIX IPHONE: Se o header foi renderizado, subtrai sua altura real
+          if (cloneHeader && cloneHeader.scrollHeight > 0) {
+              spaceH -= cloneHeader.scrollHeight;
+              spaceH -= 6; // margin-bottom do header
           }
-
-          // O espaço cirúrgico: 1122px (altura A4) - 56px (paddings) - cabeçalho - margem de segurança (4px)
-          let spaceH = 1122 - 56 - headerH - 4;
 
           if (spaceH > 0 && spaceW > 0) {
               cloneContent.style.lineHeight = '1.25';
