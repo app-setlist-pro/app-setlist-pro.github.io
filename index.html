@@ -866,13 +866,12 @@
 
           document.body.appendChild(clonePage);
 
-          // Um pequeno "chicote" para o Safari acordar e renderizar os pixels forçados
-          void clonePage.offsetHeight;
-
           const cloneBody = clonePage.querySelector('.doc-body');
           const cloneContent = clonePage.querySelector('.cifra-content');
 
-          // Agora medimos o espaço. Ele será gigantesco e 100% idêntico ao do PC!
+          // CHICOTE 1: Acorda o Safari para renderizar o clone
+          void clonePage.offsetHeight;
+
           let spaceH = cloneBody.clientHeight;
           let spaceW = cloneBody.clientWidth;
 
@@ -885,6 +884,9 @@
                   let mid = (minF + maxF) / 2;
                   cloneContent.style.fontSize = mid + 'pt';
                   
+                  // CHICOTE 2: OBRIGA O SAFARI A MEDIR A FONTE A CADA TENTATIVA!
+                  void cloneContent.offsetHeight;
+                  
                   if (cloneContent.scrollHeight > spaceH || cloneContent.scrollWidth > spaceW) {
                       maxF = mid; 
                   } else { 
@@ -894,6 +896,7 @@
               
               let bestFontSize = Math.max(3.0, bestF - 0.2);
               cloneContent.style.fontSize = bestFontSize + 'pt';
+              void cloneContent.offsetHeight;
               
               // ESTÁGIO 2 (O ACORDEÃO): Estica as linhas
               let finalLineHeight = 1.25;
@@ -902,6 +905,9 @@
                   for (let i = 0; i < 15; i++) {
                       let midL = (minL + maxL) / 2;
                       cloneContent.style.lineHeight = midL;
+                      
+                      // CHICOTE 3: OBRIGA O SAFARI A MEDIR O ESTICAMENTO DA LINHA! (Isso faltou da última vez)
+                      void cloneContent.offsetHeight;
                       
                       if (cloneContent.scrollHeight > spaceH) {
                           maxL = midL; 
