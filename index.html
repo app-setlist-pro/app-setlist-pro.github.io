@@ -820,6 +820,22 @@
               spaceH -= 6; // margin-bottom do header
           }
 
+          // ====================================================================
+          // O "TETO DE AÇO" PARA MÚSICAS LONGAS
+          // Mantém a solução perfeita para as margens, mas impede que
+          // o scrollHeight cresça infinitamente e cause cortes no final da folha.
+          // ====================================================================
+          let limiteMaximo = 1122 - 56; // Altura total A4 (1122px) menos paddings
+          if (cloneHeader && cloneHeader.scrollHeight > 0) {
+              limiteMaximo -= cloneHeader.scrollHeight;
+              limiteMaximo -= 6;
+          }
+          
+          // Se o espaço ultrapassar a capacidade do papel físico, nós travamos.
+          if (spaceH > limiteMaximo) {
+              spaceH = limiteMaximo;
+          }
+
           if (spaceH > 0 && spaceW > 0) {
               cloneContent.style.lineHeight = '1.25';
               let minF = 3.0, maxF = 25.0, bestF = minF;
