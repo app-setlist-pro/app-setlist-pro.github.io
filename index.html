@@ -776,8 +776,13 @@
           
           realContent.innerHTML = realContent.innerHTML.replace(/(\s|<br>)+$/g, ''); 
 
+          // 1. Cria o clone para medir nos bastidores (Mantendo a tática do Claude)
           const clonePage = page.cloneNode(true);
           
+          // ====================================================================
+          // A SOLUÇÃO IPHONE DO CLAUDE: Absolute + Left Negativo
+          // Impede o Safari do iPhone de espremer a folha na largura da tela
+          // ====================================================================
           clonePage.style.position = 'absolute'; 
           clonePage.style.top = '0';
           clonePage.style.left = '-9999px'; 
@@ -787,6 +792,7 @@
           clonePage.style.pointerEvents = 'none';
           clonePage.style.zIndex = '-9999';
 
+          // Forçando os tamanhos do A4
           clonePage.style.setProperty('width', '794px', 'important');
           clonePage.style.setProperty('min-width', '794px', 'important');
           clonePage.style.setProperty('max-width', '794px', 'important');
@@ -799,24 +805,39 @@
 
           const cloneBody = clonePage.querySelector('.doc-body');
           const cloneContent = clonePage.querySelector('.cifra-content');
+          const cloneHeader = clonePage.querySelector('.doc-header');
 
+          // CHICOTE 1: Acorda o Safari para renderizar o clone
           void clonePage.offsetHeight;
 
           // ====================================================================
-          // SOLUÇÃO FINAL: SEM SUBTRAÇÕES DUPLICADAS
-          // O .doc-body com flex:1 já ocupa o espaço após o cabeçalho!
+          // A FUSÃO MÁGICA: O Clone do Claude + A Matemática Certa
+          // O VILÃO 'scrollHeight' MORRE AQUI, DANDO LUGAR A MEDIDAS FIXAS.
           // ====================================================================
-          let spaceH = cloneBody.scrollHeight;  // Já é o espaço real da cifra
           let spaceW = cloneBody.clientWidth;
+          
+          // O espaço total de um A4 (1122px) menos o padding (28px em cima + 28px embaixo)
+          let espacoTotalInterno = 1066; 
+          
+          // Subtrai o cabeçalho usando a lógica de medição segura do Claude
+          let alturaCabecalho = 0;
+          if (cloneHeader && cloneHeader.scrollHeight > 0) {
+              alturaCabecalho = cloneHeader.scrollHeight + 6; // + 6px da margem
+          }
+          
+          // O espaço exato e intransponível da música (calculado matematicamente)
+          let spaceH = espacoTotalInterno - alturaCabecalho - 4; // -4 de segurança extra
 
           if (spaceH > 0 && spaceW > 0) {
               cloneContent.style.lineHeight = '1.25';
               let minF = 3.0, maxF = 25.0, bestF = minF;
               
+              // ESTÁGIO 1: Aumenta a Fonte
               for (let i = 0; i < 20; i++) {
                   let mid = (minF + maxF) / 2;
                   cloneContent.style.fontSize = mid + 'pt';
                   
+                  // CHICOTE 2: OBRIGA O SAFARI A MEDIR A FONTE A CADA TENTATIVA!
                   void cloneContent.offsetHeight;
                   
                   if (cloneContent.scrollHeight > spaceH || cloneContent.scrollWidth > spaceW) {
@@ -830,6 +851,7 @@
               cloneContent.style.fontSize = bestFontSize + 'pt';
               void cloneContent.offsetHeight;
               
+              // ESTÁGIO 2 (O ACORDEÃO): Estica as linhas
               let finalLineHeight = 1.25;
               if (cloneContent.scrollHeight < spaceH - 2) {
                   let minL = 1.25, maxL = 3.5, bestL = minL;
@@ -837,6 +859,7 @@
                       let midL = (minL + maxL) / 2;
                       cloneContent.style.lineHeight = midL;
                       
+                      // CHICOTE 3: OBRIGA O SAFARI A MEDIR O ESTICAMENTO DA LINHA!
                       void cloneContent.offsetHeight;
                       
                       if (cloneContent.scrollHeight > spaceH) {
@@ -848,6 +871,7 @@
                   finalLineHeight = bestL;
               }
 
+              // Transfere o resultado perfeito para a sua tela!
               realContent.style.fontSize = bestFontSize + 'pt';
               realContent.style.lineHeight = finalLineHeight;
           }
