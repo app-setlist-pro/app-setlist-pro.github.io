@@ -893,6 +893,20 @@
 
           if (spaceH > 0 && spaceW > 0) {
               cloneContent.style.lineHeight = '1.25';
+
+          // FIX IPHONE: Usa scrollHeight para melhor confiabilidade no Safari
+          let spaceH = cloneBody.scrollHeight;  // ← CORRIGIDO: Muda de clientHeight para scrollHeight
+          let spaceW = cloneBody.clientWidth;
+          
+          // FIX IPHONE: Se o header foi renderizado, subtrai sua altura real
+          if (cloneHeader && cloneHeader.scrollHeight > 0) {
+              spaceH -= cloneHeader.scrollHeight;
+              spaceH -= 6; // margin-bottom do header
+          }
+
+          if (spaceH > 0 && spaceW > 0) {
+              cloneContent.style.lineHeight = '1.25';
+              let minF = 3.0, maxF = 25.0, bestF = minF;
               
               // ESTÁGIO 1: Aumenta a Fonte
               for (let i = 0; i < 20; i++) {
