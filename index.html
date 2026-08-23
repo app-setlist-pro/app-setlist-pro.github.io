@@ -780,108 +780,7 @@
           const clonePage = page.cloneNode(true);
           
           // ====================================================================
-          // A SOLUÇÃO IPHONE DO CLAUDE (MANTIDA)
-          // Isso impede o Safari de esmagar a folha na largura da tela
-          // ====================================================================
-          clonePage.style.position = 'absolute'; 
-          clonePage.style.top = '0';
-          clonePage.style.left = '-9999px'; 
-          clonePage.style.margin = '0';
-          clonePage.style.transform = 'none'; 
-          clonePage.style.opacity = '0';
-          clonePage.style.pointerEvents = 'none';
-          clonePage.style.zIndex = '-9999';
-
-          // A CHAVE DA VITÓRIA: Removemos todos os "1122px" hardcoded do Claude.
-          // Deixamos o clone assumir os 297mm nativos do CSS. Assim ele fica EXATAMENTE
-          // do mesmo tamanho da folha real, não importa se é PC, iPad ou iPhone.
-
-          document.body.appendChild(clonePage);
-
-          const cloneBody = clonePage.querySelector('.doc-body');
-          const cloneContent = clonePage.querySelector('.cifra-content');
-
-          // CHICOTE 1: Acorda o Safari para renderizar o clone
-          void clonePage.offsetHeight;
-
-          // ====================================================================
-          // A RÉGUA INFALÍVEL
-          // Como o doc-body tem "flex: 1" e "overflow: hidden", o clientHeight dele 
-          // JÁ É o espaço cirúrgico exato descontando cabeçalho e margens!
-          // Adeus scrollHeight e adeus guilhotina de cortes!
-          // ====================================================================
-          let spaceH = cloneBody.clientHeight;
-          let spaceW = cloneBody.clientWidth;
-
-          if (spaceH > 0 && spaceW > 0) {
-              cloneContent.style.lineHeight = '1.25';
-              let minF = 3.0, maxF = 25.0, bestF = minF;
-              
-              // ESTÁGIO 1: Acha o tamanho de fonte máximo sem estourar o papel
-              for (let i = 0; i < 20; i++) {
-                  let mid = (minF + maxF) / 2;
-                  cloneContent.style.fontSize = mid + 'pt';
-                  
-                  // CHICOTE 2: OBRIGA O SAFARI A MEDIR A FONTE!
-                  void cloneContent.offsetHeight;
-                  
-                  if (cloneContent.scrollHeight > spaceH || cloneContent.scrollWidth > spaceW) {
-                      maxF = mid; 
-                  } else { 
-                      bestF = mid; minF = mid; 
-                  }
-              }
-              
-              let bestFontSize = Math.max(3.0, bestF - 0.2);
-              cloneContent.style.fontSize = bestFontSize + 'pt';
-              void cloneContent.offsetHeight;
-              
-              // ESTÁGIO 2 (O ACORDEÃO): Estica a linha com precisão para lamber a margem
-              let finalLineHeight = 1.25;
-              if (cloneContent.scrollHeight < spaceH - 2) {
-                  let minL = 1.25, maxL = 3.5, bestL = minL;
-                  for (let i = 0; i < 15; i++) {
-                      let midL = (minL + maxL) / 2;
-                      cloneContent.style.lineHeight = midL;
-                      
-                      // CHICOTE 3: OBRIGA O SAFARI A LER O ESTICAMENTO!
-                      void cloneContent.offsetHeight;
-                      
-                      if (cloneContent.scrollHeight > spaceH) {
-                          maxL = midL; 
-                      } else {
-                          bestL = midL; minL = midL; 
-                      }
-                  }
-                  finalLineHeight = bestL;
-              }
-
-              // Transfere a perfeição matemática para a sua tela!
-              realContent.style.fontSize = bestFontSize + 'pt';
-              realContent.style.lineHeight = finalLineHeight;
-          }
-
-          document.body.removeChild(clonePage);
-      });
-      
-      if (typeof ajustarEscalaA4 === 'function') ajustarEscalaA4();
-  }
-
-  function autoFitText() {
-      const pages = document.querySelectorAll('.a4-page:not(.hidden-preview)');
-      
-      pages.forEach(page => {
-          const realContent = page.querySelector('.cifra-content');
-          if (!realContent) return;
-          
-          realContent.innerHTML = realContent.innerHTML.replace(/(\s|<br>)+$/g, ''); 
-
-          // 1. Cria o clone para medir nos bastidores
-          const clonePage = page.cloneNode(true);
-          
-          // ====================================================================
-          // A SOLUÇÃO IPHONE: Absolute + Left Negativo (Lógica Original do Claude)
-          // Impede o Safari do iPhone de espremer a folha na largura da tela
+          // A SOLUÇÃO IPHONE: Absolute + Left Negativo (Tática Original do Claude)
           // ====================================================================
           clonePage.style.position = 'absolute'; 
           clonePage.style.top = '0';
@@ -910,29 +809,20 @@
           // CHICOTE 1: Acorda o Safari para renderizar o clone
           void clonePage.offsetHeight;
 
-          // FIX IPHONE: Usa scrollHeight para melhor confiabilidade no Safari (Lógica do Claude)
-          let spaceH = cloneBody.scrollHeight;  
           let spaceW = cloneBody.clientWidth;
           
-          // FIX IPHONE: Se o header foi renderizado, subtrai sua altura real
-          let alturaCabecalhoReal = 0;
-          if (cloneHeader && cloneHeader.scrollHeight > 0) {
-              alturaCabecalhoReal = cloneHeader.scrollHeight + 6; // + 6px da margem inferior
-              spaceH -= alturaCabecalhoReal;
+          // ====================================================================
+          // A MATEMÁTICA DEFINITIVA E BLINDADA
+          // Sem perguntar para o Safari, calculamos fisicamente o espaço da folha.
+          // ====================================================================
+          let headerH = 0;
+          if (cloneHeader) {
+              headerH = cloneHeader.offsetHeight;
+              if (headerH > 0) headerH += 6; // Adiciona a margem inferior de 6px do cabeçalho
           }
 
-          // ====================================================================
-          // A BLINDAGEM FINAL (O TETO DE AÇO)
-          // Mantemos a medição que consertou a margem, mas criamos uma trava física.
-          // O espaço nunca pode ultrapassar o limite real e imutável da folha A4.
-          // ====================================================================
-          let limiteFisico = 1122 - 56; // Altura total A4 (1122) menos paddings (28 no topo + 28 na base)
-          limiteFisico -= alturaCabecalhoReal; // Desconta o espaço do cabeçalho
-          
-          // Trava o algoritmo! Se a música for gigante, o limite físico impede a guilhotina.
-          if (spaceH > limiteFisico) {
-              spaceH = limiteFisico; 
-          }
+          // O espaço cirúrgico: 1122px (altura A4) - 56px (paddings) - cabeçalho - margem de segurança (4px)
+          let spaceH = 1122 - 56 - headerH - 4;
 
           if (spaceH > 0 && spaceW > 0) {
               cloneContent.style.lineHeight = '1.25';
@@ -986,6 +876,91 @@
       });
       
       if (typeof ajustarEscalaA4 === 'function') ajustarEscalaA4();
+  }
+
+  function ajustarEscalaA4() {
+      const wrapper = document.getElementById('a4-wrapper');
+      if (!wrapper) return;
+      
+      const larguraA4 = 794; 
+      const larguraTela = window.innerWidth - 20; 
+      
+      if (larguraTela < larguraA4) {
+          const escala = larguraTela / larguraA4;
+          
+          wrapper.style.zoom = escala;
+          
+          wrapper.style.transform = 'none';
+          wrapper.style.marginBottom = '0';
+      } else {
+          wrapper.style.zoom = 1;
+          wrapper.style.transform = 'none';
+          wrapper.style.marginBottom = '0';
+      }
+  }
+
+  window.addEventListener('resize', ajustarEscalaA4);
+
+  function renderPreview() {
+    const wrapper = document.getElementById('a4-wrapper');
+    wrapper.innerHTML = '';
+    
+    songs.forEach((song, idx) => {
+      const page = document.createElement('div');
+      page.className = 'a4-page' + (idx === currentIndex ? '' : ' hidden-preview');
+      
+      const vBadge = song.video ? `<a href="${song.video}" target="_blank" class="badge video">▶ VÍDEO</a>` : '';
+      const cBadge = song.cifra ? `<a href="${song.cifra}" target="_blank" class="badge cifra">♩ CIFRA</a>` : '';
+      
+      let capoText = ''; let capoValue = 0;
+      if (song.capo && song.capo.trim() !== '') {
+          let numeroCasa = song.capo.replace(/\D/g, ''); 
+          if (numeroCasa !== '') {
+              capoValue = parseInt(numeroCasa, 10);
+              capoText = `<span class="capo-text" style="color: #dc2626; font-weight: 800; text-transform: uppercase; font-size: 16pt; white-space: nowrap;">CAPO NA ${numeroCasa}ª CASA</span>`;
+          }
+      }
+      
+      let displayTone = song.tone || '';
+      let totalToneSteps = (song.transposeSteps || 0) + capoValue;
+      if (displayTone && totalToneSteps !== 0) displayTone = transposeSingleChord(displayTone, totalToneSteps);
+      
+      let introHtml = '';
+      if (song.intro && song.intro.trim() !== '') {
+          let transposedIntro = transposeLineText(song.intro.replace(/^\[?Intro\]?:?\s*/i, '').trim(), song.transposeSteps || 0);
+          let colorizedIntro = transposedIntro.split(/(\s+)/).map(w => {
+              if (w.trim() === '') return w;
+              return isChord(w) ? `<span class="chord">${w}</span>` : w;
+          }).join('');
+          introHtml = `[Intro] ${colorizedIntro}\n\n`;
+      }
+      
+      page.innerHTML = `
+        <div class="a4-content-area">
+            <div class="doc-header">
+              <div class="doc-title">${song.title || 'Música Sem Título'}</div>
+              <div class="doc-meta">
+                <div class="meta-left" style="flex: 1; text-align: left;">
+                  <span class="artist">${song.artist || ''}</span> <span class="separator">|</span> <span class="tone-badge">Tom: <span>${displayTone}</span></span>
+                </div>
+                <div style="flex: 1; display: flex; justify-content: center; align-items: center; text-align: center; min-width: max-content;">${capoText}</div>
+                
+                <div style="flex: 1; display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
+                    ${vBadge}${cBadge}
+                </div>
+              </div>
+            </div>
+            <div class="doc-body">
+                <div class="cifra-content">${introHtml}${parseChords(song.content, song.transposeSteps || 0)}</div>
+            </div>
+        </div>`;
+      wrapper.appendChild(page);
+    });
+    
+    requestAnimationFrame(() => {
+        autoFitText();
+        ajustarEscalaA4();
+    });
   }
 
   function selectSong(index) {
