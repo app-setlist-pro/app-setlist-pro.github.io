@@ -776,12 +776,12 @@
           
           realContent.innerHTML = realContent.innerHTML.replace(/(\s|<br>)+$/g, ''); 
 
-          // 1. Cria o clone para medir nos bastidores (Mantendo a tática do Claude)
+          // 1. Cria o clone para medir nos bastidores
           const clonePage = page.cloneNode(true);
           
           // ====================================================================
-          // A SOLUÇÃO IPHONE DO CLAUDE: Absolute + Left Negativo
-          // Impede o Safari do iPhone de espremer a folha na largura da tela
+          // A SOLUÇÃO IPHONE DO CLAUDE (MANTIDA)
+          // Isso impede o Safari de esmagar a folha na largura da tela
           // ====================================================================
           clonePage.style.position = 'absolute'; 
           clonePage.style.top = '0';
@@ -792,52 +792,37 @@
           clonePage.style.pointerEvents = 'none';
           clonePage.style.zIndex = '-9999';
 
-          // Forçando os tamanhos do A4
-          clonePage.style.setProperty('width', '794px', 'important');
-          clonePage.style.setProperty('min-width', '794px', 'important');
-          clonePage.style.setProperty('max-width', '794px', 'important');
-          clonePage.style.setProperty('height', '1122px', 'important');
-          clonePage.style.setProperty('min-height', '1122px', 'important');
-          clonePage.style.setProperty('max-height', '1122px', 'important');
-          clonePage.style.setProperty('padding', '28px', 'important'); 
+          // A CHAVE DA VITÓRIA: Removemos todos os "1122px" hardcoded do Claude.
+          // Deixamos o clone assumir os 297mm nativos do CSS. Assim ele fica EXATAMENTE
+          // do mesmo tamanho da folha real, não importa se é PC, iPad ou iPhone.
 
           document.body.appendChild(clonePage);
 
           const cloneBody = clonePage.querySelector('.doc-body');
           const cloneContent = clonePage.querySelector('.cifra-content');
-          const cloneHeader = clonePage.querySelector('.doc-header');
 
           // CHICOTE 1: Acorda o Safari para renderizar o clone
           void clonePage.offsetHeight;
 
           // ====================================================================
-          // A FUSÃO MÁGICA: O Clone do Claude + A Matemática Certa
-          // O VILÃO 'scrollHeight' MORRE AQUI, DANDO LUGAR A MEDIDAS FIXAS.
+          // A RÉGUA INFALÍVEL
+          // Como o doc-body tem "flex: 1" e "overflow: hidden", o clientHeight dele 
+          // JÁ É o espaço cirúrgico exato descontando cabeçalho e margens!
+          // Adeus scrollHeight e adeus guilhotina de cortes!
           // ====================================================================
+          let spaceH = cloneBody.clientHeight;
           let spaceW = cloneBody.clientWidth;
-          
-          // O espaço total de um A4 (1122px) menos o padding (28px em cima + 28px embaixo)
-          let espacoTotalInterno = 1066; 
-          
-          // Subtrai o cabeçalho usando a lógica de medição segura do Claude
-          let alturaCabecalho = 0;
-          if (cloneHeader && cloneHeader.scrollHeight > 0) {
-              alturaCabecalho = cloneHeader.scrollHeight + 6; // + 6px da margem
-          }
-          
-          // O espaço exato e intransponível da música (calculado matematicamente)
-          let spaceH = espacoTotalInterno - alturaCabecalho - 4; // -4 de segurança extra
 
           if (spaceH > 0 && spaceW > 0) {
               cloneContent.style.lineHeight = '1.25';
               let minF = 3.0, maxF = 25.0, bestF = minF;
               
-              // ESTÁGIO 1: Aumenta a Fonte
+              // ESTÁGIO 1: Acha o tamanho de fonte máximo sem estourar o papel
               for (let i = 0; i < 20; i++) {
                   let mid = (minF + maxF) / 2;
                   cloneContent.style.fontSize = mid + 'pt';
                   
-                  // CHICOTE 2: OBRIGA O SAFARI A MEDIR A FONTE A CADA TENTATIVA!
+                  // CHICOTE 2: OBRIGA O SAFARI A MEDIR A FONTE!
                   void cloneContent.offsetHeight;
                   
                   if (cloneContent.scrollHeight > spaceH || cloneContent.scrollWidth > spaceW) {
@@ -851,7 +836,7 @@
               cloneContent.style.fontSize = bestFontSize + 'pt';
               void cloneContent.offsetHeight;
               
-              // ESTÁGIO 2 (O ACORDEÃO): Estica as linhas
+              // ESTÁGIO 2 (O ACORDEÃO): Estica a linha com precisão para lamber a margem
               let finalLineHeight = 1.25;
               if (cloneContent.scrollHeight < spaceH - 2) {
                   let minL = 1.25, maxL = 3.5, bestL = minL;
@@ -859,7 +844,7 @@
                       let midL = (minL + maxL) / 2;
                       cloneContent.style.lineHeight = midL;
                       
-                      // CHICOTE 3: OBRIGA O SAFARI A MEDIR O ESTICAMENTO DA LINHA!
+                      // CHICOTE 3: OBRIGA O SAFARI A LER O ESTICAMENTO!
                       void cloneContent.offsetHeight;
                       
                       if (cloneContent.scrollHeight > spaceH) {
@@ -871,7 +856,7 @@
                   finalLineHeight = bestL;
               }
 
-              // Transfere o resultado perfeito para a sua tela!
+              // Transfere a perfeição matemática para a sua tela!
               realContent.style.fontSize = bestFontSize + 'pt';
               realContent.style.lineHeight = finalLineHeight;
           }
