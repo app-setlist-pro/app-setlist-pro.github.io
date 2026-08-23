@@ -768,63 +768,52 @@
   }
 
   function autoFitText() {
+      const wrapper = document.getElementById('a4-wrapper');
+      if (!wrapper) return;
+      
+      // Desliga a escala (zoom) temporariamente para o navegador medir os pixels reais
+      const oldZoom = wrapper.style.zoom || '1';
+      wrapper.style.zoom = '1';
+
       const pages = document.querySelectorAll('.a4-page:not(.hidden-preview)');
       
       pages.forEach(page => {
           const realContent = page.querySelector('.cifra-content');
-          if (!realContent) return;
+          const realBody = page.querySelector('.doc-body');
+          if (!realContent || !realBody) return;
           
           realContent.innerHTML = realContent.innerHTML.replace(/(\s|<br>)+$/g, ''); 
 
-          const clonePage = page.cloneNode(true);
-          
-          clonePage.style.position = 'absolute'; 
-          clonePage.style.top = '0';
-          clonePage.style.left = '-9999px'; 
-          clonePage.style.margin = '0';
-          clonePage.style.transform = 'none'; 
-          clonePage.style.opacity = '0';
-          clonePage.style.pointerEvents = 'none';
-          clonePage.style.zIndex = '-9999';
-
-          clonePage.style.setProperty('width', '794px', 'important');
-          clonePage.style.setProperty('min-width', '794px', 'important');
-          clonePage.style.setProperty('max-width', '794px', 'important');
-          clonePage.style.setProperty('height', '1122px', 'important');
-          clonePage.style.setProperty('min-height', '1122px', 'important');
-          clonePage.style.setProperty('max-height', '1122px', 'important');
-          clonePage.style.setProperty('padding', '28px', 'important'); 
-
-          document.body.appendChild(clonePage);
-
-          const cloneBody = clonePage.querySelector('.doc-body');
-          const cloneContent = clonePage.querySelector('.cifra-content');
-          const cloneHeader = clonePage.querySelector('.doc-header');
-
-          void clonePage.offsetHeight;
-
-          // ====================================================================
-          // A SOLUÇÃO MATEMÁTICA DEFINITIVA 
-          // Calculamos o espaço físico real da folha, impedindo cortes.
-          // ====================================================================
-          let spaceW = cloneBody.clientWidth;
-          
-          // 1122px total - 56px de padding = 1066px
-          let espacoTotalInterno = 1066; 
-          let alturaCabecalho = cloneHeader ? cloneHeader.offsetHeight : 0;
-          
-          // Limite máximo intransponível para a música
-          let spaceH = espacoTotalInterno - alturaCabecalho - 12;
+          // 1. A MÁGICA: Pega a medida EXATA do espaço livre na tela real
+          // Sem matemática de cabeçalho, sem milímetros. Apenas o espaço real.
+          let spaceH = realBody.clientHeight;
+          let spaceW = realBody.clientWidth;
 
           if (spaceH > 0 && spaceW > 0) {
+              // 2. Cria um "laboratório isolado" com as dimensões cravadas
+              const measureBox = document.createElement('div');
+              measureBox.style.position = 'absolute';
+              measureBox.style.top = '0';
+              measureBox.style.left = '-9999px';
+              measureBox.style.width = spaceW + 'px';
+              measureBox.style.height = spaceH + 'px';
+              measureBox.style.overflow = 'visible';
+              measureBox.style.pointerEvents = 'none';
+              measureBox.style.visibility = 'hidden'; // Oculta sem quebrar a medição
+
+              const cloneContent = realContent.cloneNode(true);
+              measureBox.appendChild(cloneContent);
+              document.body.appendChild(measureBox);
+
               cloneContent.style.lineHeight = '1.25';
               let minF = 3.0, maxF = 25.0, bestF = minF;
               
+              // ESTÁGIO 1: Acha o limite máximo da fonte sem vazar a largura ou altura
               for (let i = 0; i < 20; i++) {
                   let mid = (minF + maxF) / 2;
                   cloneContent.style.fontSize = mid + 'pt';
                   
-                  void cloneContent.offsetHeight;
+                  void cloneContent.offsetHeight; // Chicote no Safari
                   
                   if (cloneContent.scrollHeight > spaceH || cloneContent.scrollWidth > spaceW) {
                       maxF = mid; 
@@ -837,6 +826,7 @@
               cloneContent.style.fontSize = bestFontSize + 'pt';
               void cloneContent.offsetHeight;
               
+              // ESTÁGIO 2: Estica a entrelinha para lamber a margem inferior
               let finalLineHeight = 1.25;
               if (cloneContent.scrollHeight < spaceH - 2) {
                   let minL = 1.25, maxL = 3.5, bestL = minL;
@@ -844,7 +834,7 @@
                       let midL = (minL + maxL) / 2;
                       cloneContent.style.lineHeight = midL;
                       
-                      void cloneContent.offsetHeight;
+                      void cloneContent.offsetHeight; // Chicote no Safari
                       
                       if (cloneContent.scrollHeight > spaceH) {
                           maxL = midL; 
@@ -855,13 +845,17 @@
                   finalLineHeight = bestL;
               }
 
+              // Transfere o resultado impecável para a sua tela!
               realContent.style.fontSize = bestFontSize + 'pt';
               realContent.style.lineHeight = finalLineHeight;
-          }
 
-          document.body.removeChild(clonePage);
+              // Destrói o laboratório
+              document.body.removeChild(measureBox);
+          }
       });
       
+      // Devolve o zoom para encaixar o A4 na tela do celular
+      wrapper.style.zoom = oldZoom;
       if (typeof ajustarEscalaA4 === 'function') ajustarEscalaA4();
   }
 
