@@ -930,6 +930,7 @@
   }
 
   // Nova função para dar o "Zoom Perfeito" em qualquer tela
+  // Nova função para dar o "Zoom Perfeito" em qualquer tela
   function ajustarEscalaA4() {
       const wrapper = document.getElementById('a4-wrapper');
       if (!wrapper) return;
@@ -939,14 +940,15 @@
       
       if (larguraTela < larguraA4) {
           const escala = larguraTela / larguraA4;
-          wrapper.style.transform = `scale(${escala})`;
-          wrapper.style.transformOrigin = 'top center';
           
-          // Mede a altura real da caixa para tirar a sobra exata do Zoom
-          const alturaTotal = wrapper.offsetHeight;
-          const alturaSobrando = alturaTotal - (alturaTotal * escala);
-          wrapper.style.marginBottom = `-${alturaSobrando}px`;
+          // A MÁGICA: O 'zoom' nativo substitui o 'transform' bugado do iOS!
+          wrapper.style.zoom = escala;
+          
+          // Removemos as "gambiarras" antigas que não precisamos mais
+          wrapper.style.transform = 'none';
+          wrapper.style.marginBottom = '0';
       } else {
+          wrapper.style.zoom = 1;
           wrapper.style.transform = 'none';
           wrapper.style.marginBottom = '0';
       }
