@@ -26,7 +26,6 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { 
       font-family: system-ui, sans-serif; background: #e2e8f0; color: #1e293b; padding: 20px; 
-      /* NOVO: Proíbe o celular de inflar fontes secretamente */
       -webkit-text-size-adjust: none; text-size-adjust: none; 
   }
   
@@ -47,13 +46,11 @@
   .btn-danger { background: #dc2626; color: white; padding: 6px 10px; font-size: 12px; }
   .btn-warning { background: #d97706; color: white; }
   
-  /* Layout Principal */
   .songs-container { display: flex; gap: 20px; }
   .sidebar-wrapper { width: 300px; display: flex; flex-direction: column; gap: 10px; }
   .song-list-sidebar { background: #f1f5f9; border-radius: 8px; padding: 10px; border: 1px solid #cbd5e1; height: 600px; overflow-y: auto; width: 100%; }
   .editor-panel { flex: 1; display: flex; flex-direction: column; gap: 15px; }
   
-  /* Formatação para Celular/Tablet */
   @media (max-width: 850px) {
     body { padding: 10px; }
     .header-actions { flex-direction: column; align-items: stretch; gap: 15px; }
@@ -66,16 +63,12 @@
     .song-list-sidebar { height: 250px; } 
     .grid { grid-template-columns: 1fr !important; }
     .form-group { grid-column: span 1 !important; }
-    
-    /* A REGRA DO .a4-wrapper FOI APAGADA DAQUI! */
   }
   
-  /* Drag and Drop Styles */
   .song-item { 
       display: flex; justify-content: space-between; align-items: center; background: white; 
       padding: 10px; margin-bottom: 8px; border-radius: 4px; border: 1px solid #cbd5e1; 
       cursor: grab; transition: background 0.2s;
-      /* NOVO: Proíbe o iOS de selecionar o texto de azul ao segurar */
       -webkit-user-select: none; user-select: none; 
   }
   .song-item:active { cursor: grabbing; }
@@ -85,11 +78,9 @@
   
   .drag-handle { 
       color: #94a3b8; font-size: 18px; cursor: grab; 
-      /* NOVO: Aumenta a área de toque invisível e facilita segurar no celular */
       padding: 10px 15px 10px 0; margin: -10px 0; touch-action: none; 
   }
   
-  /* Grid de Inputs */
   .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
   .form-group { display: flex; flex-direction: column; gap: 4px; }
   .form-group label { font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase; }
@@ -101,7 +92,6 @@
   
   .text-areas textarea { width: 100%; height: 400px; font-family: monospace; font-size: 14px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 4px; white-space: pre; resize: vertical; }
   
-  /* A4 Preview Canvas - TRAVADO PARA IPHONE E IPAD */
   .preview-section { margin-top: 30px; width: 100%; overflow: hidden; display: flex; flex-direction: column; align-items: center; }
   .preview-title { text-align: center; color: #475569; margin-bottom: 15px; font-size: 1.2rem; font-weight: bold; text-transform: uppercase; }
   .a4-wrapper { width: 210mm; display: flex; flex-direction: column; align-items: center; gap: 30px; padding-bottom: 40px; position: relative; }
@@ -113,7 +103,7 @@
     height: 297mm !important; 
     min-height: 297mm !important; 
     max-height: 297mm !important; 
-    padding: 7.5mm !important; /* Margens simétricas reduzidas */
+    padding: 7.5mm !important; 
     box-shadow: 0 10px 20px rgba(0,0,0,0.15); 
     color: black; position: relative;
     box-sizing: border-box !important; overflow: hidden !important; 
@@ -128,40 +118,21 @@
   
   .a4-content-area { width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
   
-  /* 1. CABEÇALHO MENOR E ÍCONES VISÍVEIS */
   .doc-header { border-bottom: 2px solid #0284c7; padding-bottom: 4px; margin-bottom: 6px; display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
   .doc-title { font-size: 14pt !important; font-weight: 800; text-transform: uppercase; line-height: 1.1; color: #000; word-wrap: break-word; white-space: normal; }
   .doc-meta { display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: nowrap;}
   .meta-left { font-size: 10pt !important; font-weight: 600; color: #475569; }
   
-  /* AQUI: Força a exibição dos ícones que estavam sumindo */
   .badge { color: white !important; text-decoration: none; font-size: 9pt; font-weight: bold; padding: 4px 8px; border-radius: 4px; display: inline-block !important; }
   .badge.video { background: #dc2626 !important; }
   .badge.cifra { background: #d97706 !important; }
 
-  /* 2. TRAVA ABSOLUTA DA FOLHA A4 PARA O IPAD OBEDECER */
-  .a4-page {
-    background: white; 
-    width: 210mm !important; 
-    min-width: 210mm !important; 
-    height: 297mm !important; 
-    min-height: 297mm !important; 
-    max-height: 297mm !important; 
-    padding: 7.5mm !important; /* Margens simétricas reduzidas */
-    box-shadow: 0 10px 20px rgba(0,0,0,0.15); 
-    color: black; position: relative;
-    box-sizing: border-box !important; overflow: hidden !important; 
-    display: flex; flex-direction: column; 
-    flex-shrink: 0 !important; 
-    transition: background-color 0.3s, color 0.3s; margin: 0 auto;
-  }
   .doc-body { 
     flex: 1; min-height: 0; width: 100%; display: block; 
-    padding-bottom: 0; /* AQUI: Zeramos o empurrão fantasma! */
-    overflow: hidden; 
+    padding-bottom: 0; overflow: hidden; 
   } 
   .cifra-content { 
-      font-family: 'Roboto Mono', monospace; /* FONTE UNIVERSAL TRAVADA */
+      font-family: 'Roboto Mono', monospace; 
       font-size: 10pt; line-height: 1.25; 
       white-space: pre; color: #000000; overflow: visible; 
       -webkit-text-size-adjust: none; text-size-adjust: none; 
@@ -172,7 +143,6 @@
   .split-col { flex: 1; min-width: 0; }
   .split-col-divider { width: 1px; border-left: 2px solid #000000; margin: 0 15px; flex-shrink: 0; }
 
-  /* MODO ESCURO NA TELA (APENAS PREVIEW) */
   .dark-mode .a4-page { background-color: #121212; color: #e2e8f0; }
   .dark-mode .doc-title { color: #f8fafc; }
   .dark-mode .meta-left, .dark-mode .meta-left .artist { color: #94a3b8; }
@@ -183,7 +153,6 @@
   .dark-mode hr.divider { border-top-color: #334155; }
   .dark-mode .split-col-divider { border-left-color: #334155; }
 
-  /* Print Styles - Fixo e Seguro para A4 */
   @media print {
     @page { size: A4 portrait; margin: 0; }
     html, body { background: white !important; padding: 0 !important; margin: 0 !important; width: 100% !important; height: auto !important; overflow: visible !important; }
@@ -195,8 +164,8 @@
     background: white; 
     width: 210mm; 
     height: 297mm; 
-    max-height: 297mm; /* Força o limite de altura */
-    padding: 7.5mm !important; /* Margens simétricas reduzidas */
+    max-height: 297mm; 
+    padding: 7.5mm !important; 
     box-shadow: 0 10px 20px rgba(0,0,0,0.15); 
     color: black; position: relative;
     box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column; 
@@ -222,9 +191,6 @@
     .capo-text { color: #dc2626 !important; }
   }
 
-  /* ========================================== */
-  /* ALERTA CUSTOMIZADO (ESTILO APP NATIVO)     */
-  /* ========================================== */
   .custom-alert-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.5); z-index: 99999;
@@ -244,7 +210,7 @@
       align-self: flex-end; background: transparent; color: #60a5fa; 
       border: none; font-size: 15px; font-weight: 700; cursor: pointer; 
       padding: 5px 10px; text-transform: uppercase;
-  } /* <-- A CHAVE QUE ESTAVA FALTANDO! */
+  }
   
   .custom-confirm-btns { display: flex; gap: 15px; justify-content: flex-end; width: 100%; margin-top: 5px; }
   .custom-btn-cancel { background: transparent; color: #94a3b8; border: none; font-size: 15px; font-weight: 700; cursor: pointer; text-transform: uppercase; }
@@ -348,11 +314,8 @@
   let renderTimeout = null;
   let draggedItemIndex = null;
   let isDarkMode = false;
-  let isDirty = false; // Indica se há alterações que não foram exportadas para o PC
+  let isDirty = false; 
 
-  // ==========================================
-  // 1. SUBSTITUI O ALERTA DE AVISOS (Sucesso/Erro)
-  // ==========================================
   window.alert = function(mensagem) {
       let existente = document.getElementById('custom-alert');
       if (existente) existente.remove();
@@ -386,9 +349,6 @@
       }
   };
 
-  // ==========================================
-  // 2. SUBSTITUI O CONFIRM DE PERGUNTAS (Novo/Abrir)
-  // ==========================================
   window.customConfirm = function(mensagem) {
       return new Promise((resolve) => {
           let existente = document.getElementById('custom-alert');
@@ -426,13 +386,11 @@
       });
   };
 
-  // 1. Salva tudo na memória oculta do celular
   function autoSaveToMemory() {
       localStorage.setItem('jrCifras_MobileBackup', JSON.stringify(songs));
       isDirty = true;
   }
 
-  // 2. Tenta puxar da memória ao abrir o aplicativo
   function loadFromMemory() {
       const saved = localStorage.getItem('jrCifras_MobileBackup');
       if (saved) {
@@ -440,7 +398,7 @@
               const parsed = JSON.parse(saved);
               if (Array.isArray(parsed) && parsed.length > 0) {
                   songs = parsed;
-                  isDirty = false; // Acabou de carregar, consideramos "limpo"
+                  isDirty = false; 
                   return true;
               }
           } catch(e) {}
@@ -448,29 +406,25 @@
       return false;
   }
 
-  // 3. Alerta de Segurança (Agora Espera a Resposta)
   async function checkUnsaved() {
       if (!isDirty) return true;
       return await window.customConfirm("Você tem alterações recentes que ainda não foram Exportadas. Se continuar, o que está na tela será apagado. Deseja continuar?");
   }
 
-  // 4. Iniciar um projeto do zero
   async function novoProjeto() {
       const podeContinuar = await checkUnsaved();
-      if (!podeContinuar) return; // Se clicou em cancelar, para tudo!
+      if (!podeContinuar) return; 
       
       songs = [{ title: 'Nova Música', artist: '', tone: '', capo: '', intro: '', cifra: '', video: '', content: '', transposeSteps: 0 }];
       currentIndex = 0;
       isDirty = false;
-      localStorage.removeItem('jrCifras_MobileBackup'); // Limpa a memória
+      localStorage.removeItem('jrCifras_MobileBackup'); 
       selectSong(0);
   }
 
-  // 5. Abrir um arquivo
   async function loadProject(event) {
       const file = event.target.files[0]; if (!file) return;
       
-      // Barra o carregamento e espera o usuário confirmar
       const podeContinuar = await checkUnsaved();
       if (!podeContinuar) {
           event.target.value = '';
@@ -494,7 +448,6 @@
       reader.readAsText(file);
   }
 
-  // Aviso caso o usuário tente fechar a aba do navegador
   window.onbeforeunload = function (e) {
       if (isDirty) {
           const msg = "Você tem alterações não exportadas.";
@@ -522,11 +475,9 @@
   }
 
   async function triggerPrint() {
-      // Verifica se está rodando como App Instalado (PWA) no celular
       const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
       
       if (isStandalone) {
-          // Usa o menu oficial de compartilhamento nativo da Apple (Share Sheet)
           if (navigator.share) {
               try {
                   await navigator.share({
@@ -537,7 +488,6 @@
                   console.log("Menu de compartilhamento fechado pelo usuário.");
               }
           } else {
-              // Plano B (Força a abertura sem usar a caixa de "confirm" para não ser bloqueado)
               const a = document.createElement('a');
               a.href = window.location.href;
               a.target = '_blank';
@@ -548,7 +498,6 @@
           return;
       }
       
-      // Se estiver no PC ou navegador comum, abre a caixa de impressão direta
       window.print();
   }
 
@@ -595,17 +544,15 @@
       });
   }
 
-// Função inteligente que caça e destroi blocos de tablatura
   function limparTablaturas(texto) {
       if (!texto) return '';
-      const blocos = texto.split(/\n\s*\n/); // Separa a música em parágrafos
+      const blocos = texto.split(/\n\s*\n/); 
       const blocosLimpos = blocos.filter(bloco => {
           const temTab = bloco.split('\n').some(linha => {
               const l = linha.trim();
-              // Se a linha começar com E|, e|, B|, G|, tiver "---", ou marcações de tab, é sentenciada!
               return l.match(/^[eBGDAM]\s*\|/i) || l.includes('|---') || l.match(/^\[Tab/i) || l.match(/Parte \d+ de \d+/i);
           });
-          return !temTab; // Só mantém o bloco se NÃO tiver tablatura
+          return !temTab; 
       });
       return blocosLimpos.join('\n\n');
   }
@@ -630,7 +577,7 @@
         while(linesArray.length > 0 && linesArray[linesArray.length - 1].trim() === '') linesArray.pop();
         let out = '';
         for (let line of linesArray) {
-            let currentLine = line.replace(/\s+$/, ''); // Remove espaços invisíveis no fim da linha
+            let currentLine = line.replace(/\s+$/, ''); 
             const trimmed = currentLine.trim();
             
             if (trimmed.toLowerCase() === '[b]') { globalIsBold = true; continue; }
@@ -685,8 +632,6 @@
     let ghostElement = null;
     let originalElement = null;
     let touchOffsetY = 0;
-    
-    // NOVO: Variável que vai controlar a rolagem automática
     let scrollInterval = null; 
     
     songs.forEach((song, index) => {
@@ -736,35 +681,28 @@
           const touch = e.touches[0];
           ghostElement.style.top = (touch.clientY - touchOffsetY) + 'px';
           
-          // ==========================================
-          // NOVO: RADAR DE BORDA (AUTO-SCROLL)
-          // ==========================================
           const listRect = list.getBoundingClientRect();
-          const radarDistancia = 50; // Se chegar a 50px da borda, começa a rolar
+          const radarDistancia = 50; 
           let velocidadeRolagem = 0;
           
-          // Verifica se o dedo está no topo ou no fundo da caixa
           if (touch.clientY < listRect.top + radarDistancia) {
-              velocidadeRolagem = -10; // Rola para cima
+              velocidadeRolagem = -10; 
           } else if (touch.clientY > listRect.bottom - radarDistancia) {
-              velocidadeRolagem = 10; // Rola para baixo
+              velocidadeRolagem = 10; 
           }
 
-          // Se ativou o radar, liga o motor de rolagem
           if (velocidadeRolagem !== 0) {
               if (!scrollInterval) {
                   scrollInterval = setInterval(() => {
                       list.scrollTop += velocidadeRolagem;
-                  }, 20); // Velocidade suave e constante
+                  }, 20); 
               }
           } else {
-              // Se o dedo saiu da borda, desliga a rolagem
               if (scrollInterval) {
                   clearInterval(scrollInterval);
                   scrollInterval = null;
               }
           }
-          // ==========================================
           
           const elementUnderFinger = document.elementFromPoint(touch.clientX, touch.clientY);
           if (elementUnderFinger) {
@@ -787,7 +725,6 @@
       div.addEventListener('touchend', (e) => {
           if (!ghostElement) return;
           
-          // NOVO: Desliga o motor de rolagem ao soltar o dedo
           if (scrollInterval) {
               clearInterval(scrollInterval);
               scrollInterval = null;
@@ -839,13 +776,8 @@
           
           realContent.innerHTML = realContent.innerHTML.replace(/(\s|<br>)+$/g, ''); 
 
-          // 1. Cria o clone para medir nos bastidores
           const clonePage = page.cloneNode(true);
           
-          // ====================================================================
-          // A SOLUÇÃO IPHONE: Absolute + Left Negativo
-          // Impede o Safari do iPhone de espremer a folha na largura da tela
-          // ====================================================================
           clonePage.style.position = 'absolute'; 
           clonePage.style.top = '0';
           clonePage.style.left = '-9999px'; 
@@ -855,7 +787,6 @@
           clonePage.style.pointerEvents = 'none';
           clonePage.style.zIndex = '-9999';
 
-          // Forçando os tamanhos do A4
           clonePage.style.setProperty('width', '794px', 'important');
           clonePage.style.setProperty('min-width', '794px', 'important');
           clonePage.style.setProperty('max-width', '794px', 'important');
@@ -868,31 +799,31 @@
 
           const cloneBody = clonePage.querySelector('.doc-body');
           const cloneContent = clonePage.querySelector('.cifra-content');
-          const cloneHeader = clonePage.querySelector('.doc-header');  // ← CORRIGIDO: Captura o header
+          const cloneHeader = clonePage.querySelector('.doc-header');
 
-          // CHICOTE 1: Acorda o Safari para renderizar o clone
           void clonePage.offsetHeight;
 
-          // FIX IPHONE: Usa scrollHeight para melhor confiabilidade no Safari
-          let spaceH = cloneBody.scrollHeight;  // ← CORRIGIDO: Muda de clientHeight para scrollHeight
+          // ====================================================================
+          // A SOLUÇÃO MATEMÁTICA DEFINITIVA 
+          // Calculamos o espaço físico real da folha, impedindo cortes.
+          // ====================================================================
           let spaceW = cloneBody.clientWidth;
           
-          // FIX IPHONE: Se o header foi renderizado, subtrai sua altura real
-          if (cloneHeader && cloneHeader.scrollHeight > 0) {
-              spaceH -= cloneHeader.scrollHeight;
-              spaceH -= 6; // margin-bottom do header
-          }
+          // 1122px total - 56px de padding = 1066px
+          let espacoTotalInterno = 1066; 
+          let alturaCabecalho = cloneHeader ? cloneHeader.offsetHeight : 0;
+          
+          // Limite máximo intransponível para a música
+          let spaceH = espacoTotalInterno - alturaCabecalho - 12;
 
           if (spaceH > 0 && spaceW > 0) {
               cloneContent.style.lineHeight = '1.25';
               let minF = 3.0, maxF = 25.0, bestF = minF;
               
-              // ESTÁGIO 1: Aumenta a Fonte
               for (let i = 0; i < 20; i++) {
                   let mid = (minF + maxF) / 2;
                   cloneContent.style.fontSize = mid + 'pt';
                   
-                  // CHICOTE 2: OBRIGA O SAFARI A MEDIR A FONTE A CADA TENTATIVA!
                   void cloneContent.offsetHeight;
                   
                   if (cloneContent.scrollHeight > spaceH || cloneContent.scrollWidth > spaceW) {
@@ -906,7 +837,6 @@
               cloneContent.style.fontSize = bestFontSize + 'pt';
               void cloneContent.offsetHeight;
               
-              // ESTÁGIO 2 (O ACORDEÃO): Estica as linhas
               let finalLineHeight = 1.25;
               if (cloneContent.scrollHeight < spaceH - 2) {
                   let minL = 1.25, maxL = 3.5, bestL = minL;
@@ -914,7 +844,6 @@
                       let midL = (minL + maxL) / 2;
                       cloneContent.style.lineHeight = midL;
                       
-                      // CHICOTE 3: OBRIGA O SAFARI A MEDIR O ESTICAMENTO DA LINHA!
                       void cloneContent.offsetHeight;
                       
                       if (cloneContent.scrollHeight > spaceH) {
@@ -926,7 +855,6 @@
                   finalLineHeight = bestL;
               }
 
-              // Transfere o resultado perfeito para a sua tela!
               realContent.style.fontSize = bestFontSize + 'pt';
               realContent.style.lineHeight = finalLineHeight;
           }
@@ -937,8 +865,6 @@
       if (typeof ajustarEscalaA4 === 'function') ajustarEscalaA4();
   }
 
-  // Nova função para dar o "Zoom Perfeito" em qualquer tela
-  // Nova função para dar o "Zoom Perfeito" em qualquer tela
   function ajustarEscalaA4() {
       const wrapper = document.getElementById('a4-wrapper');
       if (!wrapper) return;
@@ -949,10 +875,8 @@
       if (larguraTela < larguraA4) {
           const escala = larguraTela / larguraA4;
           
-          // A MÁGICA: O 'zoom' nativo substitui o 'transform' bugado do iOS!
           wrapper.style.zoom = escala;
           
-          // Removemos as "gambiarras" antigas que não precisamos mais
           wrapper.style.transform = 'none';
           wrapper.style.marginBottom = '0';
       } else {
@@ -962,9 +886,7 @@
       }
   }
 
-  // Faz a folha se adaptar em tempo real se você girar o iPad
   window.addEventListener('resize', ajustarEscalaA4);
-
 
   function renderPreview() {
     const wrapper = document.getElementById('a4-wrapper');
@@ -974,7 +896,6 @@
       const page = document.createElement('div');
       page.className = 'a4-page' + (idx === currentIndex ? '' : ' hidden-preview');
       
-      // RECRIANDO OS ÍCONES DE VÍDEO E CIFRA PARA A PRÉ-VISUALIZAÇÃO
       const vBadge = song.video ? `<a href="${song.video}" target="_blank" class="badge video">▶ VÍDEO</a>` : '';
       const cBadge = song.cifra ? `<a href="${song.cifra}" target="_blank" class="badge cifra">♩ CIFRA</a>` : '';
       
@@ -983,7 +904,6 @@
           let numeroCasa = song.capo.replace(/\D/g, ''); 
           if (numeroCasa !== '') {
               capoValue = parseInt(numeroCasa, 10);
-              // AQUI: Adicionamos a palavra " CASA" logo após o símbolo ª
               capoText = `<span class="capo-text" style="color: #dc2626; font-weight: 800; text-transform: uppercase; font-size: 16pt; white-space: nowrap;">CAPO NA ${numeroCasa}ª CASA</span>`;
           }
       }
@@ -1012,7 +932,6 @@
                 </div>
                 <div style="flex: 1; display: flex; justify-content: center; align-items: center; text-align: center; min-width: max-content;">${capoText}</div>
                 
-                <!-- ÍCONES INJETADOS CORRETAMENTE AQUI -->
                 <div style="flex: 1; display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
                     ${vBadge}${cBadge}
                 </div>
@@ -1025,7 +944,6 @@
       wrapper.appendChild(page);
     });
     
-    // Atualizado: Executa o ajuste de texto e depois o Zoom dinâmico!
     requestAnimationFrame(() => {
         autoFitText();
         ajustarEscalaA4();
@@ -1040,7 +958,6 @@
     document.getElementById('i-capo').value = song.capo || '';
     document.getElementById('i-intro').value = song.intro || '';
     
-    // AQUI ESTAVA O PROBLEMA: Faltava puxar os links para a tela
     document.getElementById('i-cifra').value = song.cifra || '';
     document.getElementById('i-video').value = song.video || ''; 
     
@@ -1062,7 +979,7 @@
       capo: document.getElementById('i-capo').value,
       intro: document.getElementById('i-intro').value, 
       cifra: document.getElementById('i-cifra').value,
-      video: document.getElementById('i-video').value, // VÍDEO ADICIONADO
+      video: document.getElementById('i-video').value, 
       content: document.getElementById('i-content').value, 
       transposeSteps: songs[currentIndex].transposeSteps || 0
     };
@@ -1085,7 +1002,7 @@
   }
 
   function addNewSong() {
-    songs.push({ title: 'Nova Música', artist: '', tone: '', capo: '', intro: '', cifra: '', video: '', content: '', transposeSteps: 0 }); // VÍDEO ADICIONADO
+    songs.push({ title: 'Nova Música', artist: '', tone: '', capo: '', intro: '', cifra: '', video: '', content: '', transposeSteps: 0 }); 
     selectSong(songs.length - 1);
     autoSaveToMemory()
   }
@@ -1113,7 +1030,6 @@
       btn.disabled = true;
 
       try {
-          // Substitua o link abaixo pelo SEU link do Google
           const googleProxy = "https://script.google.com/macros/s/AKfycbzgTEBviBJGA2H6J4nMtxOW9VVjgFpPsP6mI5TaJ1eLXQyrUBOd_txltpKB2vVIvBqV/exec";
           const finalUrl = googleProxy + "?url=" + encodeURIComponent(urlInput);
           
@@ -1137,7 +1053,6 @@
 
           const preEl = doc.querySelector('pre');
           if (preEl) {
-              // Adicionamos a classe .tablature aqui para ajudar a limpar o lixo do site
               preEl.querySelectorAll('.sr-only, script, style, [style*="display:none"], [style*="display: none"], .tablature').forEach(el => el.remove());
               let lines = preEl.textContent.replace(/\r/g, '').split('\n'), newLines = [], inIntroBlock = false, introChords = [];
 
@@ -1155,7 +1070,6 @@
                   } else newLines.push(line);
               }
 
-              // AQUI ENTRA O EXTERMINADOR! Ele limpa o texto antes de jogar na tela
               let textoExtraido = newLines.join('\n').trim();
               document.getElementById('i-content').value = limparTablaturas(textoExtraido); 
               
@@ -1186,7 +1100,7 @@
           a.href = url; a.download = "meu_repertorio.json";
           document.body.appendChild(a); a.click();
           setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 1000); 
-          isDirty = false; // Exportou com sucesso, tira o status de "pendente"
+          isDirty = false; 
       } catch (err) { alert("Erro ao exportar: " + err.message); }
   }
 
@@ -1219,7 +1133,6 @@
               e.preventDefault(); 
               let tempDiv = document.createElement('div'); tempDiv.innerHTML = html;
               
-              // Adicionamos a classe .tablature aqui também
               tempDiv.querySelectorAll('.sr-only, [style*="display:none"], [style*="display: none"], .tablature').forEach(el => el.remove());
               
               tempDiv.querySelectorAll('br').forEach(br => { br.parentNode.insertBefore(document.createTextNode('\n'), br); br.remove(); });
@@ -1240,7 +1153,6 @@
               
               let finalText = cleanedLines.join('\n');
               
-              // AQUI ENTRA O EXTERMINADOR PARA O TEXTO COLADO!
               finalText = limparTablaturas(finalText);
               
               const start = this.selectionStart, end = this.selectionEnd;
@@ -1252,9 +1164,7 @@
   });
 
   window.onload = () => {
-    // Tenta puxar a última sessão salva na memória do celular
     if (!loadFromMemory()) {
-        // Se não tiver nada salvo, inicia um repertório limpo
         songs.push({ title: 'Nova Música', artist: '', tone: '', capo: '', intro: '', cifra: '', video: '', content: '', transposeSteps: 0 });
     }
     selectSong(0); 
