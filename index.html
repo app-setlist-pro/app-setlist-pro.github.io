@@ -831,63 +831,51 @@
   }
 
   function autoFitText() {
+      const wrapper = document.getElementById('a4-wrapper');
+      if (!wrapper) return;
+      
+      // 1. Desliga o zoom temporariamente para o iOS não distorcer as medidas
+      wrapper.style.zoom = '1';
+
       const pages = document.querySelectorAll('.a4-page:not(.hidden-preview)');
       
       pages.forEach(page => {
           const realContent = page.querySelector('.cifra-content');
-          if (!realContent) return;
+          const realBody = page.querySelector('.doc-body');
+          if (!realContent || !realBody) return;
           
           realContent.innerHTML = realContent.innerHTML.replace(/(\s|<br>)+$/g, ''); 
 
-          // 1. Cria o clone para medir nos bastidores
-          const clonePage = page.cloneNode(true);
-          
           // ====================================================================
-          // A SOLUÇÃO IPHONE: Absolute + Left Negativo
-          // Impede o Safari do iPhone de espremer a folha na largura da tela
+          // A SOLUÇÃO DEFINITIVA (MÉTODO AO VIVO)
+          // Forçamos o tamanho real do A4 direto na página visível por 1 milissegundo.
+          // O Safari é obrigado a renderizar e dar a medida exata.
           // ====================================================================
-          clonePage.style.position = 'absolute'; 
-          clonePage.style.top = '0';
-          clonePage.style.left = '-9999px'; 
-          clonePage.style.margin = '0';
-          clonePage.style.transform = 'none'; 
-          clonePage.style.opacity = '0';
-          clonePage.style.pointerEvents = 'none';
-          clonePage.style.zIndex = '-9999';
+          page.style.setProperty('width', '794px', 'important');
+          page.style.setProperty('min-width', '794px', 'important');
+          page.style.setProperty('max-width', '794px', 'important');
+          page.style.setProperty('height', '1122px', 'important');
+          page.style.setProperty('min-height', '1122px', 'important');
+          page.style.setProperty('max-height', '1122px', 'important');
 
-          // Forçando os tamanhos do A4
-          clonePage.style.setProperty('width', '794px', 'important');
-          clonePage.style.setProperty('min-width', '794px', 'important');
-          clonePage.style.setProperty('max-width', '794px', 'important');
-          clonePage.style.setProperty('height', '1122px', 'important');
-          clonePage.style.setProperty('min-height', '1122px', 'important');
-          clonePage.style.setProperty('max-height', '1122px', 'important');
-          clonePage.style.setProperty('padding', '28px', 'important'); 
+          // O Chicote: Acorda o Safari e força a leitura imediata do layout
+          void page.offsetHeight; 
 
-          document.body.appendChild(clonePage);
-
-          const cloneBody = clonePage.querySelector('.doc-body');
-          const cloneContent = clonePage.querySelector('.cifra-content');
-
-          // CHICOTE 1: Acorda o Safari para renderizar o clone
-          void clonePage.offsetHeight;
-
-          let spaceH = cloneBody.clientHeight;
-          let spaceW = cloneBody.clientWidth;
+          let spaceH = realBody.clientHeight;
+          let spaceW = realBody.clientWidth;
 
           if (spaceH > 0 && spaceW > 0) {
-              cloneContent.style.lineHeight = '1.25';
+              realContent.style.lineHeight = '1.25';
               let minF = 3.0, maxF = 25.0, bestF = minF;
               
               // ESTÁGIO 1: Aumenta a Fonte
               for (let i = 0; i < 20; i++) {
                   let mid = (minF + maxF) / 2;
-                  cloneContent.style.fontSize = mid + 'pt';
+                  realContent.style.fontSize = mid + 'pt';
                   
-                  // CHICOTE 2: OBRIGA O SAFARI A MEDIR A FONTE A CADA TENTATIVA!
-                  void cloneContent.offsetHeight;
+                  void realContent.offsetHeight; // Força a leitura do Safari
                   
-                  if (cloneContent.scrollHeight > spaceH || cloneContent.scrollWidth > spaceW) {
+                  if (realContent.scrollHeight > spaceH || realContent.scrollWidth > spaceW) {
                       maxF = mid; 
                   } else { 
                       bestF = mid; minF = mid; 
@@ -895,21 +883,20 @@
               }
               
               let bestFontSize = Math.max(3.0, bestF - 0.2);
-              cloneContent.style.fontSize = bestFontSize + 'pt';
-              void cloneContent.offsetHeight;
+              realContent.style.fontSize = bestFontSize + 'pt';
+              void realContent.offsetHeight;
               
-              // ESTÁGIO 2 (O ACORDEÃO): Estica as linhas
+              // ESTÁGIO 2: O Acordeão (Estica as linhas)
               let finalLineHeight = 1.25;
-              if (cloneContent.scrollHeight < spaceH - 2) {
+              if (realContent.scrollHeight < spaceH - 2) {
                   let minL = 1.25, maxL = 3.5, bestL = minL;
                   for (let i = 0; i < 15; i++) {
                       let midL = (minL + maxL) / 2;
-                      cloneContent.style.lineHeight = midL;
+                      realContent.style.lineHeight = midL;
                       
-                      // CHICOTE 3: OBRIGA O SAFARI A MEDIR O ESTICAMENTO DA LINHA!
-                      void cloneContent.offsetHeight;
+                      void realContent.offsetHeight; // Força a leitura do Safari
                       
-                      if (cloneContent.scrollHeight > spaceH) {
+                      if (realContent.scrollHeight > spaceH) {
                           maxL = midL; 
                       } else {
                           bestL = midL; minL = midL; 
@@ -918,14 +905,19 @@
                   finalLineHeight = bestL;
               }
 
-              // Transfere o resultado perfeito para a sua tela!
-              realContent.style.fontSize = bestFontSize + 'pt';
               realContent.style.lineHeight = finalLineHeight;
           }
 
-          document.body.removeChild(clonePage);
+          // Remove as travas temporárias, devolvendo o controle para o CSS nativo
+          page.style.removeProperty('width');
+          page.style.removeProperty('min-width');
+          page.style.removeProperty('max-width');
+          page.style.removeProperty('height');
+          page.style.removeProperty('min-height');
+          page.style.removeProperty('max-height');
       });
       
+      // 2. Religa a adaptação móvel (Zoom) com as letras já perfeitamente calculadas
       if (typeof ajustarEscalaA4 === 'function') ajustarEscalaA4();
   }
 
