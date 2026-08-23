@@ -873,19 +873,26 @@
           // CHICOTE 1: Acorda o Safari para renderizar o clone
           void clonePage.offsetHeight;
 
-          // FIX IPHONE: Usa scrollHeight para melhor confiabilidade no Safari
-          let spaceH = cloneBody.scrollHeight;  // ← CORRIGIDO: Muda de clientHeight para scrollHeight
-          let spaceW = cloneBody.clientWidth;
+          // ====================================================================
+          // A SOLUÇÃO MATEMÁTICA DEFINITIVA
+          // Em vez de medir a caixa (o que causou o corte da letra), 
+          // calculamos o espaço exato descontando as margens e o cabeçalho.
+          // ====================================================================
           
-          // FIX IPHONE: Se o header foi renderizado, subtrai sua altura real
-          if (cloneHeader && cloneHeader.scrollHeight > 0) {
-              spaceH -= cloneHeader.scrollHeight;
-              spaceH -= 6; // margin-bottom do header
-          }
+          let spaceW = cloneBody.clientWidth; // A largura não tem bug
+          
+          // 1. Altura total da página (1122px) menos o padding (28px topo + 28px base = 56px)
+          let espacoTotalInterno = 1122 - 56;
+          
+          // 2. Mede a altura física real do cabeçalho que acabou de ser renderizado
+          let alturaCabecalho = cloneHeader ? cloneHeader.offsetHeight : 0;
+          
+          // 3. O espaço exato da música é o total menos o cabeçalho e sua margem inferior (6px).
+          // Retiramos mais 4px de "respiro" por segurança para não lamber totalmente a borda final.
+          let spaceH = espacoTotalInterno - alturaCabecalho - 10;
 
           if (spaceH > 0 && spaceW > 0) {
               cloneContent.style.lineHeight = '1.25';
-              let minF = 3.0, maxF = 25.0, bestF = minF;
               
               // ESTÁGIO 1: Aumenta a Fonte
               for (let i = 0; i < 20; i++) {
