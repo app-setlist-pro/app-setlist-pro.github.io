@@ -601,9 +601,12 @@
   function triggerPrint() {
       const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
       
+      let pName = document.getElementById('project-name').value.trim();
+      if (!pName) pName = "Meu Repertório";
+
       if (isStandalone && navigator.share) {
           navigator.share({
-              title: 'Setlist Pro - Repertório',
+              title: pName, // Usa o nome do projeto no compartilhamento mobile também!
               url: window.location.href
           }).catch(err => console.log("Compartilhamento cancelado pelo usuário."));
           return;
@@ -615,13 +618,14 @@
           wrapper.style.removeProperty('transform');
       }
       
-      // O TRUQUE DO NOME DO ARQUIVO: Pega o nome do projeto para batizar o PDF
-      let pName = document.getElementById('project-name').value.trim();
-      if (!pName) pName = "Meu Repertório";
+      // 1. Aplica o nome do repertório no documento
       document.title = pName; 
-      
       document.body.offsetHeight;
-      window.print();
+      
+      // 2. O TRUQUE DO IOS: Aguarda 300ms para o Safari "engolir" o nome novo antes de gerar o PDF
+      setTimeout(() => {
+          window.print();
+      }, 300);
   }
 
   window.addEventListener('beforeprint', () => {
@@ -631,7 +635,6 @@
           wrapper.style.removeProperty('transform');
       }
       
-      // Garante que o nome mude mesmo se o usuário usar o atalho de imprimir do próprio celular
       let pName = document.getElementById('project-name').value.trim();
       if (!pName) pName = "Meu Repertório";
       document.title = pName;
@@ -640,8 +643,12 @@
   });
 
   window.addEventListener('afterprint', () => {
-      // DEVOLVE O NOME ORIGINAL PARA O APLICATIVO
-      document.title = "Setlist Pro";
+      // 3. O SEGUNDO TRUQUE: Demora 2 segundos para devolver o nome "Setlist Pro" 
+      // Isso impede que o iOS "roube" o nome antigo de volta enquanto processa o compartilhamento
+      setTimeout(() => {
+          document.title = "Setlist Pro";
+      }, 2000);
+
       if (typeof ajustarEscalaA4 === 'function') ajustarEscalaA4();
   });
 
