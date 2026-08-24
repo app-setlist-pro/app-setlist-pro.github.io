@@ -154,19 +154,12 @@
   .dark-mode hr.divider { border-top-color: #334155; }
   .dark-mode .split-col-divider { border-left-color: #334155; }
 
-  /* =======================================================
-     CSS DE IMPRESSÃO (LIMPO E BLINDADO PARA IOS E ANDROID)
-     ======================================================= */
   @media print {
     @page { size: A4 portrait; margin: 0 !important; }
-    html, body { background: white !important; padding: 0 !important; margin: 0 !important; width: 100% !important; height: auto !important; overflow: visible !important; }
+    html, body { background: white !important; padding: 0 !important; margin: 0 !important; width: 100% !important; height: auto !important; overflow: visible !important; display: block !important;}
     .no-print, .preview-title { display: none !important; }
-    .preview-section { margin: 0 !important; padding: 0 !important; display: block !important; }
-    
-    .a4-wrapper { 
-        gap: 0 !important; display: block !important; padding: 0 !important; margin: 0 !important; 
-        width: 100% !important; transform: none !important; zoom: 1 !important; scale: 1 !important; 
-    }
+    .preview-section { margin: 0 !important; padding: 0 !important; display: block !important;}
+    .a4-wrapper { gap: 0 !important; display: block !important; padding: 0 !important; margin: 0 !important; width: 100% !important; transform: none !important; zoom: 1 !important; scale: 1 !important; }
     
     .a4-page {
         background: white !important; 
@@ -175,34 +168,28 @@
         max-height: 297mm !important; 
         padding: 7.5mm !important; 
         box-shadow: none !important; 
-        color: black !important; 
-        position: relative !important;
+        color: black !important; position: relative;
         box-sizing: border-box !important; 
-        overflow: hidden !important; 
-        display: flex !important; /* O SEGREDO RETORNOU: Mantém o Flexbox vivo */
-        flex-direction: column !important; 
-        zoom: 1 !important; 
-        scale: 1 !important;
+        display: flex !important; 
+        flex-direction: column !important;
+        margin: 0 auto !important;
         page-break-after: always !important;
         page-break-inside: avoid !important;
         break-after: page !important;
         break-inside: avoid !important;
-        margin: 0 auto !important;
+        zoom: 1 !important; 
+        scale: 1 !important;
     }
     .a4-page:last-child { page-break-after: auto !important; break-after: auto !important; }
     
-    .a4-content-area {
-        width: 100% !important; height: 100% !important; display: flex !important; 
-        flex-direction: column !important; overflow: hidden !important;
+    .a4-content-area, .doc-body {
+        display: block !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
     }
     
-    .doc-body { 
-        flex: 1 !important; min-height: 0 !important; width: 100% !important; 
-        display: block !important; overflow: hidden !important; 
-    }
-    
-    /* Proteção extrema contra celulares no modo escuro na hora da impressão */
-    .dark-mode .a4-page { background-color: white !important; color: black !important; }
+    .dark-mode .a4-page { background-color: #ffffff !important; color: #000000 !important; }
     .cifra-content { color: #000000 !important; }
     .dark-mode .cifra-content { color: #000000 !important; }
     .chord { color: #d97706 !important; font-weight: bold !important; }
@@ -565,32 +552,38 @@
       }
   }
 
-  async function triggerPrint() {
-      const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+  // =========================================================
+  // FIX DEFINITIVO: IMPRESSÃO SÍNCRONA E BLINDAGEM DO SAFARI
+  // =========================================================
+  function triggerPrint() {
+      const wrapper = document.getElementById('a4-wrapper');
       
-      if (isStandalone) {
-          if (navigator.share) {
-              try {
-                  await navigator.share({
-                      title: 'JR Cifras - Repertório',
-                      url: window.location.href
-                  });
-              } catch (err) {
-                  console.log("Menu de compartilhamento fechado pelo usuário.");
-              }
-          } else {
-              const a = document.createElement('a');
-              a.href = window.location.href;
-              a.target = '_blank';
-              document.body.appendChild(a);
-              a.click();
-              a.remove();
-          }
-          return;
+      // 1. Removemos a escala inline para o Safari não esmagar o PDF
+      if (wrapper) {
+          wrapper.style.removeProperty('zoom');
+          wrapper.style.removeProperty('transform');
       }
       
+      // 2. Chamada síncrona de impressão (impede o Safari de bloquear a janela)
       window.print();
+      
+      // 3. Devolvemos a escala após fechar a janela de impressão
+      if (typeof ajustarEscalaA4 === 'function') ajustarEscalaA4();
   }
+
+  // Camada de segurança extra caso a pessoa imprima pelo botão de "Compartilhar" do próprio Safari
+  window.addEventListener('beforeprint', () => {
+      const wrapper = document.getElementById('a4-wrapper');
+      if (wrapper) {
+          wrapper.style.removeProperty('zoom');
+          wrapper.style.removeProperty('transform');
+      }
+  });
+
+  window.addEventListener('afterprint', () => {
+      if (typeof ajustarEscalaA4 === 'function') ajustarEscalaA4();
+  });
+
 
   function isChord(w) {
       const chordRegex = /^[A-G](#|b)?(m|M|maj|min|dim|aug|sus|add)?\d*(M|m)?\d*(\([^)]+\))?(º|°|\+|-)?(\/[A-G](#|b)?)?$/i;
@@ -859,7 +852,6 @@
   }
 
   function autoFitText() {
-      // CORREÇÃO: Pega TODAS as folhas, e não apenas a folha ativa na tela!
       const pages = document.querySelectorAll('.a4-page');
       
       pages.forEach(page => {
