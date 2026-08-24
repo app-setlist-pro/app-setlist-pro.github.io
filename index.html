@@ -229,7 +229,7 @@
         <button class="btn-primary" style="background:#475569;" onclick="novoProjeto()">📄 Novo</button>
         
         <label for="file-upload" class="btn-primary btn-label" style="background:#334155; display: flex; align-items: center; justify-content: center; margin: 0;">📂 Abrir</label>
-        <input type="file" id="file-upload" accept= .json, .txt, application/json, text/plain" style="display:none" onchange="loadProject(event)">
+        <input type="file" id="file-upload" accept=".json,application/json" style="display:none" onchange="loadProject(event)">
         
         <button class="btn-primary" style="background:#0f766e;" onclick="exportarProjeto()">💾 Exportar</button>
         <button class="btn-success" onclick="triggerPrint()">🖨️ PDF</button>
@@ -423,7 +423,15 @@
   }
 
   async function loadProject(event) {
-      const file = event.target.files[0]; if (!file) return;
+      const file = event.target.files[0]; 
+      if (!file) return;
+      
+      // FIX ANDROID: Valida o arquivo antes de tentar abrir
+      if (!file.type.includes('json') && !file.name.endsWith('.json')) {
+          alert("⚠️ Arquivo inválido. Por favor, selecione um arquivo .json");
+          event.target.value = '';
+          return;
+      }
       
       const podeContinuar = await checkUnsaved();
       if (!podeContinuar) {
@@ -432,19 +440,43 @@
       }
 
       const reader = new FileReader();
+      
+      reader.onerror = function(e) {
+          console.error("Erro ao ler arquivo:", e);
+          alert("❌ Erro ao ler o arquivo. Verifique as permissões no Android.");
+          event.target.value = '';
+      };
+      
       reader.onload = function(e) {
           try {
-              const loadedSongs = JSON.parse(e.target.result);
+              const content = e.target.result;
+              
+              // FIX ANDROID: Trata conteúdo vazio ou inválido
+              if (!content || content.trim() === '') {
+                  alert("⚠️ Arquivo vazio. Envie um repertório válido.");
+                  event.target.value = '';
+                  return;
+              }
+              
+              const loadedSongs = JSON.parse(content);
+              
               if (Array.isArray(loadedSongs) && loadedSongs.length > 0) { 
                   songs = loadedSongs; 
                   currentIndex = 0; 
                   localStorage.setItem('jrCifras_MobileBackup', JSON.stringify(songs));
                   isDirty = false; 
                   selectSong(0); 
-              } 
-          } catch (err) { alert("Erro ao ler arquivo."); }
+                  alert(`✅ Repertório carregado com ${songs.length} música(s)!`);
+              } else {
+                  alert("⚠️ Arquivo inválido ou vazio.");
+              }
+          } catch (err) { 
+              console.error("Erro ao parsear JSON:", err);
+              alert("❌ Erro ao ler arquivo. Verifique se é um .json válido.\n\nDetalhes: " + err.message); 
+          }
           event.target.value = '';
       };
+      
       reader.readAsText(file);
   }
 
