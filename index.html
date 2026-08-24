@@ -232,23 +232,27 @@
 
 <div class="no-print">
   <div class="header-actions">
-    <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-        <!-- LOGO OFICIAL DO APP -->
-        <div style="display: flex; align-items: center; gap: 10px; user-select: none;">
-            <img src="logo.png" alt="Setlist Pro Logo" style="width: 40px; height: 40px; border-radius: 10px; box-shadow: 0 3px 6px rgba(2, 132, 199, 0.2);">
-            <h1 style="font-size: 1.6rem; margin: 0; font-family: system-ui, -apple-system, sans-serif; letter-spacing: -0.5px; display: flex; align-items: center;">
+    <!-- BARRA SUPERIOR: LOGO E NOME LADO A LADO -->
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: nowrap; width: 100%; overflow: hidden;">
+        
+        <!-- LOGO OFICIAL DO APP (Levemente redimensionada para caber em telas pequenas) -->
+        <div style="display: flex; align-items: center; gap: 8px; user-select: none; flex-shrink: 0;">
+            <img src="logo.png" alt="Setlist Pro Logo" style="width: 36px; height: 36px; border-radius: 8px; box-shadow: 0 3px 6px rgba(2, 132, 199, 0.2);">
+            <h1 style="font-size: 1.4rem; margin: 0; font-family: system-ui, -apple-system, sans-serif; letter-spacing: -0.5px; display: flex; align-items: center;">
                 <span class="brand-text-setlist">Setlist</span>
-                <span style="background: #0284c7; color: white; font-size: 0.75rem; font-weight: 900; padding: 4px 8px; border-radius: 6px; margin-left: 8px; letter-spacing: 0.5px;">PRO</span>
+                <span style="background: #0284c7; color: white; font-size: 0.65rem; font-weight: 900; padding: 3px 6px; border-radius: 6px; margin-left: 6px; letter-spacing: 0.5px;">PRO</span>
             </h1>
         </div>
         
-        <div style="display: flex; align-items: center; background: white; padding: 6px 10px; border-radius: 6px; border: 1px solid #cbd5e1; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);">
-            <span style="font-size: 14px; margin-right: 6px;">📁</span>
-            <input type="text" id="project-name" value="Meu Repertório" oninput="autoSaveToMemory()" style="border: none; outline: none; font-size: 14px; font-weight: bold; color: #0f172a; width: 160px; background: transparent;" title="Nome do Repertório">
+        <!-- CAMPO DE NOME DO PROJETO COM NOVO ÍCONE -->
+        <div style="display: flex; align-items: center; background: white; padding: 6px 10px; border-radius: 6px; border: 1px solid #cbd5e1; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); flex-shrink: 1; min-width: 110px; max-width: 180px;">
+            <span style="font-size: 14px; margin-right: 6px;">📝</span>
+            <input type="text" id="project-name" value="Meu Repertório" oninput="autoSaveToMemory()" style="border: none; outline: none; font-size: 14px; font-weight: bold; color: #0f172a; width: 100%; background: transparent;" title="Nome do Repertório">
         </div>
     </div>
     
     <div class="btn-group">
+        <!-- O resto dos botões continua igualzinho aqui pra baixo... -->
         <button class="btn-primary" style="background:#475569;" onclick="novoProjeto()">📄 Novo</button>
         <label for="file-upload" class="btn-primary btn-label" style="background:#334155; display: flex; align-items: center; justify-content: center; margin: 0;">📂 Abrir</label>
         <input type="file" id="file-upload" accept=".json,application/json" style="display:none" onchange="loadProject(event)">
