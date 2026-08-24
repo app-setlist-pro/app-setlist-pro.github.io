@@ -852,22 +852,6 @@
               spaceH -= 6; // margin-bottom do header
           }
 
-          // ====================================================================
-          // O "TETO DE AÇO" PARA MÚSICAS LONGAS
-          // Mantém a solução perfeita para as margens, mas impede que
-          // o scrollHeight cresça infinitamente e cause cortes no final da folha.
-          // ====================================================================
-          let limiteMaximo = 1122 - 56; // Altura total A4 (1122px) menos paddings
-          if (cloneHeader && cloneHeader.scrollHeight > 0) {
-              limiteMaximo -= cloneHeader.scrollHeight;
-              limiteMaximo -= 6;
-          }
-          
-          // Se o espaço ultrapassar a capacidade do papel físico, nós travamos.
-          if (spaceH > limiteMaximo) {
-              spaceH = limiteMaximo;
-          }
-
           if (spaceH > 0 && spaceW > 0) {
               cloneContent.style.lineHeight = '1.25';
               let minF = 3.0, maxF = 25.0, bestF = minF;
@@ -1147,16 +1131,37 @@
       }
   }
 
-  function exportarProjeto() {
+  async function exportarProjeto() {
       if (songs.length === 0) { alert("Repertório vazio!"); return; }
       try {
           const jsonStr = JSON.stringify(songs, null, 2);
+          const fileName = "meu_repertorio.json";
+          
+          if (navigator.share && navigator.canShare) {
+              const file = new File([jsonStr], fileName, { type: "application/json" });
+              if (navigator.canShare({ files: [file] })) {
+                  try {
+                      await navigator.share({
+                          files: [file],
+                          title: 'JR Cifras',
+                          text: 'Aqui está o backup do repertório.'
+                      });
+                      isDirty = false;
+                      return; 
+                  } catch (shareErr) {
+                      console.log("Compartilhamento cancelado ou falhou", shareErr);
+                      
+                  }
+              }
+          }
+
           const blob = new Blob([jsonStr], { type: "application/json" }); 
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url; 
-          a.download = "meu_repertorio.json"; 
-          document.body.appendChild(a); a.click();
+          a.download = fileName; 
+          document.body.appendChild(a); 
+          a.click();
           setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 1000); 
           isDirty = false; 
       } catch (err) { alert("Erro ao exportar: " + err.message); }
