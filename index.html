@@ -258,19 +258,12 @@
   <div class="header-actions">
     <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
         
-        <!-- LOGO OFICIAL DO APP (BASEADA NO ÍCONE FINAL) -->
-        <div style="display: flex; align-items: center; gap: 12px; user-select: none;">
-            <svg width="40" height="40" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0px 3px 6px rgba(2, 132, 199, 0.35)); border-radius: 10px;">
-                <rect width="512" height="512" rx="114" fill="#0f172a"/>
-                <path d="M256 55 C390 55, 435 185, 435 285 C435 415, 256 475, 256 475 C256 475, 77 415, 77 285 C77 185, 122 55, 256 55 Z" fill="#0ea5e9"/>
-                <path d="M295 140 C295 110, 240 100, 215 125 C195 145, 205 175, 240 190 L275 205 C310 220, 325 255, 305 290 C280 330, 215 325, 195 290" fill="none" stroke="#ffffff" stroke-width="36" stroke-linecap="round"/>
-                <circle cx="325" cy="140" r="22" fill="#ffffff"/>
-                <circle cx="215" cy="300" r="24" fill="#ffffff"/>
-                <path d="M120 355 L392 355 C410 355, 415 410, 392 410 L120 410 C102 410, 97 355, 120 355 Z" fill="#1e293b" stroke="#38bdf8" stroke-width="6"/>
-                <text x="256" y="397" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="50" fill="#ffffff" text-anchor="middle" letter-spacing="6">PRO</text>
-            </svg>
-            <h1 style="font-size: 1.6rem; margin: 0; font-family: system-ui, -apple-system, sans-serif; letter-spacing: -0.5px;">
-                <span class="brand-text-setlist">Setlist</span> <span style="color: #0284c7; font-weight: 900;">Pro</span>
+        <!-- LOGO OFICIAL DO APP USANDO A IMAGEM + TEXTO COM BADGE -->
+        <div style="display: flex; align-items: center; gap: 10px; user-select: none;">
+            <img src="logo.png" alt="Setlist Pro Logo" style="width: 40px; height: 40px; border-radius: 10px; box-shadow: 0 3px 6px rgba(2, 132, 199, 0.2);">
+            <h1 style="font-size: 1.6rem; margin: 0; font-family: system-ui, -apple-system, sans-serif; letter-spacing: -0.5px; display: flex; align-items: center;">
+                <span class="brand-text-setlist">Setlist</span>
+                <span style="background: #0284c7; color: white; font-size: 0.75rem; font-weight: 900; padding: 4px 8px; border-radius: 6px; margin-left: 8px; letter-spacing: 0.5px;">PRO</span>
             </h1>
         </div>
         
@@ -588,8 +581,8 @@
       
       const wrapper = document.getElementById('a4-wrapper');
       if (wrapper) {
-          wrapper.style.removeProperty('zoom');
-          wrapper.style.removeProperty('transform');
+          wrapper.style.zoom = '1';
+          wrapper.style.transform = 'none';
       }
       
       document.body.offsetHeight;
@@ -599,8 +592,8 @@
   window.addEventListener('beforeprint', () => {
       const wrapper = document.getElementById('a4-wrapper');
       if (wrapper) {
-          wrapper.style.removeProperty('zoom');
-          wrapper.style.removeProperty('transform');
+          wrapper.style.zoom = '1';
+          wrapper.style.transform = 'none';
       }
       document.body.offsetHeight;
   });
@@ -1044,19 +1037,12 @@
               <div style="display: flex; justify-content: space-between; align-items: flex-end; width: 100%;">
                   <div class="doc-title" style="flex: 1; padding-right: 15px; margin: 0; line-height: 1;">${song.title || 'Música Sem Título'}</div>
                   
-                  <!-- LOGO DO APP NAS FOLHAS DE IMPRESSÃO (VETORIZADA FIEL) -->
+                  <!-- LOGO DA FOLHA DE IMPRESSÃO (USANDO A IMAGEM REAL) -->
                   <div style="display: flex; align-items: center; gap: 6px; user-select: none; flex-shrink: 0;">
-                      <svg width="32" height="32" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" style="border-radius: 8px;">
-                          <rect width="512" height="512" rx="114" fill="#0f172a"/>
-                          <path d="M256 55 C390 55, 435 185, 435 285 C435 415, 256 475, 256 475 C256 475, 77 415, 77 285 C77 185, 122 55, 256 55 Z" fill="#0ea5e9"/>
-                          <path d="M295 140 C295 110, 240 100, 215 125 C195 145, 205 175, 240 190 L275 205 C310 220, 325 255, 305 290 C280 330, 215 325, 195 290" fill="none" stroke="#ffffff" stroke-width="36" stroke-linecap="round"/>
-                          <circle cx="325" cy="140" r="22" fill="#ffffff"/>
-                          <circle cx="215" cy="300" r="24" fill="#ffffff"/>
-                          <path d="M120 355 L392 355 C410 355, 415 410, 392 410 L120 410 C102 410, 97 355, 120 355 Z" fill="#1e293b" stroke="#38bdf8" stroke-width="6"/>
-                          <text x="256" y="397" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="50" fill="#ffffff" text-anchor="middle" letter-spacing="6">PRO</text>
-                      </svg>
-                      <div style="font-size: 1.4rem; margin: 0; font-family: system-ui, -apple-system, sans-serif; letter-spacing: -0.5px; line-height: 1;">
-                          <span class="brand-text-setlist">Setlist</span> <span style="color: #0284c7; font-weight: 900;">Pro</span>
+                      <img src="logo.png" style="width: 28px; height: 28px; border-radius: 6px;">
+                      <div style="font-size: 1.5rem; margin: 0; font-family: system-ui, -apple-system, sans-serif; letter-spacing: -0.5px; line-height: 1; display: flex; align-items: center;">
+                          <span class="brand-text-setlist">Setlist</span>
+                          <span style="background: #0284c7; color: white; font-size: 0.65rem; font-weight: 900; padding: 2px 5px; border-radius: 4px; margin-left: 6px; letter-spacing: 0.5px;">PRO</span>
                       </div>
                   </div>
               </div>
