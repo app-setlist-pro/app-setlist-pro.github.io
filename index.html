@@ -1135,17 +1135,19 @@
       if (songs.length === 0) { alert("Repertório vazio!"); return; }
       try {
           const jsonStr = JSON.stringify(songs, null, 2);
-          // 1. Mudamos de "application/json" para "text/plain"
-          const blob = new Blob([jsonStr], { type: "text/plain" }); 
+          // CORRIGIDO: type deve ser "application/json" (não "text/plain")
+          const blob = new Blob([jsonStr], { type: "application/json" }); 
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url; 
-          // 2. Mudamos o final do arquivo de .json para .txt
-          a.download = "meu_repertorio.txt"; 
-          document.body.appendChild(a); a.click();
+          // CORRIGIDO: download deve ser ".json" (não ".txt")
+          a.download = "meu_repertorio.json"; 
+          document.body.appendChild(a); 
+          a.click();
           setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 1000); 
-          isDirty = false; 
-      } catch (err) { alert("Erro ao exportar: " + err.message); }
+          isDirty = false;
+          alert("✅ Repertório exportado como meu_repertorio.json!");
+      } catch (err) { alert("❌ Erro ao exportar: " + err.message); }
   }
 
   
