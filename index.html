@@ -155,62 +155,126 @@
   .dark-mode .split-col-divider { border-left-color: #334155; }
 
   /* =======================================================
-     A CAMISA DE FORÇA DEFINITIVA DO IOS / SAFARI NO PDF
+     CORRIGIDO: IOS / SAFARI NO PDF - VERSÃO 2.0
+     Com suporte adequado para Safari iOS e quebras de página corretas
      ======================================================= */
   @media print {
-    @page { size: A4 portrait; margin: 0 !important; }
-    html, body { background: white !important; padding: 0 !important; margin: 0 !important; width: 100% !important; height: auto !important; overflow: visible !important; display: block !important;}
+    @page { size: A4 portrait; margin: 0; padding: 0; }
+    
+    html, body { 
+      background: white !important; 
+      padding: 0 !important; 
+      margin: 0 !important; 
+      width: 100% !important; 
+      height: auto !important; 
+      overflow: visible !important; 
+      display: block !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    
     .no-print, .preview-title { display: none !important; }
-    .preview-section { margin: 0 !important; padding: 0 !important; display: block !important;}
     
+    .preview-section { 
+      margin: 0 !important; 
+      padding: 0 !important; 
+      display: block !important;
+      width: 100% !important;
+      overflow: visible !important;
+    }
+    
+    /* FIX CRÍTICO: Wrapper deve permitir quebra natural entre páginas */
     .a4-wrapper { 
-        gap: 0 !important; display: block !important; padding: 0 !important; margin: 0 !important; 
-        width: 100% !important; transform: none !important; zoom: 1 !important; scale: 1 !important; 
+      gap: 0 !important; 
+      display: block !important; 
+      padding: 0 !important; 
+      margin: 0 !important; 
+      width: 100% !important; 
+      transform: none !important; 
+      zoom: 1 !important; 
+      scale: 1 !important;
+      overflow: visible !important;
     }
     
-    /* Regras engessadas em Pixels: O Safari não pode tentar adivinhar e quebrar a folha */
+    /* FIX PRINCIPAL: Altura FLEXÍVEL no iOS em vez de fixa */
     .a4-page {
-        background: white !important; 
-        width: 794px !important; 
-        height: 1122px !important; 
-        min-width: 794px !important;
-        max-width: 794px !important;
-        min-height: 1122px !important; 
-        max-height: 1122px !important; 
-        padding: 28px !important; 
-        box-shadow: none !important; 
-        color: black !important; position: relative;
-        box-sizing: border-box !important; 
-        
-        display: block !important; /* ADEUS FLEXBOX NO IOS PRINT! Resolve o bug de fatiar as páginas */
-        
-        margin: 0 auto !important;
-        page-break-after: always !important;
-        page-break-inside: avoid !important;
-        break-after: page !important;
-        break-inside: avoid !important;
-        overflow: hidden !important; /* Impede o texto de vazar para uma "falsa" página extra */
-        zoom: 1 !important; 
-        scale: 1 !important;
+      background: white !important; 
+      width: 100% !important; 
+      max-width: 210mm !important;
+      margin: 0 auto !important;
+      padding: 10mm !important; 
+      box-shadow: none !important; 
+      color: black !important; 
+      position: relative;
+      box-sizing: border-box !important; 
+      
+      display: block !important;
+      
+      /* ⭐ CRITICAL FIX: Remover altura fixa (1122px) que quebrava no iOS */
+      height: auto !important;
+      min-height: auto !important; 
+      max-height: none !important;
+      
+      /* Quebras de página - agora com compatibilidade iOS */
+      page-break-after: always !important;
+      page-break-inside: avoid !important;
+      break-after: page !important;
+      break-inside: avoid !important;
+      
+      /* ⭐ CRITICAL FIX: Permitir que conteúdo flua naturalmente (era hidden) */
+      overflow: visible !important;
+      
+      /* Webkit específico para Safari iOS - suporte de colunas */
+      -webkit-column-break-inside: avoid !important;
+      -moz-column-break-inside: avoid !important;
+      column-break-inside: avoid !important;
+      
+      zoom: 1 !important; 
+      scale: 1 !important;
+      
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
     }
-    .a4-page:last-child { page-break-after: auto !important; break-after: auto !important; }
     
+    .a4-page:last-child { 
+      page-break-after: auto !important; 
+      break-after: auto !important; 
+    }
+    
+    /* FIX: Content area com overflow visível */
     .a4-content-area {
-        display: block !important;
-        width: 100% !important;
-        height: 100% !important;
-        overflow: hidden !important;
+      display: block !important;
+      width: 100% !important;
+      height: auto !important;
+      overflow: visible !important;
+      page-break-inside: avoid !important;
+      -webkit-column-break-inside: avoid !important;
     }
 
     .doc-header {
-        display: flex !important; /* Mantemos o grid do cabeçalho */
+      display: block !important;
+      page-break-inside: avoid !important;
+      -webkit-column-break-inside: avoid !important;
     }
     
+    /* FIX: Body com altura automática */
     .doc-body {
-        display: block !important;
-        height: auto !important;
-        max-height: none !important;
-        overflow: visible !important;
+      display: block !important;
+      height: auto !important;
+      max-height: none !important;
+      overflow: visible !important;
+      page-break-inside: avoid !important;
+      -webkit-column-break-inside: avoid !important;
+      width: 100% !important;
+    }
+    
+    /* Conteúdo da cifra */
+    .cifra-content {
+      page-break-inside: avoid !important;
+      -webkit-column-break-inside: avoid !important;
+      overflow: visible !important;
+      white-space: pre-wrap !important;
+      word-wrap: break-word !important;
     }
     
     /* Proteção extrema de cores no Modo Escuro */
@@ -228,8 +292,15 @@
     .dark-mode .tone-badge { background: #e0f2fe !important; color: #0369a1 !important; }
     .dark-mode hr.divider { border-top-color: #000000 !important; }
     .dark-mode .split-col-divider { border-left-color: #000000 !important; }
-    .badge, .tone-badge, .split-col-divider, .a4-page, .brand-text-cifras { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+    .badge, .tone-badge, .split-col-divider, .a4-page, .brand-text-cifras { 
+      -webkit-print-color-adjust: exact !important; 
+      print-color-adjust: exact !important; 
+      color-adjust: exact !important; 
+    }
     .capo-text { color: #dc2626 !important; }
+    
+    /* ⭐ FIX: Evitar quebras dentro de elementos críticos */
+    div, p, section, article { page-break-inside: avoid !important; }
   }
 
   .custom-alert-overlay {
