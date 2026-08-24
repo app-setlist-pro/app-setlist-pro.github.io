@@ -50,7 +50,7 @@
   }
   
   .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
-  .btn-group { display: flex; gap: 8px; align-items: center; }
+  .btn-group { display: flex; gap: 8px; align-items: center; flex-wrap: wrap;}
   
   button, .btn-label { padding: 10px 16px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; transition: 0.2s; font-size: 13.33px; text-align: center; }
   .btn-primary { background: #0284c7; color: white; }
@@ -152,24 +152,40 @@
       white-space: pre; color: #000000; overflow: visible; 
       -webkit-text-size-adjust: none; text-size-adjust: none; 
   }
-  .chord { color: #d97706 !important; font-weight: bold !important; }
   hr.divider { border: 0; border-top: 2px solid #000000; margin: 10px 0 20px 0; }
   .split-block { display: flex; width: 100%; gap: 15px; margin-bottom: 2px; }
   .split-col { flex: 1; min-width: 0; }
   .split-col-divider { width: 1px; border-left: 2px solid #000000; margin: 0 15px; flex-shrink: 0; }
 
+  /* MODO ESCURO BÁSICO */
   .brand-text-setlist { color: #0f172a; font-weight: 800; }
   .dark-mode .a4-page { background-color: #121212; color: #e2e8f0; }
   .dark-mode .brand-text-setlist { color: #f8fafc; } 
-  
   .dark-mode .doc-title { color: #f8fafc; }
   .dark-mode .meta-left, .dark-mode .meta-left .artist { color: #94a3b8; }
   .dark-mode .meta-left .separator { color: #475569; }
   .dark-mode .tone-badge { background: #1e293b; color: #38bdf8; }
   .dark-mode .cifra-content { color: #e2e8f0; }
-  .dark-mode .chord { color: #fbbf24 !important; }
   .dark-mode hr.divider { border-top-color: #334155; }
   .dark-mode .split-col-divider { border-left-color: #334155; }
+
+  /* =======================================================
+     TEMA DAS CIFRAS (NOVAS CORES!) 
+     Controlado por classes aplicadas no <body>
+     ======================================================= */
+  
+  /* TEMA LARANJA (Padrão) */
+  body.theme-orange .chord { color: #d97706 !important; font-weight: bold !important; }
+  body.theme-orange .dark-mode .chord { color: #fbbf24 !important; font-weight: bold !important; }
+  
+  /* TEMA AZUL (PRO) */
+  body.theme-blue .chord { color: #0284c7 !important; font-weight: bold !important; }
+  body.theme-blue .dark-mode .chord { color: #38bdf8 !important; font-weight: bold !important; }
+  
+  /* TEMA VERMELHO (VÍDEO) */
+  body.theme-red .chord { color: #dc2626 !important; font-weight: bold !important; }
+  body.theme-red .dark-mode .chord { color: #f87171 !important; font-weight: bold !important; }
+
 
   /* ESTILOS DE COPYRIGHT */
   .app-footer { text-align: center; padding: 15px 0; margin-top: 10px; color: #64748b; font-size: 13px; font-weight: 500; }
@@ -177,6 +193,9 @@
   .doc-footer { position: absolute; bottom: 8px; left: 0; width: 100%; text-align: center; font-size: 7.5pt; color: #94a3b8; font-family: system-ui, sans-serif; font-weight: 600; }
   .dark-mode .doc-footer { color: #64748b !important; }
 
+  /* =======================================================
+     A "MARRETA" DO SAFARI (260mm) E O PDF MODO ESCURO
+     ======================================================= */
   @media print {
     @page { size: A4 portrait; margin: 0 !important; padding: 0 !important; }
     html, body { background: white !important; padding: 0 !important; margin: 0 !important; width: 210mm !important; height: auto !important; overflow: visible !important; display: block !important;}
@@ -195,19 +214,37 @@
     .a4-content-area, .doc-body { display: block !important; height: auto !important; max-height: none !important; overflow: visible !important; }
     .doc-header { display: flex !important; }
     
-    .dark-mode .a4-page { background-color: #ffffff !important; color: #000000 !important; }
-    .cifra-content, .dark-mode .cifra-content, .brand-text-setlist, .dark-mode .brand-text-setlist { color: #000000 !important; }
-    .chord, .dark-mode .chord { color: #d97706 !important; font-weight: bold !important; }
-    .doc-title, .dark-mode .doc-title { color: #000000 !important; }
-    .meta-left, .meta-left .artist, .dark-mode .meta-left, .dark-mode .meta-left .artist, .dark-mode .meta-left .separator { color: #475569 !important; }
-    .tone-badge, .dark-mode .tone-badge { background: #e0f2fe !important; color: #0369a1 !important; }
-    .dark-mode hr.divider { border-top-color: #000000 !important; }
-    .dark-mode .split-col-divider { border-left-color: #000000 !important; }
+    /* REGRAS GERAIS DE IMPRESSÃO (CLARO) */
+    .cifra-content, .brand-text-setlist { color: #000000 !important; }
+    .doc-title { color: #000000 !important; }
+    .meta-left, .meta-left .artist { color: #475569 !important; }
+    .tone-badge { background: #e0f2fe !important; color: #0369a1 !important; }
     .badge, .tone-badge, .split-col-divider, .a4-page { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
     .capo-text { color: #dc2626 !important; }
     .doc-footer { color: #94a3b8 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+    /* REGRAS GERAIS DE IMPRESSÃO (MODO ESCURO) */
+    .dark-mode .a4-page { background-color: #121212 !important; color: #e2e8f0 !important; }
+    .dark-mode .cifra-content, .dark-mode .brand-text-setlist { color: #e2e8f0 !important; }
+    .dark-mode .doc-title { color: #f8fafc !important; }
+    .dark-mode .meta-left, .dark-mode .meta-left .artist, .dark-mode .meta-left .separator { color: #94a3b8 !important; }
+    .dark-mode .tone-badge { background: #1e293b !important; color: #38bdf8 !important; }
+    .dark-mode hr.divider { border-top-color: #334155 !important; border-top: 2px solid #334155 !important; }
+    .dark-mode .split-col-divider { border-left-color: #334155 !important; border-left: 2px solid #334155 !important; }
+    .dark-mode .doc-footer { color: #64748b !important; }
+
+    /* GARANTIA DE COR DAS CIFRAS NA IMPRESSÃO */
+    body.theme-orange .chord { color: #d97706 !important; font-weight: bold !important;}
+    body.theme-orange .dark-mode .chord { color: #fbbf24 !important; font-weight: bold !important;}
+    
+    body.theme-blue .chord { color: #0284c7 !important; font-weight: bold !important;}
+    body.theme-blue .dark-mode .chord { color: #38bdf8 !important; font-weight: bold !important;}
+    
+    body.theme-red .chord { color: #dc2626 !important; font-weight: bold !important;}
+    body.theme-red .dark-mode .chord { color: #f87171 !important; font-weight: bold !important;}
   }
 
+  /* ESTILOS DOS ALERTAS CUSTOMIZADOS */
   .custom-alert-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.5); z-index: 99999; display: flex; justify-content: center; align-items: center;
@@ -228,14 +265,14 @@
   .custom-btn-ok { color: #ef4444; }
 </style>
 </head>
-<body>
+<body class="theme-orange">
 
 <div class="no-print">
   <div class="header-actions">
     <!-- BARRA SUPERIOR: LOGO E NOME LADO A LADO -->
     <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: nowrap; width: 100%; overflow: hidden;">
         
-        <!-- LOGO OFICIAL DO APP (Levemente redimensionada para caber em telas pequenas) -->
+        <!-- LOGO OFICIAL DO APP -->
         <div style="display: flex; align-items: center; gap: 8px; user-select: none; flex-shrink: 0;">
             <img src="logo.png" alt="Setlist Pro Logo" style="width: 36px; height: 36px; border-radius: 8px; box-shadow: 0 3px 6px rgba(2, 132, 199, 0.2);">
             <h1 style="font-size: 1.4rem; margin: 0; font-family: system-ui, -apple-system, sans-serif; letter-spacing: -0.5px; display: flex; align-items: center;">
@@ -244,7 +281,7 @@
             </h1>
         </div>
         
-        <!-- CAMPO DE NOME DO PROJETO COM NOVO ÍCONE -->
+        <!-- CAMPO DE NOME DO PROJETO -->
         <div style="display: flex; align-items: center; background: white; padding: 6px 10px; border-radius: 6px; border: 1px solid #cbd5e1; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); flex-shrink: 1; min-width: 110px; max-width: 180px;">
             <span style="font-size: 14px; margin-right: 6px;">📝</span>
             <input type="text" id="project-name" value="Meu Repertório" oninput="autoSaveToMemory()" style="border: none; outline: none; font-size: 14px; font-weight: bold; color: #0f172a; width: 100%; background: transparent;" title="Nome do Repertório">
@@ -252,20 +289,26 @@
     </div>
     
     <div class="btn-group">
-        <!-- O resto dos botões continua igualzinho aqui pra baixo... -->
         <button class="btn-primary" style="background:#475569;" onclick="novoProjeto()">📄 Novo</button>
         <label for="file-upload" class="btn-primary btn-label" style="background:#334155; display: flex; align-items: center; justify-content: center; margin: 0;">📂 Abrir</label>
         <input type="file" id="file-upload" accept=".json,application/json" style="display:none" onchange="loadProject(event)">
         <button class="btn-primary" style="background:#0f766e;" onclick="exportarProjeto()">💾 Exportar</button>
         <button class="btn-success" onclick="triggerPrint()">🖨️ PDF</button>
-        <button class="btn-primary" style="background:#e2e8f0; color: #1e293b;" id="btn-dark-mode" onclick="toggleDarkMode()">☀️ Modo Claro</button>
+        
+        <!-- BOTÕES NOVOS: MODO CLARO/ESCURO E TEMAS DAS CIFRAS -->
+        <button class="btn-primary" style="background:#e2e8f0; color: #1e293b;" id="btn-dark-mode" onclick="toggleDarkMode()">Visualização em Modo Claro ☀️</button>
+        <select id="chord-theme-selector" onchange="changeChordTheme()" class="btn-primary" style="background: white; color: #1e293b; border: 1px solid #cbd5e1; font-weight: bold; cursor: pointer; padding: 9px 12px; font-size: 13.33px; border-radius: 6px;">
+            <option value="theme-orange">🟠 Cifras Laranjas</option>
+            <option value="theme-blue">🔵 Cifras Azuis</option>
+            <option value="theme-red">🔴 Cifras Vermelhas</option>
+        </select>
     </div>
   </div>
   
   <div class="songs-container">
     
     <div class="sidebar-wrapper">
-      <!-- NOVA BARRA DE FERRAMENTAS: BUSCA, ORDENAÇÃO E NOVA MÚSICA -->
+      <!-- BARRA DE FERRAMENTAS: BUSCA, ORDENAÇÃO E NOVA MÚSICA -->
       <div style="display: flex; flex-direction: column; gap: 8px;">
           <input type="text" id="i-search" placeholder="🔍 Buscar música..." oninput="filterSongs()" style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; width: 100%;">
           
@@ -552,18 +595,26 @@
       }
   };
 
+  // NOVA FUNÇÃO: Troca de Temas das Cifras
+  function changeChordTheme() {
+      const theme = document.getElementById('chord-theme-selector').value;
+      document.body.classList.remove('theme-orange', 'theme-blue', 'theme-red');
+      document.body.classList.add(theme);
+      localStorage.setItem('jrCifras_ChordTheme', theme);
+  }
+
   function toggleDarkMode() {
       isDarkMode = !isDarkMode;
       const btn = document.getElementById('btn-dark-mode');
       const wrapper = document.getElementById('a4-wrapper');
       
       if (isDarkMode) {
-          btn.innerHTML = '🌙 Modo Escuro';
+          btn.innerHTML = 'Visualização em Modo Escuro 🌙';
           wrapper.classList.add('dark-mode');
           btn.style.background = '#1e293b';
           btn.style.color = 'white';
       } else {
-          btn.innerHTML = '☀️ Modo Claro';
+          btn.innerHTML = 'Visualização em Modo Claro ☀️';
           wrapper.classList.remove('dark-mode');
           btn.style.background = '#e2e8f0';
           btn.style.color = '#1e293b';
@@ -732,7 +783,6 @@
     return html;
   }
 
-  // NOVA FUNÇÃO: Busca Inteligente
   function filterSongs() {
       const query = document.getElementById('i-search').value.toLowerCase().trim();
       const items = document.querySelectorAll('.song-item');
@@ -750,10 +800,9 @@
       });
   }
 
-  // NOVA FUNÇÃO: Ordenação de Músicas
   function sortSongs() {
       const sortType = document.getElementById('i-sort').value;
-      if (sortType === 'manual') return; // Não faz nada, deixa a pessoa arrastar
+      if (sortType === 'manual') return; 
 
       songs.sort((a, b) => {
           if (sortType === 'az-title') {
@@ -764,16 +813,14 @@
           return 0;
       });
 
-      // Retorna o seletor para manual para permitir drag and drop depois
       document.getElementById('i-sort').value = 'manual';
-      document.getElementById('i-search').value = ''; // Limpa a busca ao ordenar
+      document.getElementById('i-search').value = ''; 
       
       currentIndex = 0;
-      selectSong(0); // Já salva e atualiza a tela
+      selectSong(0); 
       alert("✅ Repertório organizado em Ordem Alfabética!");
   }
 
-  // NOVA FUNÇÃO: Player do YouTube
   function updateYouTubePlayer(url) {
       const container = document.getElementById('yt-player-container');
       if (!url) { container.innerHTML = ''; return; }
@@ -819,7 +866,6 @@
       div.draggable = true;
       
       div.addEventListener('dragstart', (e) => { 
-          // Trava de Segurança: Bloqueia o "arrastar" se a pessoa estiver fazendo uma busca
           if (document.getElementById('i-search').value.trim() !== '') {
               e.preventDefault(); return; 
           }
@@ -834,7 +880,7 @@
       });
       
       div.addEventListener('touchstart', (e) => {
-          if (document.getElementById('i-search').value.trim() !== '') return; // Trava de Segurança Mobile
+          if (document.getElementById('i-search').value.trim() !== '') return; 
           
           if (e.target.classList.contains('drag-handle')) {
               draggedItemIndex = index;
@@ -952,7 +998,7 @@
       div.appendChild(titleSpan); div.appendChild(delBtn); list.appendChild(div);
     });
       
-      filterSongs(); // Aplica o filtro atual ao re-renderizar
+      filterSongs(); 
       autoSaveToMemory();
   }
 
@@ -1177,7 +1223,7 @@
     document.getElementById('i-transpose-val').innerText = (steps > 0 ? '+' : '') + steps;
     document.getElementById('i-transpose-val').style.color = steps !== 0 ? '#dc2626' : '#0284c7';
     
-    updateYouTubePlayer(song.video || ''); // Aciona o Player de Vídeo!
+    updateYouTubePlayer(song.video || ''); 
     
     renderSongList(); renderPreview();
   }
@@ -1196,7 +1242,7 @@
       transposeSteps: songs[currentIndex].transposeSteps || 0
     };
     
-    updateYouTubePlayer(songs[currentIndex].video); // Atualiza o vídeo em tempo real
+    updateYouTubePlayer(songs[currentIndex].video); 
     
     renderSongList();
     clearTimeout(renderTimeout); renderTimeout = setTimeout(() => renderPreview(), 300);
@@ -1404,6 +1450,11 @@
   });
 
   window.onload = () => {
+    // Carrega o Tema das Cifras salvo (Laranja padrão)
+    let savedTheme = localStorage.getItem('jrCifras_ChordTheme') || 'theme-orange';
+    document.getElementById('chord-theme-selector').value = savedTheme;
+    document.body.classList.add(savedTheme);
+
     if (!loadFromMemory()) {
         songs.push({ title: 'Nova Música', artist: '', tone: '', capo: '', intro: '', cifra: '', video: '', content: '', transposeSteps: 0 });
     }
