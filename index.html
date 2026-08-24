@@ -35,7 +35,6 @@
   }
   
   .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
-  .header-actions h1 { font-size: 1.5rem; color: #0f172a; margin: 0; }
   .btn-group { display: flex; gap: 8px; align-items: center; }
   
   button, .btn-label { padding: 10px 16px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; transition: 0.2s; font-size: 13.33px; text-align: center; }
@@ -143,7 +142,11 @@
   .split-col { flex: 1; min-width: 0; }
   .split-col-divider { width: 1px; border-left: 2px solid #000000; margin: 0 15px; flex-shrink: 0; }
 
+  /* COMPORTAMENTO DO LOGO E MODO ESCURO */
+  .brand-text-cifras { color: #334155; font-weight: 500; }
   .dark-mode .a4-page { background-color: #121212; color: #e2e8f0; }
+  .dark-mode .brand-text-cifras { color: #94a3b8; } /* Clareia o "Cifras" no PDF Escuro */
+  
   .dark-mode .doc-title { color: #f8fafc; }
   .dark-mode .meta-left, .dark-mode .meta-left .artist { color: #94a3b8; }
   .dark-mode .meta-left .separator { color: #475569; }
@@ -187,7 +190,7 @@
     .dark-mode .tone-badge { background: #1e293b !important; color: #38bdf8 !important; }
     .dark-mode hr.divider { border-top-color: #334155 !important; }
     .dark-mode .split-col-divider { border-left-color: #334155 !important; }
-    .badge, .tone-badge, .split-col-divider, .a4-page { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+    .badge, .tone-badge, .split-col-divider, .a4-page, .brand-text-cifras { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
     .capo-text { color: #dc2626 !important; }
   }
 
@@ -222,18 +225,18 @@
 <div class="no-print">
   <div class="header-actions">
     <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-        <div style="display: flex; align-items: center; gap: 12px; user-select: none;">
-    <!-- Ícone Vetorial de Palheta/Som -->
-    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0px 2px 4px rgba(2, 132, 199, 0.3));">
-        <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2Z" fill="#0284c7"/>
-        <path d="M8 10V14M12 7V17M16 10V14" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-    <!-- Texto Estilizado -->
-    <h1 style="font-size: 1.6rem; margin: 0; font-family: system-ui, -apple-system, sans-serif; letter-spacing: -0.5px;">
-        <span style="color: #0284c7; font-weight: 900;">JR</span><span style="color: #334155; font-weight: 500;">Cifras</span>
-    </h1>
-</div>
-        <!-- NOVO: Campo editável para o nome do projeto -->
+        <!-- LOGO PRINCIPAL (TIPO 1: ACÚSTICA MINIMALISTA) -->
+        <div style="display: flex; align-items: center; gap: 10px; user-select: none;">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0px 2px 4px rgba(2, 132, 199, 0.3));">
+                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2Z" fill="#0284c7"/>
+                <path d="M8 10V14M12 7V17M16 10V14" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <h1 style="font-size: 1.5rem; margin: 0; font-family: system-ui, -apple-system, sans-serif; letter-spacing: -0.5px;">
+                <span style="color: #0284c7; font-weight: 900;">JR</span><span style="color: #334155; font-weight: 500;">Cifras</span>
+            </h1>
+        </div>
+        
+        <!-- CAMPO DE NOME DO PROJETO -->
         <div style="display: flex; align-items: center; background: white; padding: 6px 10px; border-radius: 6px; border: 1px solid #cbd5e1; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);">
             <span style="font-size: 14px; margin-right: 6px;">📁</span>
             <input type="text" id="project-name" value="Meu Repertório" oninput="autoSaveToMemory()" style="border: none; outline: none; font-size: 14px; font-weight: bold; color: #0f172a; width: 160px; background: transparent;" title="Nome do Repertório">
@@ -436,9 +439,8 @@
       const podeContinuar = await checkUnsaved();
       if (!podeContinuar) return; 
       
-      // NOVO: Pergunta o nome do projeto antes de criar
       let novoNome = prompt("Dê um nome para o seu novo repertório:", "Novo Repertório");
-      if (novoNome === null) return; // Se clicou em cancelar
+      if (novoNome === null) return; 
       if (novoNome.trim() === '') novoNome = "Novo Repertório";
       
       document.getElementById('project-name').value = novoNome;
@@ -454,7 +456,6 @@
       const file = event.target.files[0]; 
       if (!file) return;
       
-      // Valida o arquivo antes de tentar abrir
       if (!file.type.includes('json') && !file.name.endsWith('.json')) {
           alert("⚠️ Arquivo inválido. Por favor, selecione um arquivo .json");
           event.target.value = '';
@@ -467,7 +468,6 @@
           return;
       }
 
-      // NOVO: Puxa o nome do arquivo, tirando a extensão ".json"
       let nomeExtraido = file.name.replace(/\.[^/.]+$/, "");
 
       const reader = new FileReader();
@@ -494,7 +494,6 @@
                   songs = loadedSongs; 
                   currentIndex = 0; 
                   
-                  // NOVO: Atualiza a caixa de texto com o nome extraído
                   document.getElementById('project-name').value = nomeExtraido;
                   
                   autoSaveToMemory();
@@ -1013,21 +1012,38 @@
           introHtml = `[Intro] ${colorizedIntro}\n\n`;
       }
       
+      // =========================================================
+      // O NOVO CABEÇALHO DO PDF (COM LOGO)
+      // =========================================================
       page.innerHTML = `
         <div class="a4-content-area">
-            <div class="doc-header">
-              <div class="doc-title">${song.title || 'Música Sem Título'}</div>
-              <div class="doc-meta">
-                <div class="meta-left" style="flex: 1; text-align: left;">
-                  <span class="artist">${song.artist || ''}</span> <span class="separator">|</span> <span class="tone-badge">Tom: <span>${displayTone}</span></span>
-                </div>
-                <div style="flex: 1; display: flex; justify-content: center; align-items: center; text-align: center; min-width: max-content;">${capoText}</div>
-                
-                <div style="flex: 1; display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
-                    ${vBadge}${cBadge}
-                </div>
+            <div class="doc-header" style="flex-direction: row; justify-content: space-between; align-items: center;">
+              <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+                  <div class="doc-title">${song.title || 'Música Sem Título'}</div>
+                  <div class="doc-meta">
+                    <div class="meta-left" style="flex: 1; text-align: left;">
+                      <span class="artist">${song.artist || ''}</span> <span class="separator">|</span> <span class="tone-badge">Tom: <span>${displayTone}</span></span>
+                    </div>
+                    <div style="flex: 1; display: flex; justify-content: center; align-items: center; text-align: center; min-width: max-content;">${capoText}</div>
+                    
+                    <div style="flex: 1; display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
+                        ${vBadge}${cBadge}
+                    </div>
+                  </div>
+              </div>
+              
+              <!-- LOGO NA FOLHA DE IMPRESSÃO -->
+              <div style="display: flex; align-items: center; gap: 6px; margin-left: 15px; user-select: none;">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2Z" fill="#0284c7"/>
+                      <path d="M8 10V14M12 7V17M16 10V14" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <div style="font-size: 1.1rem; margin: 0; font-family: system-ui, -apple-system, sans-serif; letter-spacing: -0.5px; line-height: 1;">
+                      <span style="color: #0284c7; font-weight: 900;">JR</span><span class="brand-text-cifras">Cifras</span>
+                  </div>
               </div>
             </div>
+            
             <div class="doc-body">
                 <div class="cifra-content">${introHtml}${parseChords(song.content, song.transposeSteps || 0)}</div>
             </div>
@@ -1186,7 +1202,6 @@
       try {
           const jsonStr = JSON.stringify(songs, null, 2);
           
-          // NOVO: Puxa o nome lá da caixinha de texto
           let pName = document.getElementById('project-name').value.trim();
           if (!pName) pName = "Meu Repertório";
           const fileName = `${pName}.json`;
