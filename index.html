@@ -117,9 +117,7 @@
   
   .a4-content-area { width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
   
-  .doc-header { border-bottom: 2px solid #0284c7; padding-bottom: 4px; margin-bottom: 6px; display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
   .doc-title { font-size: 14pt !important; font-weight: 800; text-transform: uppercase; line-height: 1.1; color: #000; word-wrap: break-word; white-space: normal; }
-  .doc-meta { display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: nowrap;}
   .meta-left { font-size: 10pt !important; font-weight: 600; color: #475569; }
   
   .badge { color: white !important; text-decoration: none; font-size: 9pt; font-weight: bold; padding: 4px 8px; border-radius: 4px; display: inline-block !important; }
@@ -143,9 +141,9 @@
   .split-col-divider { width: 1px; border-left: 2px solid #000000; margin: 0 15px; flex-shrink: 0; }
 
   /* COMPORTAMENTO DO LOGO E MODO ESCURO */
-  .brand-text-cifras { color: #334155; font-weight: 500; }
+  .brand-text-cifras { color: #334155; font-weight: 600; }
   .dark-mode .a4-page { background-color: #121212; color: #e2e8f0; }
-  .dark-mode .brand-text-cifras { color: #94a3b8; } /* Clareia o "Cifras" no PDF Escuro */
+  .dark-mode .brand-text-cifras { color: #94a3b8; } 
   
   .dark-mode .doc-title { color: #f8fafc; }
   .dark-mode .meta-left, .dark-mode .meta-left .artist { color: #94a3b8; }
@@ -225,7 +223,7 @@
 <div class="no-print">
   <div class="header-actions">
     <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-        <!-- LOGO PRINCIPAL (TIPO 1: ACÚSTICA MINIMALISTA) -->
+        <!-- LOGO PRINCIPAL -->
         <div style="display: flex; align-items: center; gap: 10px; user-select: none;">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0px 2px 4px rgba(2, 132, 199, 0.3));">
                 <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2Z" fill="#0284c7"/>
@@ -870,19 +868,19 @@
 
           const cloneBody = clonePage.querySelector('.doc-body');
           const cloneContent = clonePage.querySelector('.cifra-content');
-          const cloneHeader = clonePage.querySelector('.doc-header');  // ← CORRIGIDO: Captura o header
+          const cloneHeader = clonePage.querySelector('.doc-header');
 
           // CHICOTE 1: Acorda o Safari para renderizar o clone
           void clonePage.offsetHeight;
 
           // FIX IPHONE: Usa scrollHeight para melhor confiabilidade no Safari
-          let spaceH = cloneBody.scrollHeight;  // ← CORRIGIDO: Muda de clientHeight para scrollHeight
+          let spaceH = cloneBody.scrollHeight;  
           let spaceW = cloneBody.clientWidth;
           
           // FIX IPHONE: Se o header foi renderizado, subtrai sua altura real
           if (cloneHeader && cloneHeader.scrollHeight > 0) {
               spaceH -= cloneHeader.scrollHeight;
-              spaceH -= 6; // margin-bottom do header
+              spaceH -= 12; // margin-bottom do novo header estrutural
           }
 
           // ====================================================================
@@ -893,7 +891,7 @@
           let limiteMaximo = 1122 - 56; // Altura total A4 (1122px) menos paddings
           if (cloneHeader && cloneHeader.scrollHeight > 0) {
               limiteMaximo -= cloneHeader.scrollHeight;
-              limiteMaximo -= 6;
+              limiteMaximo -= 12;
           }
           
           // Se o espaço ultrapassar a capacidade do papel físico, nós travamos.
@@ -1013,34 +1011,39 @@
       }
       
       // =========================================================
-      // O NOVO CABEÇALHO DO PDF (COM LOGO)
+      // O NOVO CABEÇALHO DO PDF (TIMBRADO / GRID)
       // =========================================================
       page.innerHTML = `
         <div class="a4-content-area">
-            <div class="doc-header" style="flex-direction: row; justify-content: space-between; align-items: center;">
-              <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
-                  <div class="doc-title">${song.title || 'Música Sem Título'}</div>
-                  <div class="doc-meta">
-                    <div class="meta-left" style="flex: 1; text-align: left;">
-                      <span class="artist">${song.artist || ''}</span> <span class="separator">|</span> <span class="tone-badge">Tom: <span>${displayTone}</span></span>
-                    </div>
-                    <div style="flex: 1; display: flex; justify-content: center; align-items: center; text-align: center; min-width: max-content;">${capoText}</div>
-                    
-                    <div style="flex: 1; display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
-                        ${vBadge}${cBadge}
-                    </div>
+            <div class="doc-header" style="display: flex; flex-direction: column; border-bottom: 2px solid #0284c7; padding-bottom: 8px; margin-bottom: 12px; gap: 8px;">
+              
+              <!-- LINHA SUPERIOR: Título na esquerda, Logo na direita -->
+              <div style="display: flex; justify-content: space-between; align-items: flex-end; width: 100%;">
+                  <div class="doc-title" style="flex: 1; padding-right: 15px; margin: 0; line-height: 1;">${song.title || 'Música Sem Título'}</div>
+                  
+                  <!-- LOGO NA FOLHA DE IMPRESSÃO -->
+                  <div style="display: flex; align-items: center; gap: 6px; user-select: none; flex-shrink: 0;">
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2Z" fill="#0284c7"/>
+                          <path d="M8 10V14M12 7V17M16 10V14" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                      <div style="font-size: 1.2rem; margin: 0; font-family: system-ui, -apple-system, sans-serif; letter-spacing: -0.5px; line-height: 1;">
+                          <span style="color: #0284c7; font-weight: 900;">JR</span><span class="brand-text-cifras">Cifras</span>
+                      </div>
                   </div>
               </div>
-              
-              <!-- LOGO NA FOLHA DE IMPRESSÃO -->
-              <div style="display: flex; align-items: center; gap: 6px; margin-left: 15px; user-select: none;">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2Z" fill="#0284c7"/>
-                      <path d="M8 10V14M12 7V17M16 10V14" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                  <div style="font-size: 1.1rem; margin: 0; font-family: system-ui, -apple-system, sans-serif; letter-spacing: -0.5px; line-height: 1;">
-                      <span style="color: #0284c7; font-weight: 900;">JR</span><span class="brand-text-cifras">Cifras</span>
-                  </div>
+
+              <!-- LINHA INFERIOR: Informações e Botões -->
+              <div class="doc-meta" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <div class="meta-left" style="flex: 1; text-align: left; line-height: 1;">
+                  <span class="artist">${song.artist || ''}</span> <span class="separator">|</span> <span class="tone-badge">Tom: <span>${displayTone}</span></span>
+                </div>
+                
+                <div style="flex: 1; display: flex; justify-content: center; align-items: center; text-align: center; min-width: max-content;">${capoText}</div>
+                
+                <div style="flex: 1; display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
+                    ${vBadge}${cBadge}
+                </div>
               </div>
             </div>
             
