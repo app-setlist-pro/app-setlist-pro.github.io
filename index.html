@@ -56,8 +56,8 @@
   .btn-warning { background: #d97706; color: white; }
   
   .songs-container { display: flex; gap: 20px; }
-  .sidebar-wrapper { width: 300px; display: flex; flex-direction: column; gap: 10px; }
-  .song-list-sidebar { background: #f1f5f9; border-radius: 8px; padding: 10px; border: 1px solid #cbd5e1; height: 600px; overflow-y: auto; width: 100%; }
+  .sidebar-wrapper { width: 320px; display: flex; flex-direction: column; gap: 12px; }
+  .song-list-sidebar { background: #f1f5f9; border-radius: 8px; padding: 10px; border: 1px solid #cbd5e1; height: 550px; overflow-y: auto; width: 100%; }
   .editor-panel { flex: 1; display: flex; flex-direction: column; gap: 15px; }
   
   @media (max-width: 850px) {
@@ -69,7 +69,7 @@
     
     .songs-container { flex-direction: column; }
     .sidebar-wrapper { width: 100%; }
-    .song-list-sidebar { height: 250px; } 
+    .song-list-sidebar { height: 280px; } 
     .grid { grid-template-columns: 1fr !important; }
     .form-group { grid-column: span 1 !important; }
   }
@@ -100,6 +100,9 @@
   .transpose-val { font-weight: bold; font-size: 16px; width: 30px; text-align: center; color: #0284c7; }
   
   .text-areas textarea { width: 100%; height: 400px; font-family: monospace; font-size: 14px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 4px; white-space: pre; resize: vertical; }
+  
+  /* YT Player CSS */
+  #yt-player-container iframe { border-radius: 8px; margin-top: 8px; border: 1px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
   
   .preview-section { margin-top: 30px; width: 100%; overflow: hidden; display: flex; flex-direction: column; align-items: center; }
   .preview-title { text-align: center; color: #475569; margin-bottom: 15px; font-size: 1.2rem; font-weight: bold; text-transform: uppercase; }
@@ -164,92 +167,37 @@
   .dark-mode .split-col-divider { border-left-color: #334155; }
 
   /* ESTILOS DE COPYRIGHT */
-  .app-footer {
-      text-align: center; padding: 15px 0; margin-top: 10px; color: #64748b; font-size: 13px; font-weight: 500;
-  }
+  .app-footer { text-align: center; padding: 15px 0; margin-top: 10px; color: #64748b; font-size: 13px; font-weight: 500; }
   .dark-mode .app-footer { color: #94a3b8; }
-  .doc-footer {
-      position: absolute; bottom: 8px; left: 0; width: 100%; text-align: center; font-size: 7.5pt; color: #94a3b8; font-family: system-ui, sans-serif; font-weight: 600;
-  }
+  .doc-footer { position: absolute; bottom: 8px; left: 0; width: 100%; text-align: center; font-size: 7.5pt; color: #94a3b8; font-family: system-ui, sans-serif; font-weight: 600; }
   .dark-mode .doc-footer { color: #64748b !important; }
 
-  /* =======================================================
-     A NOVA "MARRETA" PARA O SAFARI: ZONA DE SEGURANÇA!
-     Reduzimos a folha para 260mm para que os textos nativos do iOS
-     (como URL e Data) caibam no rodapé sem quebrar a página.
-     ======================================================= */
   @media print {
     @page { size: A4 portrait; margin: 0 !important; padding: 0 !important; }
-    
-    html, body { 
-        background: white !important; 
-        padding: 0 !important; 
-        margin: 0 !important; 
-        width: 210mm !important; 
-        height: auto !important; 
-        overflow: visible !important; 
-        display: block !important;
-    }
-    
+    html, body { background: white !important; padding: 0 !important; margin: 0 !important; width: 210mm !important; height: auto !important; overflow: visible !important; display: block !important;}
     .no-print, .preview-title { display: none !important; }
     .preview-section { margin: 0 !important; padding: 0 !important; display: block !important;}
-    
-    .a4-wrapper { 
-        gap: 0 !important; display: block !important; padding: 0 !important; margin: 0 !important; 
-        width: 210mm !important; transform: none !important; zoom: 1 !important; scale: 1 !important; 
-    }
+    .a4-wrapper { gap: 0 !important; display: block !important; padding: 0 !important; margin: 0 !important; width: 210mm !important; transform: none !important; zoom: 1 !important; scale: 1 !important; }
     
     .a4-page {
-        background: white !important; 
-        width: 210mm !important; 
-        /* CARTA NA MANGA: 260mm evita que o rodapé transborde e crie página branca */
-        height: 260mm !important; 
-        max-height: 260mm !important; 
-        padding: 20px !important; 
-        box-shadow: none !important; 
-        color: black !important; 
-        position: relative;
-        box-sizing: border-box !important; 
-        display: block !important; 
-        margin: 0 !important; 
-        page-break-after: always !important;
-        page-break-inside: avoid !important;
-        break-after: page !important;
-        break-inside: avoid !important;
-        overflow: hidden !important; 
-        zoom: 1 !important; 
-        scale: 1 !important;
+        background: white !important; width: 210mm !important; height: 260mm !important; max-height: 260mm !important; 
+        padding: 20px !important; box-shadow: none !important; color: black !important; position: relative;
+        box-sizing: border-box !important; display: block !important; margin: 0 !important; 
+        page-break-after: always !important; page-break-inside: avoid !important; break-after: page !important;
+        break-inside: avoid !important; overflow: hidden !important; zoom: 1 !important; scale: 1 !important;
     }
-    .a4-page:last-child { 
-        page-break-after: avoid !important; 
-        break-after: avoid !important; 
-    }
-    
-    .a4-content-area, .doc-body {
-        display: block !important;
-        height: auto !important;
-        max-height: none !important;
-        overflow: visible !important;
-    }
-
+    .a4-page:last-child { page-break-after: avoid !important; break-after: avoid !important; }
+    .a4-content-area, .doc-body { display: block !important; height: auto !important; max-height: none !important; overflow: visible !important; }
     .doc-header { display: flex !important; }
     
     .dark-mode .a4-page { background-color: #ffffff !important; color: #000000 !important; }
-    .cifra-content { color: #000000 !important; }
-    .dark-mode .cifra-content { color: #000000 !important; }
-    .chord { color: #d97706 !important; font-weight: bold !important; }
-    .dark-mode .chord { color: #d97706 !important; }
-    .doc-title { color: #000000 !important; }
-    .dark-mode .doc-title { color: #000000 !important; }
-    .meta-left, .meta-left .artist { color: #475569 !important; }
-    .dark-mode .meta-left, .dark-mode .meta-left .artist { color: #475569 !important; }
-    .dark-mode .meta-left .separator { color: #475569 !important; }
-    .tone-badge { background: #e0f2fe !important; color: #0369a1 !important; }
-    .dark-mode .tone-badge { background: #e0f2fe !important; color: #0369a1 !important; }
+    .cifra-content, .dark-mode .cifra-content, .brand-text-setlist, .dark-mode .brand-text-setlist { color: #000000 !important; }
+    .chord, .dark-mode .chord { color: #d97706 !important; font-weight: bold !important; }
+    .doc-title, .dark-mode .doc-title { color: #000000 !important; }
+    .meta-left, .meta-left .artist, .dark-mode .meta-left, .dark-mode .meta-left .artist, .dark-mode .meta-left .separator { color: #475569 !important; }
+    .tone-badge, .dark-mode .tone-badge { background: #e0f2fe !important; color: #0369a1 !important; }
     .dark-mode hr.divider { border-top-color: #000000 !important; }
     .dark-mode .split-col-divider { border-left-color: #000000 !important; }
-    .brand-text-setlist { color: #000000 !important; }
-    .dark-mode .brand-text-setlist { color: #000000 !important; }
     .badge, .tone-badge, .split-col-divider, .a4-page { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
     .capo-text { color: #dc2626 !important; }
     .doc-footer { color: #94a3b8 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -257,28 +205,22 @@
 
   .custom-alert-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5); z-index: 99999;
-      display: flex; justify-content: center; align-items: center;
+      background: rgba(0,0,0,0.5); z-index: 99999; display: flex; justify-content: center; align-items: center;
       opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
   }
   .custom-alert-overlay.show { opacity: 1; pointer-events: auto; }
   .custom-alert-box {
       background: #1e1e1e; color: #f3f4f6; padding: 20px 24px; border-radius: 16px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 85%; max-width: 320px;
-      transform: scale(0.95); transition: transform 0.2s ease;
-      display: flex; flex-direction: column; gap: 20px; font-family: system-ui, sans-serif;
+      transform: scale(0.95); transition: transform 0.2s ease; display: flex; flex-direction: column; gap: 20px; font-family: system-ui, sans-serif;
   }
   .custom-alert-overlay.show .custom-alert-box { transform: scale(1); }
   .custom-alert-content { display: flex; align-items: center; gap: 12px; font-size: 16px; font-weight: 500; line-height: 1.4; }
-  .custom-alert-btn {
-      align-self: flex-end; background: transparent; color: #60a5fa; 
-      border: none; font-size: 15px; font-weight: 700; cursor: pointer; 
-      padding: 5px 10px; text-transform: uppercase;
-  }
-  
+  .custom-alert-btn, .custom-btn-cancel, .custom-btn-ok { background: transparent; border: none; font-size: 15px; font-weight: 700; cursor: pointer; text-transform: uppercase; }
+  .custom-alert-btn { align-self: flex-end; color: #60a5fa; padding: 5px 10px; }
   .custom-confirm-btns { display: flex; gap: 15px; justify-content: flex-end; width: 100%; margin-top: 5px; }
-  .custom-btn-cancel { background: transparent; color: #94a3b8; border: none; font-size: 15px; font-weight: 700; cursor: pointer; text-transform: uppercase; }
-  .custom-btn-ok { background: transparent; color: #ef4444; border: none; font-size: 15px; font-weight: 700; cursor: pointer; text-transform: uppercase; }
+  .custom-btn-cancel { color: #94a3b8; }
+  .custom-btn-ok { color: #ef4444; }
 </style>
 </head>
 <body>
@@ -286,8 +228,7 @@
 <div class="no-print">
   <div class="header-actions">
     <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-        
-        <!-- LOGO OFICIAL DO APP USANDO A IMAGEM + TEXTO COM BADGE -->
+        <!-- LOGO OFICIAL DO APP -->
         <div style="display: flex; align-items: center; gap: 10px; user-select: none;">
             <img src="logo.png" alt="Setlist Pro Logo" style="width: 40px; height: 40px; border-radius: 10px; box-shadow: 0 3px 6px rgba(2, 132, 199, 0.2);">
             <h1 style="font-size: 1.6rem; margin: 0; font-family: system-ui, -apple-system, sans-serif; letter-spacing: -0.5px; display: flex; align-items: center;">
@@ -296,7 +237,6 @@
             </h1>
         </div>
         
-        <!-- CAMPO DE NOME DO PROJETO -->
         <div style="display: flex; align-items: center; background: white; padding: 6px 10px; border-radius: 6px; border: 1px solid #cbd5e1; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);">
             <span style="font-size: 14px; margin-right: 6px;">📁</span>
             <input type="text" id="project-name" value="Meu Repertório" oninput="autoSaveToMemory()" style="border: none; outline: none; font-size: 14px; font-weight: bold; color: #0f172a; width: 160px; background: transparent;" title="Nome do Repertório">
@@ -316,7 +256,20 @@
   <div class="songs-container">
     
     <div class="sidebar-wrapper">
-      <button class="btn-primary" style="width: 100%; padding: 12px; font-size: 15px;" onclick="addNewSong()">➕ Nova Música</button>
+      <!-- NOVA BARRA DE FERRAMENTAS: BUSCA, ORDENAÇÃO E NOVA MÚSICA -->
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+          <input type="text" id="i-search" placeholder="🔍 Buscar música..." oninput="filterSongs()" style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; width: 100%;">
+          
+          <div style="display: flex; gap: 8px;">
+              <select id="i-sort" onchange="sortSongs()" style="flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; background: white; cursor: pointer;">
+                  <option value="manual">↕️ Ordenar</option>
+                  <option value="az-title">A-Z (Música)</option>
+                  <option value="az-artist">A-Z (Artista)</option>
+              </select>
+              <button class="btn-primary" style="flex: 1; padding: 10px; font-size: 14px;" onclick="addNewSong()">➕ Nova</button>
+          </div>
+      </div>
+      
       <div class="song-list-sidebar" id="song-list"></div>
     </div>
 
@@ -340,9 +293,11 @@
           </div>
         </div>
         
-	<div class="form-group" style="grid-column: span 2;">
-          <label>Link Vídeo</label>
-          <input type="text" id="i-video" placeholder="https://youtube.com..." oninput="saveCurrentSong()">
+        <!-- CAMPO DE VÍDEO COM PLAYER EMBUTIDO -->
+	    <div class="form-group" style="grid-column: span 2;">
+          <label>Link Vídeo (YouTube)</label>
+          <input type="text" id="i-video" placeholder="Cole o link do YouTube aqui..." oninput="saveCurrentSong()">
+          <div id="yt-player-container"></div>
         </div>
 
         <div class="form-group">
@@ -511,6 +466,8 @@
       songs = [{ title: 'Nova Música', artist: '', tone: '', capo: '', intro: '', cifra: '', video: '', content: '', transposeSteps: 0 }];
       currentIndex = 0;
       isDirty = false;
+      document.getElementById('i-search').value = '';
+      document.getElementById('i-sort').value = 'manual';
       autoSaveToMemory();
       selectSong(0);
   }
@@ -560,7 +517,9 @@
                   document.getElementById('project-name').value = nomeExtraido;
                   
                   autoSaveToMemory();
-                  isDirty = false; 
+                  isDirty = false;
+                  document.getElementById('i-search').value = '';
+                  document.getElementById('i-sort').value = 'manual';
                   selectSong(0); 
                   alert(`✅ Repertório "${nomeExtraido}" carregado!`);
               } else {
@@ -764,6 +723,66 @@
     return html;
   }
 
+  // NOVA FUNÇÃO: Busca Inteligente
+  function filterSongs() {
+      const query = document.getElementById('i-search').value.toLowerCase().trim();
+      const items = document.querySelectorAll('.song-item');
+      
+      items.forEach((item, index) => {
+          if(!songs[index]) return;
+          const title = (songs[index].title || '').toLowerCase();
+          const artist = (songs[index].artist || '').toLowerCase();
+          
+          if (title.includes(query) || artist.includes(query)) {
+              item.style.display = 'flex';
+          } else {
+              item.style.display = 'none';
+          }
+      });
+  }
+
+  // NOVA FUNÇÃO: Ordenação de Músicas
+  function sortSongs() {
+      const sortType = document.getElementById('i-sort').value;
+      if (sortType === 'manual') return; // Não faz nada, deixa a pessoa arrastar
+
+      songs.sort((a, b) => {
+          if (sortType === 'az-title') {
+              return (a.title || '').localeCompare(b.title || '');
+          } else if (sortType === 'az-artist') {
+              return (a.artist || '').localeCompare(b.artist || '');
+          }
+          return 0;
+      });
+
+      // Retorna o seletor para manual para permitir drag and drop depois
+      document.getElementById('i-sort').value = 'manual';
+      document.getElementById('i-search').value = ''; // Limpa a busca ao ordenar
+      
+      currentIndex = 0;
+      selectSong(0); // Já salva e atualiza a tela
+      alert("✅ Repertório organizado em Ordem Alfabética!");
+  }
+
+  // NOVA FUNÇÃO: Player do YouTube
+  function updateYouTubePlayer(url) {
+      const container = document.getElementById('yt-player-container');
+      if (!url) { container.innerHTML = ''; return; }
+      
+      let videoId = '';
+      if (url.includes('youtube.com/watch?v=')) {
+          videoId = url.split('v=')[1].split('&')[0];
+      } else if (url.includes('youtu.be/')) {
+          videoId = url.split('youtu.be/')[1].split('?')[0];
+      }
+      
+      if (videoId) {
+          container.innerHTML = `<iframe width="100%" height="220" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+      } else {
+          container.innerHTML = '';
+      }
+  }
+
   function renderSongList() {
     const list = document.getElementById('song-list');
     list.innerHTML = '';
@@ -790,7 +809,13 @@
       div.className = `song-item ${index === currentIndex ? 'active' : ''}`;
       div.draggable = true;
       
-      div.addEventListener('dragstart', (e) => { draggedItemIndex = index; e.dataTransfer.effectAllowed = 'move'; setTimeout(() => div.classList.add('dragging'), 0); });
+      div.addEventListener('dragstart', (e) => { 
+          // Trava de Segurança: Bloqueia o "arrastar" se a pessoa estiver fazendo uma busca
+          if (document.getElementById('i-search').value.trim() !== '') {
+              e.preventDefault(); return; 
+          }
+          draggedItemIndex = index; e.dataTransfer.effectAllowed = 'move'; setTimeout(() => div.classList.add('dragging'), 0); 
+      });
       div.addEventListener('dragend', () => { div.classList.remove('dragging'); draggedItemIndex = null; });
       div.addEventListener('dragover', (e) => { e.preventDefault(); div.classList.add('drag-over'); });
       div.addEventListener('dragleave', () => { div.classList.remove('drag-over'); });
@@ -800,6 +825,8 @@
       });
       
       div.addEventListener('touchstart', (e) => {
+          if (document.getElementById('i-search').value.trim() !== '') return; // Trava de Segurança Mobile
+          
           if (e.target.classList.contains('drag-handle')) {
               draggedItemIndex = index;
               originalElement = div;
@@ -915,7 +942,9 @@
       
       div.appendChild(titleSpan); div.appendChild(delBtn); list.appendChild(div);
     });
-      autoSaveToMemory()
+      
+      filterSongs(); // Aplica o filtro atual ao re-renderizar
+      autoSaveToMemory();
   }
 
   function autoFitText() {
@@ -942,10 +971,6 @@
           clonePage.style.setProperty('width', '794px', 'important');
           clonePage.style.setProperty('min-width', '794px', 'important');
           clonePage.style.setProperty('max-width', '794px', 'important');
-          
-          // ZONA DE SEGURANÇA DO JS:
-          // Agora o JS calcula a letra para caber em 960px (e não mais em 1000px).
-          // Isso garante que a letra nunca vai encostar no texto nativo do iOS.
           clonePage.style.setProperty('height', '960px', 'important'); 
           clonePage.style.setProperty('min-height', '960px', 'important');
           clonePage.style.setProperty('max-height', '960px', 'important');
@@ -1116,7 +1141,6 @@
                 <div class="cifra-content">${introHtml}${parseChords(song.content, song.transposeSteps || 0)}</div>
             </div>
         </div>
-        <!-- ASSINATURA DE COPYRIGHT NO PDF -->
         <div class="doc-footer">Copyright &copy; 2026 Setlist Pro. Todos os direitos reservados.</div>`;
       wrapper.appendChild(page);
     });
@@ -1144,6 +1168,8 @@
     document.getElementById('i-transpose-val').innerText = (steps > 0 ? '+' : '') + steps;
     document.getElementById('i-transpose-val').style.color = steps !== 0 ? '#dc2626' : '#0284c7';
     
+    updateYouTubePlayer(song.video || ''); // Aciona o Player de Vídeo!
+    
     renderSongList(); renderPreview();
   }
 
@@ -1160,6 +1186,9 @@
       content: document.getElementById('i-content').value, 
       transposeSteps: songs[currentIndex].transposeSteps || 0
     };
+    
+    updateYouTubePlayer(songs[currentIndex].video); // Atualiza o vídeo em tempo real
+    
     renderSongList();
     clearTimeout(renderTimeout); renderTimeout = setTimeout(() => renderPreview(), 300);
     autoSaveToMemory()
