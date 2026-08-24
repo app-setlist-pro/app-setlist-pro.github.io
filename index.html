@@ -50,63 +50,82 @@
   }
   
   /* =======================================================
-     NOVO HEADER FLUIDO (LINHA ÚNICA NO PC E CENTRO EXATO)
+     NOVO HEADER FLUIDO (O "ESQUELETO" DEFINITIVO)
      ======================================================= */
   .header-actions { 
-      display: flex; align-items: center; flex-wrap: wrap; gap: 10px; 
+      display: flex; flex-wrap: wrap; gap: 10px; align-items: center; 
       margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; 
   }
   
-  .app-logo-area { display: flex; align-items: center; gap: 8px; user-select: none; height: 38px; }
+  /* Empurra a logo para a extrema esquerda no PC */
+  .app-logo-area { display: flex; align-items: center; gap: 8px; user-select: none; height: 38px; margin-right: auto; }
   .app-logo-area img { width: 36px; height: 36px; border-radius: 8px; box-shadow: 0 3px 6px rgba(2, 132, 199, 0.2); }
   .app-logo-area h1 { font-size: 1.4rem; margin: 0; font-family: system-ui, -apple-system, sans-serif; letter-spacing: -0.5px; display: flex; align-items: center; line-height: 1; }
   .pro-badge { background: #0284c7; color: white; font-size: 0.65rem; font-weight: 900; padding: 3px 6px; border-radius: 6px; margin-left: 6px; letter-spacing: 0.5px; }
 
-  /* Correção Definitiva do Alinhamento Vertical do Texto */
+  /* Correção do alinhamento do texto no Safari/Chrome */
   .project-name-container {
-      display: flex; align-items: center; background: white; padding: 0 10px; 
-      height: 38px; border-radius: 6px; border: 1px solid #cbd5e1; 
-      box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); box-sizing: border-box; min-width: 160px;
+      display: flex; align-items: center; background: white; padding: 0 10px;
+      height: 38px; border-radius: 6px; border: 1px solid #cbd5e1;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); box-sizing: border-box; min-width: 150px;
   }
   .project-name-container span { font-size: 14px; margin-right: 6px; display: flex; align-items: center; line-height: 1; }
   .project-name-container input {
-      -webkit-appearance: none; appearance: none; border: none; outline: none; 
-      font-size: 14px; font-weight: bold; color: #0f172a; width: 100%; 
+      -webkit-appearance: none; appearance: none; border: none; outline: none;
+      font-size: 14px; font-weight: bold; color: #0f172a; width: 100%;
       background: transparent; margin: 0; padding: 0; height: 100%; display: flex; align-items: center; line-height: normal;
   }
 
-  button, .btn-label, .theme-selector-container { 
-      height: 38px; display: flex; align-items: center; justify-content: center; 
-      padding: 0 14px; font-weight: bold; border: none; border-radius: 6px; 
-      cursor: pointer; transition: 0.2s; font-size: 13.33px; box-sizing: border-box; margin: 0;
-  }
+  /* Padronização de botões normais (barras laterais) */
+  button, .btn-label { padding: 10px 16px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; transition: 0.2s; font-size: 13.33px; text-align: center; }
   
+  /* Padronização exclusiva para os botões do cabeçalho */
+  .header-btn {
+      height: 38px; display: flex; align-items: center; justify-content: center;
+      padding: 0 14px; font-weight: bold; border: none; border-radius: 6px;
+      cursor: pointer; transition: 0.2s; font-size: 13.33px; box-sizing: border-box; margin: 0;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
   .btn-primary { background: #0284c7; color: white; }
   .btn-primary:hover { background: #0369a1; }
   .btn-success { background: #16a34a; color: white; }
   .btn-success:hover { background: #15803d; }
-  .btn-danger { background: #dc2626; color: white; padding: 6px 10px; font-size: 12px; }
   .btn-warning { background: #d97706; color: white; }
+  .btn-danger { background: #dc2626; color: white; padding: 6px 10px; font-size: 12px; }
 
+  /* Seletor de Cores */
   .theme-selector-container { border: 1px solid #cbd5e1; background: white; gap: 8px; cursor: default; }
-  .theme-selector-label { font-size: 12px; font-weight: 900; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; }
-  
-  .color-swatch { 
-      width: 22px; height: 22px; border-radius: 50%; border: 2px solid transparent; 
+  .theme-selector-label { font-size: 11px; font-weight: 900; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;}
+  .color-swatch {
+      width: 22px; height: 22px; border-radius: 50%; border: 2px solid transparent;
       cursor: pointer; padding: 0; transition: transform 0.2s; outline: 2px solid transparent; outline-offset: 1px; min-width: 22px;
   }
   .color-swatch:hover { transform: scale(1.1); }
   .color-swatch.active { outline-color: #1e293b; transform: scale(1.1); }
 
-  @media (max-width: 950px) {
-      .header-actions { justify-content: space-between; gap: 12px; }
-      .app-logo-area { flex: 0 0 auto; }
-      .project-name-container { flex: 1; max-width: 220px; justify-content: flex-end; }
-      .header-actions > button, .header-actions > label, .header-actions > .theme-selector-container { flex: 1; min-width: 45%; }
-  }
+  /* A MARRETA PARA DIVIDIR MOBILE/PC */
+  .break-mobile { display: none; width: 100%; height: 0; margin: 0; padding: 0; border: none; }
 
-  /* FIM DO HEADER */
+  /* =======================================================
+     RESPONSIVIDADE (O SEGREDO DO IPAD E DO IPHONE)
+     ======================================================= */
+  @media (max-width: 950px) {
+      .break-mobile { display: block; } /* Força a quebra de linha após o nome */
+      
+      .header-btn {
+          flex: 1 1 45%; /* Força os botões a ficarem 2 por linha */
+          padding: 0 6px;
+      }
+      
+      /* Ajuste fino para não quebrar texto no iPhone pequeno */
+      #btn-dark-mode { font-size: 11px; }
+      .theme-selector-container { justify-content: center; gap: 4px; }
+      .theme-selector-label { font-size: 10px; letter-spacing: 0; }
+      .color-swatch { width: 18px; height: 18px; min-width: 18px; }
+  }
   
+  /* Resto do Design do App */
   .songs-container { display: flex; gap: 20px; }
   .sidebar-wrapper { width: 320px; display: flex; flex-direction: column; gap: 12px; }
   .song-list-sidebar { background: #f1f5f9; border-radius: 8px; padding: 10px; border: 1px solid #cbd5e1; height: 550px; overflow-y: auto; width: 100%; }
@@ -201,10 +220,8 @@
   /* TEMA DAS CIFRAS */
   body.theme-orange .chord { color: #d97706 !important; font-weight: bold !important; }
   body.theme-orange .dark-mode .chord { color: #fbbf24 !important; font-weight: bold !important; }
-  
   body.theme-blue .chord { color: #0284c7 !important; font-weight: bold !important; }
   body.theme-blue .dark-mode .chord { color: #38bdf8 !important; font-weight: bold !important; }
-  
   body.theme-red .chord { color: #dc2626 !important; font-weight: bold !important; }
   body.theme-red .dark-mode .chord { color: #f87171 !important; font-weight: bold !important; }
 
@@ -214,7 +231,7 @@
   .doc-footer { position: absolute; bottom: 8px; left: 0; width: 100%; text-align: center; font-size: 7.5pt; color: #94a3b8; font-family: system-ui, sans-serif; font-weight: 600; }
   .dark-mode .doc-footer { color: #64748b !important; }
 
-  /* MODO IMPRESSÃO (SAFARI FIX 260mm E MODO ESCURO) */
+  /* MODO IMPRESSÃO (SAFARI FIX E MODO ESCURO) */
   @media print {
     @page { size: A4 portrait; margin: 0 !important; padding: 0 !important; }
     html, body { background: white !important; padding: 0 !important; margin: 0 !important; width: 210mm !important; height: auto !important; overflow: visible !important; display: block !important;}
@@ -258,14 +275,17 @@
     body.theme-red .dark-mode .chord { color: #f87171 !important; font-weight: bold !important;}
   }
 
+  /* ESTILOS DOS ALERTAS CUSTOMIZADOS */
   .custom-alert-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 99999; 
-      display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); z-index: 99999; display: flex; justify-content: center; align-items: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
   }
   .custom-alert-overlay.show { opacity: 1; pointer-events: auto; }
   .custom-alert-box {
-      background: #1e1e1e; color: #f3f4f6; padding: 20px 24px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
-      width: 85%; max-width: 320px; transform: scale(0.95); transition: transform 0.2s ease; display: flex; flex-direction: column; gap: 20px; font-family: system-ui, sans-serif;
+      background: #1e1e1e; color: #f3f4f6; padding: 20px 24px; border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 85%; max-width: 320px;
+      transform: scale(0.95); transition: transform 0.2s ease; display: flex; flex-direction: column; gap: 20px; font-family: system-ui, sans-serif;
   }
   .custom-alert-overlay.show .custom-alert-box { transform: scale(1); }
   .custom-alert-content { display: flex; align-items: center; gap: 12px; font-size: 16px; font-weight: 500; line-height: 1.4; }
@@ -279,10 +299,11 @@
 <body class="theme-orange">
 
 <div class="no-print">
-  <!-- FLUXO ÚNICO CONTÍNUO (Sem divs separando esquerda/direita) -->
+  
+  <!-- CABEÇALHO FLUIDO: O ALINHAMENTO DO PC AO MOBILE -->
   <div class="header-actions">
         
-        <!-- LOGO OFICIAL DO APP -->
+        <!-- LOGO (Puxa tudo para a direita no PC) -->
         <div class="app-logo-area">
             <img src="logo.png" alt="Setlist Pro Logo">
             <h1>
@@ -291,26 +312,29 @@
             </h1>
         </div>
         
-        <!-- CAMPO DE NOME DO PROJETO -->
-        <div class="project-name-container">
+        <!-- NOME DO PROJETO -->
+        <div class="project-name-container header-btn">
             <span>📝</span>
             <input type="text" id="project-name" value="Meu Repertório" oninput="autoSaveToMemory()" title="Nome do Repertório">
         </div>
         
+        <!-- DIVISOR INVISÍVEL (Força os botões para baixo no Celular/iPad) -->
+        <div class="break-mobile"></div>
+        
         <!-- BOTÕES -->
-        <button class="btn-primary" style="background:#475569;" onclick="novoProjeto()">📄 Novo</button>
-        <label for="file-upload" class="btn-primary btn-label" style="background:#334155;">📂 Abrir</label>
+        <button class="btn-primary header-btn" style="background:#475569;" onclick="novoProjeto()">📄 Novo</button>
+        <label for="file-upload" class="btn-primary header-btn" style="background:#334155;">📂 Abrir</label>
         <input type="file" id="file-upload" accept=".json,application/json" style="display:none" onchange="loadProject(event)">
-        <button class="btn-primary" style="background:#0f766e;" onclick="exportarProjeto()">💾 Exportar</button>
-        <button class="btn-success" onclick="triggerPrint()">🖨️ PDF</button>
+        <button class="btn-primary header-btn" style="background:#0f766e;" onclick="exportarProjeto()">💾 Exportar</button>
+        <button class="btn-success header-btn" onclick="triggerPrint()">🖨️ PDF</button>
         
         <!-- MODO CLARO/ESCURO -->
-        <button class="btn-primary" style="background:#e2e8f0; color: #1e293b;" id="btn-dark-mode" onclick="toggleDarkMode()">Visualização em Modo Claro ☀️</button>
+        <button class="btn-primary header-btn" style="background:#e2e8f0; color: #1e293b;" id="btn-dark-mode" onclick="toggleDarkMode()">Visualização em Modo Claro ☀️</button>
         
-        <!-- SELETOR DE CORES: TEXTO FIXO + BOLINHAS (EMOJIS OCULTOS) -->
-        <div class="theme-selector-container">
+        <!-- SELETOR DE CORES -->
+        <div class="theme-selector-container header-btn">
             <span class="theme-selector-label">Cor da Cifra:</span>
-            <div style="display: flex; gap: 6px;">
+            <div style="display: flex; gap: 6px; align-items: center;">
                 <button class="color-swatch theme-orange active" onclick="changeChordTheme('theme-orange')" style="background-color: #d97706;" title="Laranja Padrão"></button>
                 <button class="color-swatch theme-blue" onclick="changeChordTheme('theme-blue')" style="background-color: #0284c7;" title="Azul PRO"></button>
                 <button class="color-swatch theme-red" onclick="changeChordTheme('theme-red')" style="background-color: #dc2626;" title="Vermelho Vídeo"></button>
@@ -358,6 +382,7 @@
           </div>
         </div>
         
+        <!-- CAMPO DE VÍDEO COM PLAYER EMBUTIDO -->
 	    <div class="form-group" style="grid-column: span 2;">
           <label>Link Vídeo (YouTube)</label>
           <input type="text" id="i-video" placeholder="Cole o link do YouTube aqui..." oninput="saveCurrentSong()">
@@ -606,6 +631,7 @@
       }
   };
 
+  // Troca de Tema das Cifras
   function changeChordTheme(theme) {
       document.body.classList.remove('theme-orange', 'theme-blue', 'theme-red');
       document.body.classList.add(theme);
