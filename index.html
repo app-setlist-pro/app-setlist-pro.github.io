@@ -229,7 +229,7 @@
         <button class="btn-primary" style="background:#475569;" onclick="novoProjeto()">📄 Novo</button>
         
         <label for="file-upload" class="btn-primary btn-label" style="background:#334155; display: flex; align-items: center; justify-content: center; margin: 0;">📂 Abrir</label>
-        <input type="file" id="file-upload" accept=".txt,text/plain" style="display:none" onchange="loadProject(event)">
+        <input type="file" id="file-upload" accept=".json,application/json" style="display:none" onchange="loadProject(event)">
         
         <button class="btn-primary" style="background:#0f766e;" onclick="exportarProjeto()">💾 Exportar</button>
         <button class="btn-success" onclick="triggerPrint()">🖨️ PDF</button>
@@ -426,9 +426,9 @@
       const file = event.target.files[0]; 
       if (!file) return;
       
-      // Valida se é um arquivo .txt
-      if (!file.type.includes('text') && !file.name.endsWith('.txt')) {
-          alert("⚠️ Arquivo inválido. Por favor, selecione um arquivo .txt");
+      // FIX ANDROID: Valida o arquivo antes de tentar abrir
+      if (!file.type.includes('json') && !file.name.endsWith('.json')) {
+          alert("⚠️ Arquivo inválido. Por favor, selecione um arquivo .json");
           event.target.value = '';
           return;
       }
@@ -443,7 +443,7 @@
       
       reader.onerror = function(e) {
           console.error("Erro ao ler arquivo:", e);
-          alert("❌ Erro ao ler o arquivo. Verifique as permissões.");
+          alert("❌ Erro ao ler o arquivo. Verifique as permissões no Android.");
           event.target.value = '';
       };
       
@@ -451,7 +451,7 @@
           try {
               const content = e.target.result;
               
-              // Trata conteúdo vazio ou inválido
+              // FIX ANDROID: Trata conteúdo vazio ou inválido
               if (!content || content.trim() === '') {
                   alert("⚠️ Arquivo vazio. Envie um repertório válido.");
                   event.target.value = '';
@@ -471,8 +471,8 @@
                   alert("⚠️ Arquivo inválido ou vazio.");
               }
           } catch (err) { 
-              console.error("Erro ao ler arquivo:", err);
-              alert("❌ Erro ao ler arquivo. Verifique se é um .txt válido.\n\nDetalhes: " + err.message); 
+              console.error("Erro ao parsear JSON:", err);
+              alert("❌ Erro ao ler arquivo. Verifique se é um .json válido.\n\nDetalhes: " + err.message); 
           }
           event.target.value = '';
       };
@@ -1135,16 +1135,17 @@
       if (songs.length === 0) { alert("Repertório vazio!"); return; }
       try {
           const jsonStr = JSON.stringify(songs, null, 2);
+          // 1. Mudamos de "application/json" para "text/plain"
           const blob = new Blob([jsonStr], { type: "text/plain" }); 
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url; 
+          // 2. Mudamos o final do arquivo de .json para .txt
           a.download = "meu_repertorio.txt"; 
           document.body.appendChild(a); a.click();
           setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 1000); 
-          isDirty = false;
-          alert(`✅ Repertório exportado como meu_repertorio.txt!\nCompartilhe via WhatsApp, email, etc.`);
-      } catch (err) { alert("❌ Erro ao exportar: " + err.message); }
+          isDirty = false; 
+      } catch (err) { alert("Erro ao exportar: " + err.message); }
   }
 
   
