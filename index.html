@@ -150,7 +150,6 @@
   .split-col { flex: 1; min-width: 0; }
   .split-col-divider { width: 1px; border-left: 2px solid #000000; margin: 0 15px; flex-shrink: 0; }
 
-  /* COMPORTAMENTO DO NOVO LOGO (SETLIST PRO) E MODO ESCURO */
   .brand-text-setlist { color: #0f172a; font-weight: 800; }
   .dark-mode .a4-page { background-color: #121212; color: #e2e8f0; }
   .dark-mode .brand-text-setlist { color: #f8fafc; } 
@@ -170,12 +169,14 @@
   }
   .dark-mode .app-footer { color: #94a3b8; }
   .doc-footer {
-      position: absolute; bottom: 12px; left: 0; width: 100%; text-align: center; font-size: 7.5pt; color: #94a3b8; font-family: system-ui, sans-serif; font-weight: 600;
+      position: absolute; bottom: 8px; left: 0; width: 100%; text-align: center; font-size: 7.5pt; color: #94a3b8; font-family: system-ui, sans-serif; font-weight: 600;
   }
   .dark-mode .doc-footer { color: #64748b !important; }
 
   /* =======================================================
-     A "MARRETA" FINAL PARA O SAFARI (iOS / iPAD)
+     A NOVA "MARRETA" PARA O SAFARI: ZONA DE SEGURANÇA!
+     Reduzimos a folha para 260mm para que os textos nativos do iOS
+     (como URL e Data) caibam no rodapé sem quebrar a página.
      ======================================================= */
   @media print {
     @page { size: A4 portrait; margin: 0 !important; padding: 0 !important; }
@@ -201,8 +202,9 @@
     .a4-page {
         background: white !important; 
         width: 210mm !important; 
-        height: 296mm !important; 
-        max-height: 296mm !important; 
+        /* CARTA NA MANGA: 260mm evita que o rodapé transborde e crie página branca */
+        height: 260mm !important; 
+        max-height: 260mm !important; 
         padding: 20px !important; 
         box-shadow: none !important; 
         color: black !important; 
@@ -211,7 +213,9 @@
         display: block !important; 
         margin: 0 !important; 
         page-break-after: always !important;
+        page-break-inside: avoid !important;
         break-after: page !important;
+        break-inside: avoid !important;
         overflow: hidden !important; 
         zoom: 1 !important; 
         scale: 1 !important;
@@ -606,7 +610,7 @@
 
       if (isStandalone && navigator.share) {
           navigator.share({
-              title: pName, // Usa o nome do projeto no compartilhamento mobile também!
+              title: pName,
               url: window.location.href
           }).catch(err => console.log("Compartilhamento cancelado pelo usuário."));
           return;
@@ -618,11 +622,9 @@
           wrapper.style.removeProperty('transform');
       }
       
-      // 1. Aplica o nome do repertório no documento
       document.title = pName; 
       document.body.offsetHeight;
       
-      // 2. O TRUQUE DO IOS: Aguarda 300ms para o Safari "engolir" o nome novo antes de gerar o PDF
       setTimeout(() => {
           window.print();
       }, 300);
@@ -643,15 +645,12 @@
   });
 
   window.addEventListener('afterprint', () => {
-      // 3. O SEGUNDO TRUQUE: Demora 2 segundos para devolver o nome "Setlist Pro" 
-      // Isso impede que o iOS "roube" o nome antigo de volta enquanto processa o compartilhamento
       setTimeout(() => {
           document.title = "Setlist Pro";
       }, 2000);
 
       if (typeof ajustarEscalaA4 === 'function') ajustarEscalaA4();
   });
-
 
   function isChord(w) {
       const chordRegex = /^[A-G](#|b)?(m|M|maj|min|dim|aug|sus|add)?\d*(M|m)?\d*(\([^)]+\))?(º|°|\+|-)?(\/[A-G](#|b)?)?$/i;
@@ -943,9 +942,13 @@
           clonePage.style.setProperty('width', '794px', 'important');
           clonePage.style.setProperty('min-width', '794px', 'important');
           clonePage.style.setProperty('max-width', '794px', 'important');
-          clonePage.style.setProperty('height', '1000px', 'important'); 
-          clonePage.style.setProperty('min-height', '1000px', 'important');
-          clonePage.style.setProperty('max-height', '1000px', 'important');
+          
+          // ZONA DE SEGURANÇA DO JS:
+          // Agora o JS calcula a letra para caber em 960px (e não mais em 1000px).
+          // Isso garante que a letra nunca vai encostar no texto nativo do iOS.
+          clonePage.style.setProperty('height', '960px', 'important'); 
+          clonePage.style.setProperty('min-height', '960px', 'important');
+          clonePage.style.setProperty('max-height', '960px', 'important');
           clonePage.style.setProperty('padding', '20px', 'important'); 
 
           document.body.appendChild(clonePage);
@@ -964,7 +967,7 @@
               spaceH -= 12;
           }
 
-          let limiteMaximo = 1000 - 40; 
+          let limiteMaximo = 960 - 40; 
           if (cloneHeader && cloneHeader.scrollHeight > 0) {
               limiteMaximo -= cloneHeader.scrollHeight;
               limiteMaximo -= 12;
@@ -1087,7 +1090,6 @@
               <div style="display: flex; justify-content: space-between; align-items: flex-end; width: 100%;">
                   <div class="doc-title" style="flex: 1; padding-right: 15px; margin: 0; line-height: 1;">${song.title || 'Música Sem Título'}</div>
                   
-                  <!-- LOGO DA FOLHA DE IMPRESSÃO (USANDO A IMAGEM REAL) -->
                   <div style="display: flex; align-items: center; gap: 6px; user-select: none; flex-shrink: 0;">
                       <img src="logo.png" style="width: 28px; height: 28px; border-radius: 6px;">
                       <div style="font-size: 1.5rem; margin: 0; font-family: system-ui, -apple-system, sans-serif; letter-spacing: -0.5px; line-height: 1; display: flex; align-items: center;">
