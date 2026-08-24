@@ -154,41 +154,66 @@
   .dark-mode hr.divider { border-top-color: #334155; }
   .dark-mode .split-col-divider { border-left-color: #334155; }
 
+  /* =======================================================
+     A CAMISA DE FORÇA DEFINITIVA DO IOS / SAFARI NO PDF
+     ======================================================= */
   @media print {
     @page { size: A4 portrait; margin: 0 !important; }
     html, body { background: white !important; padding: 0 !important; margin: 0 !important; width: 100% !important; height: auto !important; overflow: visible !important; display: block !important;}
     .no-print, .preview-title { display: none !important; }
     .preview-section { margin: 0 !important; padding: 0 !important; display: block !important;}
-    .a4-wrapper { gap: 0 !important; display: block !important; padding: 0 !important; margin: 0 !important; width: 100% !important; transform: none !important; zoom: 1 !important; scale: 1 !important; }
     
+    .a4-wrapper { 
+        gap: 0 !important; display: block !important; padding: 0 !important; margin: 0 !important; 
+        width: 100% !important; transform: none !important; zoom: 1 !important; scale: 1 !important; 
+    }
+    
+    /* Regras engessadas em Pixels: O Safari não pode tentar adivinhar e quebrar a folha */
     .a4-page {
         background: white !important; 
-        width: 210mm !important; 
-        height: 297mm !important; 
-        max-height: 297mm !important; 
-        padding: 7.5mm !important; 
+        width: 794px !important; 
+        height: 1122px !important; 
+        min-width: 794px !important;
+        max-width: 794px !important;
+        min-height: 1122px !important; 
+        max-height: 1122px !important; 
+        padding: 28px !important; 
         box-shadow: none !important; 
         color: black !important; position: relative;
         box-sizing: border-box !important; 
-        display: flex !important; 
-        flex-direction: column !important;
+        
+        display: block !important; /* ADEUS FLEXBOX NO IOS PRINT! Resolve o bug de fatiar as páginas */
+        
         margin: 0 auto !important;
         page-break-after: always !important;
         page-break-inside: avoid !important;
         break-after: page !important;
         break-inside: avoid !important;
+        overflow: hidden !important; /* Impede o texto de vazar para uma "falsa" página extra */
         zoom: 1 !important; 
         scale: 1 !important;
     }
     .a4-page:last-child { page-break-after: auto !important; break-after: auto !important; }
     
-    .a4-content-area, .doc-body {
+    .a4-content-area {
+        display: block !important;
+        width: 100% !important;
+        height: 100% !important;
+        overflow: hidden !important;
+    }
+
+    .doc-header {
+        display: flex !important; /* Mantemos o grid do cabeçalho */
+    }
+    
+    .doc-body {
         display: block !important;
         height: auto !important;
         max-height: none !important;
         overflow: visible !important;
     }
     
+    /* Proteção extrema de cores no Modo Escuro */
     .dark-mode .a4-page { background-color: #ffffff !important; color: #000000 !important; }
     .cifra-content { color: #000000 !important; }
     .dark-mode .cifra-content { color: #000000 !important; }
@@ -556,22 +581,30 @@
   // FIX DEFINITIVO: IMPRESSÃO SÍNCRONA E BLINDAGEM DO SAFARI
   // =========================================================
   function triggerPrint() {
-      const wrapper = document.getElementById('a4-wrapper');
+      const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
       
-      // 1. Removemos a escala inline para o Safari não esmagar o PDF
+      if (isStandalone && navigator.share) {
+          navigator.share({
+              title: 'JR Cifras - Repertório',
+              url: window.location.href
+          }).catch(err => console.log("Compartilhamento cancelado pelo usuário."));
+          return;
+      }
+      
+      // O SEGREDO: Limpamos o zoom e chamamos a impressão de forma síncrona.
+      // Retiramos a função 'ajustarEscalaA4()' daqui. Ela estava sendo acionada rápida
+      // demais no iOS, o que bagunçava a "foto" que a impressora tira da tela.
+      const wrapper = document.getElementById('a4-wrapper');
       if (wrapper) {
           wrapper.style.removeProperty('zoom');
           wrapper.style.removeProperty('transform');
       }
       
-      // 2. Chamada síncrona de impressão (impede o Safari de bloquear a janela)
       window.print();
-      
-      // 3. Devolvemos a escala após fechar a janela de impressão
-      if (typeof ajustarEscalaA4 === 'function') ajustarEscalaA4();
   }
 
-  // Camada de segurança extra caso a pessoa imprima pelo botão de "Compartilhar" do próprio Safari
+  // O motor da Apple vai acionar isso aqui sozinho ANTES de imprimir 
+  // (Caso você clique no botão nativo de compartilhar do próprio navegador)
   window.addEventListener('beforeprint', () => {
       const wrapper = document.getElementById('a4-wrapper');
       if (wrapper) {
@@ -580,6 +613,8 @@
       }
   });
 
+  // E isso aqui vai ser acionado DEPOIS que a janela de PDF for fechada.
+  // Devolvendo a escala perfeitamente para a tela.
   window.addEventListener('afterprint', () => {
       if (typeof ajustarEscalaA4 === 'function') ajustarEscalaA4();
   });
@@ -860,16 +895,9 @@
           
           realContent.innerHTML = realContent.innerHTML.replace(/(\s|<br>)+$/g, ''); 
 
-          // 1. Cria o clone para medir nos bastidores
           const clonePage = page.cloneNode(true);
-          
-          // CRÍTICO: Garante que o clone não esteja escondido durante a medição
           clonePage.classList.remove('hidden-preview');
           
-          // ====================================================================
-          // A SOLUÇÃO IPHONE: Absolute + Left Negativo
-          // Impede o Safari do iPhone de espremer a folha na largura da tela
-          // ====================================================================
           clonePage.style.position = 'absolute'; 
           clonePage.style.top = '0';
           clonePage.style.left = '-9999px'; 
@@ -879,7 +907,6 @@
           clonePage.style.pointerEvents = 'none';
           clonePage.style.zIndex = '-9999';
 
-          // Forçando os tamanhos do A4
           clonePage.style.setProperty('width', '794px', 'important');
           clonePage.style.setProperty('min-width', '794px', 'important');
           clonePage.style.setProperty('max-width', '794px', 'important');
@@ -894,29 +921,22 @@
           const cloneContent = clonePage.querySelector('.cifra-content');
           const cloneHeader = clonePage.querySelector('.doc-header');
 
-          // CHICOTE 1: Acorda o Safari para renderizar o clone
           void clonePage.offsetHeight;
 
-          // FIX IPHONE: Usa scrollHeight para melhor confiabilidade no Safari
           let spaceH = cloneBody.scrollHeight;  
           let spaceW = cloneBody.clientWidth;
           
-          // FIX IPHONE: Se o header foi renderizado, subtrai sua altura real
           if (cloneHeader && cloneHeader.scrollHeight > 0) {
               spaceH -= cloneHeader.scrollHeight;
-              spaceH -= 12; // margin-bottom do novo header estrutural
+              spaceH -= 12;
           }
 
-          // ====================================================================
-          // O "TETO DE AÇO" PARA MÚSICAS LONGAS
-          // ====================================================================
-          let limiteMaximo = 1122 - 56; // Altura total A4 (1122px) menos paddings
+          let limiteMaximo = 1122 - 56; 
           if (cloneHeader && cloneHeader.scrollHeight > 0) {
               limiteMaximo -= cloneHeader.scrollHeight;
               limiteMaximo -= 12;
           }
           
-          // Se o espaço ultrapassar a capacidade do papel físico, nós travamos.
           if (spaceH > limiteMaximo) {
               spaceH = limiteMaximo;
           }
@@ -925,12 +945,10 @@
               cloneContent.style.lineHeight = '1.25';
               let minF = 3.0, maxF = 25.0, bestF = minF;
               
-              // ESTÁGIO 1: Aumenta a Fonte
               for (let i = 0; i < 20; i++) {
                   let mid = (minF + maxF) / 2;
                   cloneContent.style.fontSize = mid + 'pt';
                   
-                  // CHICOTE 2: OBRIGA O SAFARI A MEDIR A FONTE A CADA TENTATIVA!
                   void cloneContent.offsetHeight;
                   
                   if (cloneContent.scrollHeight > spaceH || cloneContent.scrollWidth > spaceW) {
@@ -944,7 +962,6 @@
               cloneContent.style.fontSize = bestFontSize + 'pt';
               void cloneContent.offsetHeight;
               
-              // ESTÁGIO 2 (O ACORDEÃO): Estica as linhas
               let finalLineHeight = 1.25;
               if (cloneContent.scrollHeight < spaceH - 2) {
                   let minL = 1.25, maxL = 3.5, bestL = minL;
@@ -952,7 +969,6 @@
                       let midL = (minL + maxL) / 2;
                       cloneContent.style.lineHeight = midL;
                       
-                      // CHICOTE 3: OBRIGA O SAFARI A MEDIR O ESTICAMENTO DA LINHA!
                       void cloneContent.offsetHeight;
                       
                       if (cloneContent.scrollHeight > spaceH) {
@@ -964,7 +980,6 @@
                   finalLineHeight = bestL;
               }
 
-              // Transfere o resultado perfeito para a sua tela!
               realContent.style.fontSize = bestFontSize + 'pt';
               realContent.style.lineHeight = finalLineHeight;
           }
@@ -1032,9 +1047,6 @@
           introHtml = `[Intro] ${colorizedIntro}\n\n`;
       }
       
-      // =========================================================
-      // O NOVO CABEÇALHO DO PDF (TIMBRADO / GRID)
-      // =========================================================
       page.innerHTML = `
         <div class="a4-content-area">
             <div class="doc-header" style="display: flex; flex-direction: column; border-bottom: 2px solid #0284c7; padding-bottom: 8px; margin-bottom: 12px; gap: 8px;">
