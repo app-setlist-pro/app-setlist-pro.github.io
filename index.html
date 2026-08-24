@@ -30,9 +30,6 @@
   }
 </script>
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Setlist Pro</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root { --primary: #0284c7; --bg: #f8fafc; }
@@ -153,6 +150,7 @@
   .split-col { flex: 1; min-width: 0; }
   .split-col-divider { width: 1px; border-left: 2px solid #000000; margin: 0 15px; flex-shrink: 0; }
 
+  /* COMPORTAMENTO DO NOVO LOGO (SETLIST PRO) E MODO ESCURO */
   .brand-text-setlist { color: #0f172a; font-weight: 800; }
   .dark-mode .a4-page { background-color: #121212; color: #e2e8f0; }
   .dark-mode .brand-text-setlist { color: #f8fafc; } 
@@ -166,6 +164,19 @@
   .dark-mode hr.divider { border-top-color: #334155; }
   .dark-mode .split-col-divider { border-left-color: #334155; }
 
+  /* ESTILOS DE COPYRIGHT */
+  .app-footer {
+      text-align: center; padding: 15px 0; margin-top: 10px; color: #64748b; font-size: 13px; font-weight: 500;
+  }
+  .dark-mode .app-footer { color: #94a3b8; }
+  .doc-footer {
+      position: absolute; bottom: 12px; left: 0; width: 100%; text-align: center; font-size: 7.5pt; color: #94a3b8; font-family: system-ui, sans-serif; font-weight: 600;
+  }
+  .dark-mode .doc-footer { color: #64748b !important; }
+
+  /* =======================================================
+     A "MARRETA" FINAL PARA O SAFARI (iOS / iPAD)
+     ======================================================= */
   @media print {
     @page { size: A4 portrait; margin: 0 !important; padding: 0 !important; }
     
@@ -237,6 +248,7 @@
     .dark-mode .brand-text-setlist { color: #000000 !important; }
     .badge, .tone-badge, .split-col-divider, .a4-page { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
     .capo-text { color: #dc2626 !important; }
+    .doc-footer { color: #94a3b8 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   }
 
   .custom-alert-overlay {
@@ -360,6 +372,11 @@
         </div>
       </div>
     </div>
+  </div>
+  
+  <!-- ASSINATURA DE COPYRIGHT NO APP -->
+  <div class="app-footer no-print">
+      Copyright &copy; 2026 Setlist Pro. Todos os direitos reservados.
   </div>
 </div>
 
@@ -594,9 +611,14 @@
       
       const wrapper = document.getElementById('a4-wrapper');
       if (wrapper) {
-          wrapper.style.zoom = '1';
-          wrapper.style.transform = 'none';
+          wrapper.style.removeProperty('zoom');
+          wrapper.style.removeProperty('transform');
       }
+      
+      // O TRUQUE DO NOME DO ARQUIVO: Pega o nome do projeto para batizar o PDF
+      let pName = document.getElementById('project-name').value.trim();
+      if (!pName) pName = "Meu Repertório";
+      document.title = pName; 
       
       document.body.offsetHeight;
       window.print();
@@ -605,13 +627,21 @@
   window.addEventListener('beforeprint', () => {
       const wrapper = document.getElementById('a4-wrapper');
       if (wrapper) {
-          wrapper.style.zoom = '1';
-          wrapper.style.transform = 'none';
+          wrapper.style.removeProperty('zoom');
+          wrapper.style.removeProperty('transform');
       }
+      
+      // Garante que o nome mude mesmo se o usuário usar o atalho de imprimir do próprio celular
+      let pName = document.getElementById('project-name').value.trim();
+      if (!pName) pName = "Meu Repertório";
+      document.title = pName;
+      
       document.body.offsetHeight;
   });
 
   window.addEventListener('afterprint', () => {
+      // DEVOLVE O NOME ORIGINAL PARA O APLICATIVO
+      document.title = "Setlist Pro";
       if (typeof ajustarEscalaA4 === 'function') ajustarEscalaA4();
   });
 
@@ -1076,7 +1106,9 @@
             <div class="doc-body">
                 <div class="cifra-content">${introHtml}${parseChords(song.content, song.transposeSteps || 0)}</div>
             </div>
-        </div>`;
+        </div>
+        <!-- ASSINATURA DE COPYRIGHT NO PDF -->
+        <div class="doc-footer">Copyright &copy; 2026 Setlist Pro. Todos os direitos reservados.</div>`;
       wrapper.appendChild(page);
     });
     
