@@ -35,7 +35,7 @@
   }
   
   .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
-  .header-actions h1 { font-size: 1.5rem; color: #0f172a; }
+  .header-actions h1 { font-size: 1.5rem; color: #0f172a; margin: 0; }
   .btn-group { display: flex; gap: 8px; align-items: center; }
   
   button, .btn-label { padding: 10px 16px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; transition: 0.2s; font-size: 13.33px; text-align: center; }
@@ -54,7 +54,7 @@
   @media (max-width: 850px) {
     body { padding: 10px; }
     .header-actions { flex-direction: column; align-items: stretch; gap: 15px; }
-    .header-actions > div { justify-content: space-between; }
+    .header-actions > div { justify-content: space-between; width: 100%; }
     .btn-group { flex-wrap: wrap; justify-content: stretch; }
     .btn-group > * { flex: 1; min-width: 45%; }
     
@@ -221,8 +221,13 @@
 
 <div class="no-print">
   <div class="header-actions">
-    <div style="display: flex; align-items: center; gap: 15px;">
+    <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
         <h1>JR Cifras</h1>
+        <!-- NOVO: Campo editável para o nome do projeto -->
+        <div style="display: flex; align-items: center; background: white; padding: 6px 10px; border-radius: 6px; border: 1px solid #cbd5e1; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);">
+            <span style="font-size: 14px; margin-right: 6px;">📁</span>
+            <input type="text" id="project-name" value="Meu Repertório" oninput="autoSaveToMemory()" style="border: none; outline: none; font-size: 14px; font-weight: bold; color: #0f172a; width: 160px; background: transparent;" title="Nome do Repertório">
+        </div>
     </div>
     
     <div class="btn-group">
@@ -388,10 +393,16 @@
 
   function autoSaveToMemory() {
       localStorage.setItem('jrCifras_MobileBackup', JSON.stringify(songs));
+      localStorage.setItem('jrCifras_ProjectName', document.getElementById('project-name').value);
       isDirty = true;
   }
 
   function loadFromMemory() {
+      const savedName = localStorage.getItem('jrCifras_ProjectName');
+      if (savedName) {
+          document.getElementById('project-name').value = savedName;
+      }
+      
       const saved = localStorage.getItem('jrCifras_MobileBackup');
       if (saved) {
           try {
@@ -415,10 +426,17 @@
       const podeContinuar = await checkUnsaved();
       if (!podeContinuar) return; 
       
+      // NOVO: Pergunta o nome do projeto antes de criar
+      let novoNome = prompt("Dê um nome para o seu novo repertório:", "Novo Repertório");
+      if (novoNome === null) return; // Se clicou em cancelar
+      if (novoNome.trim() === '') novoNome = "Novo Repertório";
+      
+      document.getElementById('project-name').value = novoNome;
+      
       songs = [{ title: 'Nova Música', artist: '', tone: '', capo: '', intro: '', cifra: '', video: '', content: '', transposeSteps: 0 }];
       currentIndex = 0;
       isDirty = false;
-      localStorage.removeItem('jrCifras_MobileBackup'); 
+      autoSaveToMemory();
       selectSong(0);
   }
 
@@ -426,7 +444,7 @@
       const file = event.target.files[0]; 
       if (!file) return;
       
-      // FIX ANDROID: Valida o arquivo antes de tentar abrir
+      // Valida o arquivo antes de tentar abrir
       if (!file.type.includes('json') && !file.name.endsWith('.json')) {
           alert("⚠️ Arquivo inválido. Por favor, selecione um arquivo .json");
           event.target.value = '';
@@ -438,6 +456,9 @@
           event.target.value = '';
           return;
       }
+
+      // NOVO: Puxa o nome do arquivo, tirando a extensão ".json"
+      let nomeExtraido = file.name.replace(/\.[^/.]+$/, "");
 
       const reader = new FileReader();
       
@@ -451,7 +472,6 @@
           try {
               const content = e.target.result;
               
-              // FIX ANDROID: Trata conteúdo vazio ou inválido
               if (!content || content.trim() === '') {
                   alert("⚠️ Arquivo vazio. Envie um repertório válido.");
                   event.target.value = '';
@@ -463,10 +483,14 @@
               if (Array.isArray(loadedSongs) && loadedSongs.length > 0) { 
                   songs = loadedSongs; 
                   currentIndex = 0; 
-                  localStorage.setItem('jrCifras_MobileBackup', JSON.stringify(songs));
+                  
+                  // NOVO: Atualiza a caixa de texto com o nome extraído
+                  document.getElementById('project-name').value = nomeExtraido;
+                  
+                  autoSaveToMemory();
                   isDirty = false; 
                   selectSong(0); 
-                  alert(`✅ Repertório carregado com ${songs.length} música(s)!`);
+                  alert(`✅ Repertório "${nomeExtraido}" carregado!`);
               } else {
                   alert("⚠️ Arquivo inválido ou vazio.");
               }
@@ -852,6 +876,22 @@
               spaceH -= 6; // margin-bottom do header
           }
 
+          // ====================================================================
+          // O "TETO DE AÇO" PARA MÚSICAS LONGAS
+          // Mantém a solução perfeita para as margens, mas impede que
+          // o scrollHeight cresça infinitamente e cause cortes no final da folha.
+          // ====================================================================
+          let limiteMaximo = 1122 - 56; // Altura total A4 (1122px) menos paddings
+          if (cloneHeader && cloneHeader.scrollHeight > 0) {
+              limiteMaximo -= cloneHeader.scrollHeight;
+              limiteMaximo -= 6;
+          }
+          
+          // Se o espaço ultrapassar a capacidade do papel físico, nós travamos.
+          if (spaceH > limiteMaximo) {
+              spaceH = limiteMaximo;
+          }
+
           if (spaceH > 0 && spaceW > 0) {
               cloneContent.style.lineHeight = '1.25';
               let minF = 3.0, maxF = 25.0, bestF = minF;
@@ -1135,7 +1175,11 @@
       if (songs.length === 0) { alert("Repertório vazio!"); return; }
       try {
           const jsonStr = JSON.stringify(songs, null, 2);
-          const fileName = "meu_repertorio.json";
+          
+          // NOVO: Puxa o nome lá da caixinha de texto
+          let pName = document.getElementById('project-name').value.trim();
+          if (!pName) pName = "Meu Repertório";
+          const fileName = `${pName}.json`;
           
           if (navigator.share && navigator.canShare) {
               const file = new File([jsonStr], fileName, { type: "application/json" });
@@ -1143,8 +1187,8 @@
                   try {
                       await navigator.share({
                           files: [file],
-                          title: 'JR Cifras',
-                          text: 'Aqui está o backup do repertório.'
+                          title: pName,
+                          text: `Aqui está o repertório: ${pName}`
                       });
                       isDirty = false;
                       return; 
