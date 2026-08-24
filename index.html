@@ -157,7 +157,24 @@
   .split-col { flex: 1; min-width: 0; }
   .split-col-divider { width: 1px; border-left: 2px solid #000000; margin: 0 15px; flex-shrink: 0; }
 
-  /* MODO ESCURO BÁSICO */
+  /* =======================================================
+     SELETOR DE CORES (NOVO DESIGN "BOLINHAS")
+     ======================================================= */
+  .theme-selector-container {
+      display: flex; align-items: center; gap: 10px; background: white; 
+      padding: 0 14px; height: 38px; border: 1px solid #cbd5e1; border-radius: 6px;
+  }
+  .theme-selector-label {
+      font-size: 12px; font-weight: 900; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .color-swatch {
+      width: 22px; height: 22px; border-radius: 50%; border: 2px solid transparent; 
+      cursor: pointer; padding: 0; transition: transform 0.2s; outline: 2px solid transparent; outline-offset: 1px;
+  }
+  .color-swatch:hover { transform: scale(1.1); }
+  .color-swatch.active { outline-color: #1e293b; transform: scale(1.1); }
+  
+  /* ESTILOS DO MODO ESCURO GERAL */
   .brand-text-setlist { color: #0f172a; font-weight: 800; }
   .dark-mode .a4-page { background-color: #121212; color: #e2e8f0; }
   .dark-mode .brand-text-setlist { color: #f8fafc; } 
@@ -168,10 +185,14 @@
   .dark-mode .cifra-content { color: #e2e8f0; }
   .dark-mode hr.divider { border-top-color: #334155; }
   .dark-mode .split-col-divider { border-left-color: #334155; }
+  
+  /* MODO ESCURO PARA O SELETOR DE CORES */
+  .dark-mode .theme-selector-container { background: #1e293b; border-color: #334155; }
+  .dark-mode .theme-selector-label { color: #94a3b8; }
+  .dark-mode .color-swatch.active { outline-color: #f8fafc; }
 
   /* =======================================================
-     TEMA DAS CIFRAS (NOVAS CORES!) 
-     Controlado por classes aplicadas no <body>
+     TEMA DAS CIFRAS (Controlado por classes no <body>)
      ======================================================= */
   
   /* TEMA LARANJA (Padrão) */
@@ -185,7 +206,6 @@
   /* TEMA VERMELHO (VÍDEO) */
   body.theme-red .chord { color: #dc2626 !important; font-weight: bold !important; }
   body.theme-red .dark-mode .chord { color: #f87171 !important; font-weight: bold !important; }
-
 
   /* ESTILOS DE COPYRIGHT */
   .app-footer { text-align: center; padding: 15px 0; margin-top: 10px; color: #64748b; font-size: 13px; font-weight: 500; }
@@ -295,13 +315,18 @@
         <button class="btn-primary" style="background:#0f766e;" onclick="exportarProjeto()">💾 Exportar</button>
         <button class="btn-success" onclick="triggerPrint()">🖨️ PDF</button>
         
-        <!-- BOTÕES NOVOS: MODO CLARO/ESCURO E TEMAS DAS CIFRAS -->
-        <button class="btn-primary" style="background:#e2e8f0; color: #1e293b;" id="btn-dark-mode" onclick="toggleDarkMode()">Visualização em Modo Claro ☀️</button>
-        <select id="chord-theme-selector" onchange="changeChordTheme()" class="btn-primary" style="background: white; color: #1e293b; border: 1px solid #cbd5e1; font-weight: bold; cursor: pointer; padding: 9px 12px; font-size: 13.33px; border-radius: 6px;">
-            <option value="theme-orange">🟠 Cifras Laranjas</option>
-            <option value="theme-blue">🔵 Cifras Azuis</option>
-            <option value="theme-red">🔴 Cifras Vermelhas</option>
-        </select>
+        <!-- BOTÕES NOVOS: MODO CLARO/ESCURO -->
+        <button class="btn-primary" style="background:#e2e8f0; color: #1e293b; height: 38px; padding: 0 12px;" id="btn-dark-mode" onclick="toggleDarkMode()">Visualização em Modo Claro ☀️</button>
+        
+        <!-- NOVO SELETOR DE CORES "BOLINHAS" -->
+        <div class="theme-selector-container">
+            <span class="theme-selector-label">Cor da Cifra:</span>
+            <div style="display: flex; gap: 6px;">
+                <button class="color-swatch theme-orange active" onclick="changeChordTheme('theme-orange')" style="background-color: #d97706;" title="Laranja Padrão"></button>
+                <button class="color-swatch theme-blue" onclick="changeChordTheme('theme-blue')" style="background-color: #0284c7;" title="Azul PRO"></button>
+                <button class="color-swatch theme-red" onclick="changeChordTheme('theme-red')" style="background-color: #dc2626;" title="Vermelho Vídeo"></button>
+            </div>
+        </div>
     </div>
   </div>
   
@@ -595,12 +620,18 @@
       }
   };
 
-  // NOVA FUNÇÃO: Troca de Temas das Cifras
-  function changeChordTheme() {
-      const theme = document.getElementById('chord-theme-selector').value;
+  // NOVA FUNÇÃO DO JAVASCRIPT: Troca de Tema pelas Bolinhas
+  function changeChordTheme(theme) {
+      // Tira todas as classes de tema do body
       document.body.classList.remove('theme-orange', 'theme-blue', 'theme-red');
+      // Adiciona a classe nova
       document.body.classList.add(theme);
+      // Salva na memória do celular
       localStorage.setItem('jrCifras_ChordTheme', theme);
+      
+      // Atualiza o contorno visual da bolinha ativa
+      document.querySelectorAll('.color-swatch').forEach(btn => btn.classList.remove('active'));
+      document.querySelector(`.color-swatch.${theme}`).classList.add('active');
   }
 
   function toggleDarkMode() {
@@ -1450,10 +1481,9 @@
   });
 
   window.onload = () => {
-    // Carrega o Tema das Cifras salvo (Laranja padrão)
+    // Inicializa o seletor visual e a cor das cifras
     let savedTheme = localStorage.getItem('jrCifras_ChordTheme') || 'theme-orange';
-    document.getElementById('chord-theme-selector').value = savedTheme;
-    document.body.classList.add(savedTheme);
+    changeChordTheme(savedTheme);
 
     if (!loadFromMemory()) {
         songs.push({ title: 'Nova Música', artist: '', tone: '', capo: '', intro: '', cifra: '', video: '', content: '', transposeSteps: 0 });
