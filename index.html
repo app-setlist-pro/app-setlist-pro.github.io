@@ -49,16 +49,63 @@
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
   }
   
-  .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
-  .btn-group { display: flex; gap: 8px; align-items: center; flex-wrap: wrap;}
+  /* =======================================================
+     NOVO HEADER FLUIDO (LINHA ÚNICA NO PC E CENTRO EXATO)
+     ======================================================= */
+  .header-actions { 
+      display: flex; align-items: center; flex-wrap: wrap; gap: 10px; 
+      margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; 
+  }
   
-  button, .btn-label { padding: 10px 16px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; transition: 0.2s; font-size: 13.33px; text-align: center; }
+  .app-logo-area { display: flex; align-items: center; gap: 8px; user-select: none; height: 38px; }
+  .app-logo-area img { width: 36px; height: 36px; border-radius: 8px; box-shadow: 0 3px 6px rgba(2, 132, 199, 0.2); }
+  .app-logo-area h1 { font-size: 1.4rem; margin: 0; font-family: system-ui, -apple-system, sans-serif; letter-spacing: -0.5px; display: flex; align-items: center; line-height: 1; }
+  .pro-badge { background: #0284c7; color: white; font-size: 0.65rem; font-weight: 900; padding: 3px 6px; border-radius: 6px; margin-left: 6px; letter-spacing: 0.5px; }
+
+  /* Correção Definitiva do Alinhamento Vertical do Texto */
+  .project-name-container {
+      display: flex; align-items: center; background: white; padding: 0 10px; 
+      height: 38px; border-radius: 6px; border: 1px solid #cbd5e1; 
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); box-sizing: border-box; min-width: 160px;
+  }
+  .project-name-container span { font-size: 14px; margin-right: 6px; display: flex; align-items: center; line-height: 1; }
+  .project-name-container input {
+      -webkit-appearance: none; appearance: none; border: none; outline: none; 
+      font-size: 14px; font-weight: bold; color: #0f172a; width: 100%; 
+      background: transparent; margin: 0; padding: 0; height: 100%; display: flex; align-items: center; line-height: normal;
+  }
+
+  button, .btn-label, .theme-selector-container { 
+      height: 38px; display: flex; align-items: center; justify-content: center; 
+      padding: 0 14px; font-weight: bold; border: none; border-radius: 6px; 
+      cursor: pointer; transition: 0.2s; font-size: 13.33px; box-sizing: border-box; margin: 0;
+  }
+  
   .btn-primary { background: #0284c7; color: white; }
   .btn-primary:hover { background: #0369a1; }
   .btn-success { background: #16a34a; color: white; }
   .btn-success:hover { background: #15803d; }
   .btn-danger { background: #dc2626; color: white; padding: 6px 10px; font-size: 12px; }
   .btn-warning { background: #d97706; color: white; }
+
+  .theme-selector-container { border: 1px solid #cbd5e1; background: white; gap: 8px; cursor: default; }
+  .theme-selector-label { font-size: 12px; font-weight: 900; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; }
+  
+  .color-swatch { 
+      width: 22px; height: 22px; border-radius: 50%; border: 2px solid transparent; 
+      cursor: pointer; padding: 0; transition: transform 0.2s; outline: 2px solid transparent; outline-offset: 1px; min-width: 22px;
+  }
+  .color-swatch:hover { transform: scale(1.1); }
+  .color-swatch.active { outline-color: #1e293b; transform: scale(1.1); }
+
+  @media (max-width: 950px) {
+      .header-actions { justify-content: space-between; gap: 12px; }
+      .app-logo-area { flex: 0 0 auto; }
+      .project-name-container { flex: 1; max-width: 220px; justify-content: flex-end; }
+      .header-actions > button, .header-actions > label, .header-actions > .theme-selector-container { flex: 1; min-width: 45%; }
+  }
+
+  /* FIM DO HEADER */
   
   .songs-container { display: flex; gap: 20px; }
   .sidebar-wrapper { width: 320px; display: flex; flex-direction: column; gap: 12px; }
@@ -67,11 +114,6 @@
   
   @media (max-width: 850px) {
     body { padding: 10px; }
-    .header-actions { flex-direction: column; align-items: stretch; gap: 15px; }
-    .header-actions > div { justify-content: space-between; width: 100%; }
-    .btn-group { flex-wrap: wrap; justify-content: stretch; }
-    .btn-group > * { flex: 1; min-width: 45%; }
-    
     .songs-container { flex-direction: column; }
     .sidebar-wrapper { width: 100%; }
     .song-list-sidebar { height: 280px; } 
@@ -101,12 +143,10 @@
   .form-group input, .form-group select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px;}
   
   .transpose-controls { display: flex; align-items: center; gap: 6px; }
-  .btn-transpose { background: #e2e8f0; color: #1e293b; padding: 8px 14px; font-size: 16px; border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer; }
   .transpose-val { font-weight: bold; font-size: 16px; width: 30px; text-align: center; color: #0284c7; }
   
   .text-areas textarea { width: 100%; height: 400px; font-family: monospace; font-size: 14px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 4px; white-space: pre; resize: vertical; }
   
-  /* YT Player CSS */
   #yt-player-container iframe { border-radius: 8px; margin-top: 8px; border: 1px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
   
   .preview-section { margin-top: 30px; width: 100%; overflow: hidden; display: flex; flex-direction: column; align-items: center; }
@@ -114,19 +154,11 @@
   .a4-wrapper { width: 210mm; display: flex; flex-direction: column; align-items: center; gap: 30px; padding-bottom: 40px; position: relative; }
   
   .a4-page {
-    background: white; 
-    width: 210mm !important; 
-    min-width: 210mm !important; 
-    height: 297mm !important; 
-    min-height: 297mm !important; 
-    max-height: 297mm !important; 
-    padding: 20px !important; 
-    box-shadow: 0 10px 20px rgba(0,0,0,0.15); 
-    color: black; position: relative;
-    box-sizing: border-box !important; overflow: hidden !important; 
-    display: flex; flex-direction: column; 
-    flex-shrink: 0 !important; 
-    transition: background-color 0.3s, color 0.3s; margin: 0 auto;
+    background: white; width: 210mm !important; min-width: 210mm !important; 
+    height: 297mm !important; min-height: 297mm !important; max-height: 297mm !important; 
+    padding: 20px !important; box-shadow: 0 10px 20px rgba(0,0,0,0.15); color: black; position: relative;
+    box-sizing: border-box !important; overflow: hidden !important; display: flex; flex-direction: column; 
+    flex-shrink: 0 !important; transition: background-color 0.3s, color 0.3s; margin: 0 auto;
   }
   
   @media screen {
@@ -134,7 +166,6 @@
   }
   
   .a4-content-area { width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
-  
   .doc-title { font-size: 22pt !important; font-weight: 800; text-transform: uppercase; line-height: 1.1; color: #000; word-wrap: break-word; white-space: normal; }
   .meta-left { font-size: 13pt !important; font-weight: 600; color: #475569; }
   
@@ -142,31 +173,12 @@
   .badge.video { background: #dc2626 !important; }
   .badge.cifra { background: #d97706 !important; }
 
-  .doc-body { 
-    flex: 1; min-height: 0; width: 100%; display: block; 
-    padding-bottom: 0; overflow: hidden; 
-  } 
-  .cifra-content { 
-      font-family: 'Roboto Mono', monospace; 
-      font-size: 10pt; line-height: 1.25; 
-      white-space: pre; color: #000000; overflow: visible; 
-      -webkit-text-size-adjust: none; text-size-adjust: none; 
-  }
+  .doc-body { flex: 1; min-height: 0; width: 100%; display: block; padding-bottom: 0; overflow: hidden; } 
+  .cifra-content { font-family: 'Roboto Mono', monospace; font-size: 10pt; line-height: 1.25; white-space: pre; color: #000000; overflow: visible; -webkit-text-size-adjust: none; text-size-adjust: none; }
   hr.divider { border: 0; border-top: 2px solid #000000; margin: 10px 0 20px 0; }
   .split-block { display: flex; width: 100%; gap: 15px; margin-bottom: 2px; }
   .split-col { flex: 1; min-width: 0; }
   .split-col-divider { width: 1px; border-left: 2px solid #000000; margin: 0 15px; flex-shrink: 0; }
-
-  /* =======================================================
-     SELETOR DE CORES (DROPDOWN COMPACTO COM EMOJIS)
-     ======================================================= */
-  .theme-selector-container {
-      display: flex; align-items: center; gap: 8px; background: white; 
-      padding: 0 14px; height: 38px; border: 1px solid #cbd5e1; border-radius: 6px;
-  }
-  .theme-selector-label {
-      font-size: 12px; font-weight: 900; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;
-  }
   
   /* ESTILOS DO MODO ESCURO GERAL */
   .brand-text-setlist { color: #0f172a; font-weight: 800; }
@@ -180,25 +192,19 @@
   .dark-mode hr.divider { border-top-color: #334155; }
   .dark-mode .split-col-divider { border-left-color: #334155; }
   
-  /* MODO ESCURO PARA O SELETOR DE CORES */
+  .dark-mode .project-name-container { background: #1e293b; border-color: #334155; }
+  .dark-mode .project-name-container input { color: #f8fafc; }
   .dark-mode .theme-selector-container { background: #1e293b; border-color: #334155; }
   .dark-mode .theme-selector-label { color: #94a3b8; }
-  .dark-mode #chord-theme-selector { color: #f8fafc; }
-  .dark-mode #chord-theme-selector option { background: #1e293b; color: #f8fafc; }
+  .dark-mode .color-swatch.active { outline-color: #f8fafc; }
 
-  /* =======================================================
-     TEMA DAS CIFRAS (Controlado por classes no <body>)
-     ======================================================= */
-  
-  /* TEMA LARANJA (Padrão) */
+  /* TEMA DAS CIFRAS */
   body.theme-orange .chord { color: #d97706 !important; font-weight: bold !important; }
   body.theme-orange .dark-mode .chord { color: #fbbf24 !important; font-weight: bold !important; }
   
-  /* TEMA AZUL (PRO) */
   body.theme-blue .chord { color: #0284c7 !important; font-weight: bold !important; }
   body.theme-blue .dark-mode .chord { color: #38bdf8 !important; font-weight: bold !important; }
   
-  /* TEMA VERMELHO (VÍDEO) */
   body.theme-red .chord { color: #dc2626 !important; font-weight: bold !important; }
   body.theme-red .dark-mode .chord { color: #f87171 !important; font-weight: bold !important; }
 
@@ -208,9 +214,7 @@
   .doc-footer { position: absolute; bottom: 8px; left: 0; width: 100%; text-align: center; font-size: 7.5pt; color: #94a3b8; font-family: system-ui, sans-serif; font-weight: 600; }
   .dark-mode .doc-footer { color: #64748b !important; }
 
-  /* =======================================================
-     A "MARRETA" DO SAFARI (260mm) E O PDF MODO ESCURO
-     ======================================================= */
+  /* MODO IMPRESSÃO (SAFARI FIX 260mm E MODO ESCURO) */
   @media print {
     @page { size: A4 portrait; margin: 0 !important; padding: 0 !important; }
     html, body { background: white !important; padding: 0 !important; margin: 0 !important; width: 210mm !important; height: auto !important; overflow: visible !important; display: block !important;}
@@ -229,7 +233,6 @@
     .a4-content-area, .doc-body { display: block !important; height: auto !important; max-height: none !important; overflow: visible !important; }
     .doc-header { display: flex !important; }
     
-    /* REGRAS GERAIS DE IMPRESSÃO (CLARO) */
     .cifra-content, .brand-text-setlist { color: #000000 !important; }
     .doc-title { color: #000000 !important; }
     .meta-left, .meta-left .artist { color: #475569 !important; }
@@ -238,7 +241,6 @@
     .capo-text { color: #dc2626 !important; }
     .doc-footer { color: #94a3b8 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 
-    /* REGRAS GERAIS DE IMPRESSÃO (MODO ESCURO) */
     .dark-mode .a4-page { background-color: #121212 !important; color: #e2e8f0 !important; }
     .dark-mode .cifra-content, .dark-mode .brand-text-setlist { color: #e2e8f0 !important; }
     .dark-mode .doc-title { color: #f8fafc !important; }
@@ -248,28 +250,22 @@
     .dark-mode .split-col-divider { border-left-color: #334155 !important; border-left: 2px solid #334155 !important; }
     .dark-mode .doc-footer { color: #64748b !important; }
 
-    /* GARANTIA DE COR DAS CIFRAS NA IMPRESSÃO */
     body.theme-orange .chord { color: #d97706 !important; font-weight: bold !important;}
     body.theme-orange .dark-mode .chord { color: #fbbf24 !important; font-weight: bold !important;}
-    
     body.theme-blue .chord { color: #0284c7 !important; font-weight: bold !important;}
     body.theme-blue .dark-mode .chord { color: #38bdf8 !important; font-weight: bold !important;}
-    
     body.theme-red .chord { color: #dc2626 !important; font-weight: bold !important;}
     body.theme-red .dark-mode .chord { color: #f87171 !important; font-weight: bold !important;}
   }
 
-  /* ESTILOS DOS ALERTAS CUSTOMIZADOS */
   .custom-alert-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5); z-index: 99999; display: flex; justify-content: center; align-items: center;
-      opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 99999; 
+      display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
   }
   .custom-alert-overlay.show { opacity: 1; pointer-events: auto; }
   .custom-alert-box {
-      background: #1e1e1e; color: #f3f4f6; padding: 20px 24px; border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 85%; max-width: 320px;
-      transform: scale(0.95); transition: transform 0.2s ease; display: flex; flex-direction: column; gap: 20px; font-family: system-ui, sans-serif;
+      background: #1e1e1e; color: #f3f4f6; padding: 20px 24px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+      width: 85%; max-width: 320px; transform: scale(0.95); transition: transform 0.2s ease; display: flex; flex-direction: column; gap: 20px; font-family: system-ui, sans-serif;
   }
   .custom-alert-overlay.show .custom-alert-box { transform: scale(1); }
   .custom-alert-content { display: flex; align-items: center; gap: 12px; font-size: 16px; font-weight: 500; line-height: 1.4; }
@@ -283,46 +279,43 @@
 <body class="theme-orange">
 
 <div class="no-print">
+  <!-- FLUXO ÚNICO CONTÍNUO (Sem divs separando esquerda/direita) -->
   <div class="header-actions">
-    <!-- BARRA SUPERIOR: LOGO E NOME LADO A LADO -->
-    <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: nowrap; width: 100%; overflow: hidden;">
         
         <!-- LOGO OFICIAL DO APP -->
-        <div style="display: flex; align-items: center; gap: 8px; user-select: none; flex-shrink: 0;">
-            <img src="logo.png" alt="Setlist Pro Logo" style="width: 36px; height: 36px; border-radius: 8px; box-shadow: 0 3px 6px rgba(2, 132, 199, 0.2);">
-            <h1 style="font-size: 1.4rem; margin: 0; font-family: system-ui, -apple-system, sans-serif; letter-spacing: -0.5px; display: flex; align-items: center;">
+        <div class="app-logo-area">
+            <img src="logo.png" alt="Setlist Pro Logo">
+            <h1>
                 <span class="brand-text-setlist">Setlist</span>
-                <span style="background: #0284c7; color: white; font-size: 0.65rem; font-weight: 900; padding: 3px 6px; border-radius: 6px; margin-left: 6px; letter-spacing: 0.5px;">PRO</span>
+                <span class="pro-badge">PRO</span>
             </h1>
         </div>
         
         <!-- CAMPO DE NOME DO PROJETO -->
-        <div style="display: flex; align-items: center; background: white; padding: 6px 10px; border-radius: 6px; border: 1px solid #cbd5e1; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); flex-shrink: 1; min-width: 110px; max-width: 180px;">
-            <span style="font-size: 14px; margin-right: 6px;">📝</span>
-            <input type="text" id="project-name" value="Meu Repertório" oninput="autoSaveToMemory()" style="border: none; outline: none; font-size: 14px; font-weight: bold; color: #0f172a; width: 100%; background: transparent;" title="Nome do Repertório">
+        <div class="project-name-container">
+            <span>📝</span>
+            <input type="text" id="project-name" value="Meu Repertório" oninput="autoSaveToMemory()" title="Nome do Repertório">
         </div>
-    </div>
-    
-    <div class="btn-group">
+        
+        <!-- BOTÕES -->
         <button class="btn-primary" style="background:#475569;" onclick="novoProjeto()">📄 Novo</button>
-        <label for="file-upload" class="btn-primary btn-label" style="background:#334155; display: flex; align-items: center; justify-content: center; margin: 0;">📂 Abrir</label>
+        <label for="file-upload" class="btn-primary btn-label" style="background:#334155;">📂 Abrir</label>
         <input type="file" id="file-upload" accept=".json,application/json" style="display:none" onchange="loadProject(event)">
         <button class="btn-primary" style="background:#0f766e;" onclick="exportarProjeto()">💾 Exportar</button>
         <button class="btn-success" onclick="triggerPrint()">🖨️ PDF</button>
         
-        <!-- BOTÕES NOVOS: MODO CLARO/ESCURO -->
-        <button class="btn-primary" style="background:#e2e8f0; color: #1e293b; height: 38px; padding: 0 12px;" id="btn-dark-mode" onclick="toggleDarkMode()">Visualização em Modo Claro ☀️</button>
+        <!-- MODO CLARO/ESCURO -->
+        <button class="btn-primary" style="background:#e2e8f0; color: #1e293b;" id="btn-dark-mode" onclick="toggleDarkMode()">Visualização em Modo Claro ☀️</button>
         
-        <!-- SELETOR DE CORES: TEXTO FIXO + DROPDOWN COM EMOJIS -->
+        <!-- SELETOR DE CORES: TEXTO FIXO + BOLINHAS (EMOJIS OCULTOS) -->
         <div class="theme-selector-container">
             <span class="theme-selector-label">Cor da Cifra:</span>
-            <select id="chord-theme-selector" onchange="changeChordTheme()" style="background: transparent; border: none; font-size: 18px; cursor: pointer; outline: none; padding: 0;">
-                <option value="theme-orange">🟠</option>
-                <option value="theme-blue">🔵</option>
-                <option value="theme-red">🔴</option>
-            </select>
+            <div style="display: flex; gap: 6px;">
+                <button class="color-swatch theme-orange active" onclick="changeChordTheme('theme-orange')" style="background-color: #d97706;" title="Laranja Padrão"></button>
+                <button class="color-swatch theme-blue" onclick="changeChordTheme('theme-blue')" style="background-color: #0284c7;" title="Azul PRO"></button>
+                <button class="color-swatch theme-red" onclick="changeChordTheme('theme-red')" style="background-color: #dc2626;" title="Vermelho Vídeo"></button>
+            </div>
         </div>
-    </div>
   </div>
   
   <div class="songs-container">
@@ -365,7 +358,6 @@
           </div>
         </div>
         
-        <!-- CAMPO DE VÍDEO COM PLAYER EMBUTIDO -->
 	    <div class="form-group" style="grid-column: span 2;">
           <label>Link Vídeo (YouTube)</label>
           <input type="text" id="i-video" placeholder="Cole o link do YouTube aqui..." oninput="saveCurrentSong()">
@@ -405,7 +397,6 @@
     </div>
   </div>
   
-  <!-- ASSINATURA DE COPYRIGHT NO APP -->
   <div class="app-footer no-print">
       Copyright &copy; 2026 Setlist Pro. Todos os direitos reservados.
   </div>
@@ -615,15 +606,13 @@
       }
   };
 
-  // FUNÇÃO ATUALIZADA DO JAVASCRIPT: Troca de Tema
-  function changeChordTheme() {
-      const theme = document.getElementById('chord-theme-selector').value;
-      // Tira todas as classes de tema do body
+  function changeChordTheme(theme) {
       document.body.classList.remove('theme-orange', 'theme-blue', 'theme-red');
-      // Adiciona a classe nova
       document.body.classList.add(theme);
-      // Salva na memória do celular
       localStorage.setItem('jrCifras_ChordTheme', theme);
+      
+      document.querySelectorAll('.color-swatch').forEach(btn => btn.classList.remove('active'));
+      document.querySelector(`.color-swatch.${theme}`).classList.add('active');
   }
 
   function toggleDarkMode() {
@@ -1475,8 +1464,7 @@
   window.onload = () => {
     // Inicializa o seletor visual e a cor das cifras
     let savedTheme = localStorage.getItem('jrCifras_ChordTheme') || 'theme-orange';
-    document.getElementById('chord-theme-selector').value = savedTheme;
-    document.body.classList.add(savedTheme);
+    changeChordTheme(savedTheme);
 
     if (!loadFromMemory()) {
         songs.push({ title: 'Nova Música', artist: '', tone: '', capo: '', intro: '', cifra: '', video: '', content: '', transposeSteps: 0 });
