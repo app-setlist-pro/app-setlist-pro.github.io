@@ -154,14 +154,20 @@
   .dark-mode hr.divider { border-top-color: #334155; }
   .dark-mode .split-col-divider { border-left-color: #334155; }
 
+  /* =======================================================
+     CSS DE IMPRESSÃO (LIMPO E BLINDADO PARA IOS E ANDROID)
+     ======================================================= */
   @media print {
     @page { size: A4 portrait; margin: 0 !important; }
-    html, body { background: white !important; padding: 0 !important; margin: 0 !important; width: 100% !important; height: auto !important; overflow: visible !important; display: block !important;}
+    html, body { background: white !important; padding: 0 !important; margin: 0 !important; width: 100% !important; height: auto !important; overflow: visible !important; }
     .no-print, .preview-title { display: none !important; }
-    .preview-section { margin: 0 !important; padding: 0 !important; display: block !important;}
-    .a4-wrapper { gap: 0 !important; display: block !important; padding: 0 !important; margin: 0 !important; width: 100% !important; transform: none !important; zoom: 1 !important; scale: 1 !important; }
+    .preview-section { margin: 0 !important; padding: 0 !important; display: block !important; }
     
-    /* A MÁGICA PARA O IOS AQUI: Matamos o Flexbox e forçamos Block */
+    .a4-wrapper { 
+        gap: 0 !important; display: block !important; padding: 0 !important; margin: 0 !important; 
+        width: 100% !important; transform: none !important; zoom: 1 !important; scale: 1 !important; 
+    }
+    
     .a4-page {
         background: white !important; 
         width: 210mm !important; 
@@ -169,36 +175,47 @@
         max-height: 297mm !important; 
         padding: 7.5mm !important; 
         box-shadow: none !important; 
-        color: black !important; position: relative;
+        color: black !important; 
+        position: relative !important;
         box-sizing: border-box !important; 
-        display: block !important; 
-        margin: 0 !important;
+        overflow: hidden !important; 
+        display: flex !important; /* O SEGREDO RETORNOU: Mantém o Flexbox vivo */
+        flex-direction: column !important; 
+        zoom: 1 !important; 
+        scale: 1 !important;
         page-break-after: always !important;
+        page-break-inside: avoid !important;
         break-after: page !important;
+        break-inside: avoid !important;
+        margin: 0 auto !important;
     }
     .a4-page:last-child { page-break-after: auto !important; break-after: auto !important; }
     
-    .a4-content-area, .doc-body {
-        display: block !important;
-        height: auto !important;
-        max-height: none !important;
-        overflow: visible !important;
+    .a4-content-area {
+        width: 100% !important; height: 100% !important; display: flex !important; 
+        flex-direction: column !important; overflow: hidden !important;
     }
     
-    .dark-mode .a4-page { background-color: #121212 !important; color: #e2e8f0 !important; }
+    .doc-body { 
+        flex: 1 !important; min-height: 0 !important; width: 100% !important; 
+        display: block !important; overflow: hidden !important; 
+    }
+    
+    /* Proteção extrema contra celulares no modo escuro na hora da impressão */
+    .dark-mode .a4-page { background-color: white !important; color: black !important; }
     .cifra-content { color: #000000 !important; }
-    .dark-mode .cifra-content { color: #e2e8f0 !important; }
+    .dark-mode .cifra-content { color: #000000 !important; }
     .chord { color: #d97706 !important; font-weight: bold !important; }
-    .dark-mode .chord { color: #fbbf24 !important; }
+    .dark-mode .chord { color: #d97706 !important; }
     .doc-title { color: #000000 !important; }
-    .dark-mode .doc-title { color: #f8fafc !important; }
+    .dark-mode .doc-title { color: #000000 !important; }
     .meta-left, .meta-left .artist { color: #475569 !important; }
-    .dark-mode .meta-left, .dark-mode .meta-left .artist { color: #94a3b8 !important; }
+    .dark-mode .meta-left, .dark-mode .meta-left .artist { color: #475569 !important; }
     .dark-mode .meta-left .separator { color: #475569 !important; }
     .tone-badge { background: #e0f2fe !important; color: #0369a1 !important; }
-    .dark-mode .tone-badge { background: #1e293b !important; color: #38bdf8 !important; }
-    .dark-mode hr.divider { border-top-color: #334155 !important; }
-    .dark-mode .split-col-divider { border-left-color: #334155 !important; }
+    .dark-mode .tone-badge { background: #e0f2fe !important; color: #0369a1 !important; }
+    .dark-mode hr.divider { border-top-color: #000000 !important; }
+    .dark-mode .split-col-divider { border-left-color: #000000 !important; }
     .badge, .tone-badge, .split-col-divider, .a4-page, .brand-text-cifras { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
     .capo-text { color: #dc2626 !important; }
   }
@@ -548,39 +565,32 @@
       }
   }
 
-  // =========================================================
-  // FIX DEFINITIVO PARA PDF NO IOS/SAFARI E PWAs
-  // =========================================================
-  function triggerPrint() {
-      const wrapper = document.getElementById('a4-wrapper');
+  async function triggerPrint() {
+      const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
       
-      if (wrapper) {
-          // Arranca a escala e o zoom antes da tela de PDF abrir
-          wrapper.style.zoom = '';
-          wrapper.style.transform = 'none';
+      if (isStandalone) {
+          if (navigator.share) {
+              try {
+                  await navigator.share({
+                      title: 'JR Cifras - Repertório',
+                      url: window.location.href
+                  });
+              } catch (err) {
+                  console.log("Menu de compartilhamento fechado pelo usuário.");
+              }
+          } else {
+              const a = document.createElement('a');
+              a.href = window.location.href;
+              a.target = '_blank';
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
+          }
+          return;
       }
       
-      // Um pequeno delay para garantir que o iOS vai "ver" a folha 100% grande
-      setTimeout(() => {
-          window.print();
-          
-          // Re-aplica a escala assim que fechar a janela
-          if (typeof ajustarEscalaA4 === 'function') ajustarEscalaA4();
-      }, 150);
+      window.print();
   }
-
-  // Garantia extra: Se o usuário imprimir pelos menus do celular em vez do botão
-  window.addEventListener('beforeprint', () => {
-      const wrapper = document.getElementById('a4-wrapper');
-      if (wrapper) {
-          wrapper.style.zoom = '';
-          wrapper.style.transform = 'none';
-      }
-  });
-
-  window.addEventListener('afterprint', () => {
-      if (typeof ajustarEscalaA4 === 'function') ajustarEscalaA4();
-  });
 
   function isChord(w) {
       const chordRegex = /^[A-G](#|b)?(m|M|maj|min|dim|aug|sus|add)?\d*(M|m)?\d*(\([^)]+\))?(º|°|\+|-)?(\/[A-G](#|b)?)?$/i;
