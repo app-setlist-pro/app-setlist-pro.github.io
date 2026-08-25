@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+<!-- Trava Exclusiva de PC (Garante que o Mobile fique 100% intocado) -->
+<script>
+    if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        document.documentElement.classList.add('is-desktop');
+    }
+</script>
+
 <!-- Ícone na Aba do Navegador (Favicon) -->
 <link rel="icon" type="image/png" href="https://app-setlist-pro.github.io/logo.png">
 
@@ -194,6 +201,13 @@
   .split-block { display: flex; width: 100%; gap: 15px; margin-bottom: 2px; }
   .split-col { flex: 1; }
   .split-col-divider { width: 1px; border-left: 2px solid #000000; margin: 0 15px; flex-shrink: 0; }
+
+  /* Trava de colunas exclusiva para PC (não afeta Mobile) */
+  html.is-desktop .split-col {
+      flex: 1 1 0 !important;
+      min-width: 0 !important;
+      max-width: 50% !important;
+  }
   
   /* ESTILOS DO MODO ESCURO GERAL */
   .brand-text-setlist { color: #0f172a; font-weight: 800; }
@@ -322,7 +336,7 @@
         <!-- MODO CLARO/ESCURO COM FONTE PADRÃO 14px -->
         <button class="btn-primary header-btn" style="background:#e2e8f0; color: #1e293b;" id="btn-dark-mode" onclick="toggleDarkMode()">Visualização em Modo Claro ☀️</button>
         
-        <!-- SELETOR DE CORES: DROPDOWN COMO VOCÊ DESENHOU NO PAINT -->
+        <!-- SELETOR DE CORES: DROPDOWN COMO VOCÊ DESENHOU NO PAINT (CRAVADO EM 14px E SEM ALL-CAPS) -->
         <div class="theme-selector-container header-btn">
             <span class="theme-selector-label">Cor da Cifra:</span>
             <select id="chord-theme-selector" onchange="changeChordTheme()" style="background: transparent; border: none; font-size: 18px; cursor: pointer; outline: none; padding: 0;">
@@ -1334,6 +1348,9 @@
     autoSaveToMemory()
   }
 
+  /* ==========================================
+     A NOVA INTELIGÊNCIA DE EXTRAÇÃO DE INTRO
+     ========================================== */
   async function fetchCifraClubData() {
       let urlInput = document.getElementById('i-cifra').value.trim();
       const btn = document.getElementById('btn-fetch');
@@ -1495,6 +1512,7 @@
           saveCurrentSong();
       });
 
+      // LÓGICA BLINDADA DE INTRODUÇÃO TAMBÉM NO "COLAR"
       document.getElementById('i-content').addEventListener('paste', function(e) {
           const plain = e.clipboardData.getData('text/plain') || '';
           const html = e.clipboardData.getData('text/html') || '';
