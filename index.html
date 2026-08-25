@@ -1298,6 +1298,9 @@
     autoSaveToMemory()
   }
 
+  /* ==========================================
+     A NOVA INTELIGÊNCIA DE EXTRAÇÃO DE INTRO
+     ========================================== */
   async function fetchCifraClubData() {
       let urlInput = document.getElementById('i-cifra').value.trim();
       const btn = document.getElementById('btn-fetch');
@@ -1336,20 +1339,50 @@
           const preEl = doc.querySelector('pre');
           if (preEl) {
               preEl.querySelectorAll('.sr-only, script, style, [style*="display:none"], [style*="display: none"], .tablature').forEach(el => el.remove());
-              let lines = preEl.textContent.replace(/\r/g, '').split('\n'), newLines = [], inIntroBlock = false, introChords = [];
+              
+              // LÓGICA BLINDADA DE INTRODUÇÃO
+              let lines = preEl.textContent.replace(/\r/g, '').split('\n');
+              let newLines = [];
+              let inIntroBlock = false;
+              let introChords = [];
+              let introHasChords = false;
 
               for (let line of lines) {
                   let upperLine = line.trim().toUpperCase();
+                  
+                  // Achou a marcação de [Intro]
                   if (upperLine.startsWith('[INTRO]') || upperLine === 'INTRO:' || upperLine === 'INTRO') {
                       inIntroBlock = true;
-                      let inlineChords = line.replace(/\[?Intro\]?:?/i, '').trim();
-                      if (inlineChords) introChords.push(inlineChords);
+                      let inlineChords = line.replace(/^\[?Intro\]?:?\s*/i, '').trim();
+                      if (inlineChords) {
+                          introChords.push(inlineChords);
+                          introHasChords = true;
+                      }
                       continue;
                   }
+                  
                   if (inIntroBlock) {
-                      if (line.trim() === '' || line.trim().startsWith('[')) { inIntroBlock = false; newLines.push(line); } 
-                      else introChords.push(line.trim());
-                  } else newLines.push(line);
+                      // Se começar com [ (ex: [Primeira Parte]), a intro acabou!
+                      if (upperLine.startsWith('[')) {
+                          inIntroBlock = false;
+                          newLines.push(line);
+                      } 
+                      // Se for linha vazia, só encerra se já pegou algum acorde antes.
+                      // Senão, ignora o "Enter" que o Cifra Club às vezes dá embaixo do [Intro]
+                      else if (line.trim() === '') {
+                          if (introHasChords) {
+                              inIntroBlock = false;
+                              newLines.push(line);
+                          }
+                      } 
+                      // É acorde da intro!
+                      else {
+                          introChords.push(line.trim());
+                          introHasChords = true;
+                      }
+                  } else {
+                      newLines.push(line);
+                  }
               }
 
               let textoExtraido = newLines.join('\n').trim();
@@ -1358,7 +1391,10 @@
               document.getElementById('i-title').value = titleStr;
               document.getElementById('i-artist').value = artistStr;
               document.getElementById('i-tone').value = tomStr;
+              
+              // Joga a intro certinha pro campo dela
               document.getElementById('i-intro').value = introChords.join(' ').replace(/\s{2,}/g, ' ').trim();
+              
               songs[currentIndex].transposeSteps = 0;
               document.getElementById('i-transpose-val').innerText = '0';
               document.getElementById('i-transpose-val').style.color = '#0284c7';
@@ -1432,6 +1468,7 @@
           saveCurrentSong();
       });
 
+      // LÓGICA BLINDADA DE INTRODUÇÃO TAMBÉM NO "COLAR"
       document.getElementById('i-content').addEventListener('paste', function(e) {
           const plain = e.clipboardData.getData('text/plain') || '';
           const html = e.clipboardData.getData('text/html') || '';
@@ -1446,21 +1483,57 @@
               tempDiv.querySelectorAll('div, p, pre, blockquote').forEach(block => block.appendChild(document.createTextNode('\n')));
               
               let cleanText = (tempDiv.querySelector('pre') ? tempDiv.querySelector('pre').textContent : tempDiv.textContent).replace(/">/g, '').replace(/\u00A0/g, ' ');
-              let lines = cleanText.split(/\r?\n/), cleanedLines = [];
+              
+              let lines = cleanText.split(/\r?\n/);
+              let cleanedLines = [];
+              let inIntroBlock = false;
+              let introChords = [];
+              let introHasChords = false;
               
               for (let line of lines) {
-                  if (line.trim() === '') {
-                      if (cleanedLines.length === 0) continue;
-                      if (isChordLineStr(cleanedLines[cleanedLines.length - 1])) continue; 
-                      if (cleanedLines[cleanedLines.length - 1].trim() === '') continue;
+                  let upperLine = line.trim().toUpperCase();
+                  
+                  if (upperLine.startsWith('[INTRO]') || upperLine === 'INTRO:' || upperLine === 'INTRO') {
+                      inIntroBlock = true;
+                      let inlineChords = line.replace(/^\[?Intro\]?:?\s*/i, '').trim();
+                      if (inlineChords) {
+                          introChords.push(inlineChords);
+                          introHasChords = true;
+                      }
+                      continue;
                   }
-                  cleanedLines.push(line.replace(/\r/g, ''));
+                  
+                  if (inIntroBlock) {
+                      if (upperLine.startsWith('[')) {
+                          inIntroBlock = false;
+                          cleanedLines.push(line);
+                      } else if (line.trim() === '') {
+                          if (introHasChords) {
+                              inIntroBlock = false;
+                              cleanedLines.push(line);
+                          }
+                      } else {
+                          introChords.push(line.trim());
+                          introHasChords = true;
+                      }
+                  } else {
+                      if (line.trim() === '') {
+                          if (cleanedLines.length === 0) continue;
+                          if (isChordLineStr(cleanedLines[cleanedLines.length - 1])) continue; 
+                          if (cleanedLines[cleanedLines.length - 1].trim() === '') continue;
+                      }
+                      cleanedLines.push(line.replace(/\r/g, ''));
+                  }
               }
               while(cleanedLines.length > 0 && cleanedLines[cleanedLines.length - 1].trim() === '') cleanedLines.pop();
               
               let finalText = cleanedLines.join('\n');
-              
               finalText = limparTablaturas(finalText);
+              
+              // Se achou intro na colagem, joga direto pro campo de intro!
+              if (introChords.length > 0) {
+                  document.getElementById('i-intro').value = introChords.join(' ').replace(/\s{2,}/g, ' ').trim();
+              }
               
               const start = this.selectionStart, end = this.selectionEnd;
               this.value = this.value.substring(0, start) + finalText + this.value.substring(end);
