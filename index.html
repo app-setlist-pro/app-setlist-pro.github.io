@@ -1171,13 +1171,12 @@
           clonePage.style.pointerEvents = 'none';
           clonePage.style.zIndex = '-9999';
 
-          // Garante dimensões cravadas para o robô medir no Windows sem bugar
           clonePage.style.setProperty('width', '794px', 'important');
           clonePage.style.setProperty('min-width', '794px', 'important');
           clonePage.style.setProperty('max-width', '794px', 'important');
-          clonePage.style.setProperty('height', '1122px', 'important'); 
-          clonePage.style.setProperty('min-height', '1122px', 'important');
-          clonePage.style.setProperty('max-height', '1122px', 'important');
+          clonePage.style.setProperty('height', '1118px', 'important'); 
+          clonePage.style.setProperty('min-height', '1118px', 'important');
+          clonePage.style.setProperty('max-height', '1118px', 'important');
           clonePage.style.setProperty('padding', '20px', 'important'); 
 
           document.body.appendChild(clonePage);
@@ -1185,17 +1184,19 @@
           const cloneContent = clonePage.querySelector('.cifra-content');
           const cloneHeader = clonePage.querySelector('.doc-header');
 
-          void clonePage.offsetHeight; // Força a renderização do navegador
+          void clonePage.offsetHeight;
 
-          // Matemática determinística (ignora o motor falho de Flexbox do Chrome PC)
+          // MATEMÁTICA CRAVADA (Bypass no motor do Windows/Edge/Chrome)
           let headerH = cloneHeader ? cloneHeader.offsetHeight : 0;
           if (headerH > 0) headerH += 12; // Compensação da margem inferior do header
 
-          let spaceH = 1122 - 40 - headerH; // Altura A4 - Paddings - Cabeçalho
-          let spaceW = 794 - 40; // Largura A4 - Paddings
+          // Altura total (1118px) - Paddings (40px) - Cabeçalho
+          let spaceH = 1118 - 40 - headerH;
+          // Largura total (794px) - Paddings (40px)
+          let spaceW = 794 - 40;
 
-          // Reduz o limite da margem direita APENAS no PC (margem de segurança)
-          let limiteW = isDesktop ? (spaceW - 30) : spaceW;
+          // Trava de segurança da margem direita APENAS para o PC
+          let limiteW = isDesktop ? (spaceW - 35) : spaceW;
 
           if (spaceH > 0 && spaceW > 0) {
               cloneContent.style.lineHeight = '1.2';
