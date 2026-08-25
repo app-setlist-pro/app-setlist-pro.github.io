@@ -293,7 +293,7 @@
   .custom-alert-overlay.show { opacity: 1; pointer-events: auto; }
   .custom-alert-box {
       background: #1e1e1e; color: #f3f4f6; padding: 20px 24px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
-      width: 85%; max-width: 320px; transform: scale(0.95); transition: transform 0.2s ease; display: flex; flex-direction: column; gap: 20px; font-family: system-ui, sans-serif;
+      width: 85%; max-width: 450px; transform: scale(0.95); transition: transform 0.2s ease; display: flex; flex-direction: column; gap: 20px; font-family: system-ui, sans-serif;
   }
   .custom-alert-overlay.show .custom-alert-box { transform: scale(1); }
   .custom-alert-content { display: flex; align-items: center; gap: 12px; font-size: 16px; font-weight: 500; line-height: 1.4; }
@@ -336,7 +336,7 @@
         <!-- MODO CLARO/ESCURO COM FONTE PADRÃO 14px -->
         <button class="btn-primary header-btn" style="background:#e2e8f0; color: #1e293b;" id="btn-dark-mode" onclick="toggleDarkMode()">Visualização em Modo Claro ☀️</button>
         
-        <!-- SELETOR DE CORES: DROPDOWN COMO VOCÊ DESENHOU NO PAINT (CRAVADO EM 14px E SEM ALL-CAPS) -->
+        <!-- SELETOR DE CORES: DROPDOWN COMO VOCÊ DESENHOU NO PAINT -->
         <div class="theme-selector-container header-btn">
             <span class="theme-selector-label">Cor da Cifra:</span>
             <select id="chord-theme-selector" onchange="changeChordTheme()" style="background: transparent; border: none; font-size: 18px; cursor: pointer; outline: none; padding: 0;">
@@ -417,9 +417,12 @@
       
       <div class="text-areas">
         <div class="form-group">
-          <label>Letra e Cifras</label>
-          <div style="font-size: 13px; color: #475569; margin-bottom: 6px; background: #f1f5f9; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;">
-            💡 <b>Colagem Inteligente Mobile:</b> Se o botão "Puxar" for bloqueado pelo site no celular, basta ir ao Cifra Club, copiar a letra toda e colar nesta caixa. Ela será limpa e formatada magicamente!
+          <!-- BOTÃO DE DICAS NOVO E MODERNO -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <label style="margin: 0;">Letra e Cifras</label>
+              <button type="button" onclick="mostrarAjuda()" style="background: transparent; border: none; color: #0284c7; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 0;">
+                  💡 Dicas e Ajuda
+              </button>
           </div>
           <textarea id="i-content" placeholder="Cole a cifra aqui..." oninput="saveCurrentSong()"></textarea>
         </div>
@@ -444,6 +447,47 @@
   let draggedItemIndex = null;
   let isDarkMode = false;
   let isDirty = false; 
+
+  /* FUNÇÃO PARA O NOVO MENU DE AJUDA */
+  window.mostrarAjuda = function() {
+      let existente = document.getElementById('custom-help-modal');
+      if (existente) existente.remove();
+
+      let overlay = document.createElement('div');
+      overlay.id = 'custom-help-modal';
+      overlay.className = 'custom-alert-overlay';
+      
+      overlay.innerHTML = `
+          <div class="custom-alert-box" style="max-width: 450px; text-align: left;">
+              <div style="font-size: 18px; font-weight: bold; margin-bottom: 5px; color: #38bdf8; display: flex; align-items: center; gap: 8px;">
+                  💡 Dicas e Ajuda
+              </div>
+              <div style="font-size: 14px; line-height: 1.5; color: #f8fafc; display: flex; flex-direction: column; gap: 12px;">
+                  <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; border-left: 3px solid #0284c7;">
+                      <b>Colagem Inteligente:</b><br><span style="color: #cbd5e1;">Se o botão "Puxar" for bloqueado pelo site no celular, basta ir ao Cifra Club, copiar a letra toda e colar nesta caixa. Ela será limpa e formatada magicamente!</span>
+                  </div>
+                  <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; border-left: 3px solid #d97706; display: flex; flex-direction: column; gap: 8px;">
+                      <div><b>Importação:</b> <span style="color: #cbd5e1;">Cole o link do Cifra Club acima e clique em "Puxar".</span></div>
+                      <div><b>Transposição:</b> <span style="color: #cbd5e1;">O "Tom" exibido na folha A4 será ajustado automaticamente!</span></div>
+                      <div><b>Separar partes:</b> <span style="color: #cbd5e1;">Digite <b>___</b> (3 underlines) numa linha vazia.</span></div>
+                      <div><b>Criar colunas:</b> <span style="color: #cbd5e1;">Digite <b>|</b> numa linha vazia para dividir Lado Esquerdo e Direito!</span></div>
+                  </div>
+              </div>
+              <button class="custom-alert-btn" style="margin-top: 10px;" onclick="fecharAjuda()">ENTENDI</button>
+          </div>
+      `;
+      
+      document.body.appendChild(overlay);
+      setTimeout(() => overlay.classList.add('show'), 10);
+  };
+
+  window.fecharAjuda = function() {
+      let overlay = document.getElementById('custom-help-modal');
+      if (overlay) {
+          overlay.classList.remove('show');
+          setTimeout(() => overlay.remove(), 200);
+      }
+  };
 
   window.alert = function(mensagem) {
       let existente = document.getElementById('custom-alert');
@@ -1400,6 +1444,7 @@
                   let trimmedLine = line.trim();
                   let upperLine = trimmedLine.toUpperCase();
                   
+                  // A REGRA CORINGA QUE RESOLVE O BUG:
                   let matchIntro = trimmedLine.match(/^[\{\[\(]?INTRO[\}\]\)\.\:-]?\s*(.*)/i);
                   
                   if (matchIntro) {
@@ -1413,15 +1458,20 @@
                   }
                   
                   if (inIntroBlock) {
+                      // Se começar com [ (ex: [Primeira Parte]), a intro acabou!
                       if (upperLine.startsWith('[')) {
                           inIntroBlock = false;
                           newLines.push(line);
-                      } else if (trimmedLine === '') {
+                      } 
+                      // Se for linha vazia, só encerra se já pegou algum acorde antes.
+                      else if (trimmedLine === '') {
                           if (introHasChords) {
                               inIntroBlock = false;
                               newLines.push(line);
                           }
-                      } else {
+                      } 
+                      // É acorde da intro!
+                      else {
                           introChords.push(trimmedLine);
                           introHasChords = true;
                       }
