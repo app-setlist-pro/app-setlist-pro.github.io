@@ -647,6 +647,15 @@
 
   /* FUNÇÃO DE IMPRESSÃO CORRIGIDA E DESBLOQUEADA */
   function triggerPrint() {
+      // Bloqueio de transparência para iOS Standalone (App Instalado na Home)
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+
+      if (isIOS && isStandalone) {
+          alert("A Apple bloqueia a geração de PDF em Apps instalados no iPhone/iPad.<br><br><b>Como resolver:</b><br>1. Clique em <b>Exportar</b> para baixar o arquivo.<br>2. Acesse nosso site no <b>Safari</b>.<br>3. Clique em <b>Abrir</b>, carregue seu arquivo e gere o PDF!");
+          return;
+      }
+
       let pName = document.getElementById('project-name').value.trim();
       if (!pName) pName = "Meu Repertório";
       
@@ -1293,6 +1302,9 @@
     autoSaveToMemory()
   }
 
+  /* ==========================================
+     A NOVA INTELIGÊNCIA DE EXTRAÇÃO DE INTRO
+     ========================================== */
   async function fetchCifraClubData() {
       let urlInput = document.getElementById('i-cifra').value.trim();
       const btn = document.getElementById('btn-fetch');
@@ -1454,6 +1466,7 @@
           saveCurrentSong();
       });
 
+      // LÓGICA BLINDADA DE INTRODUÇÃO TAMBÉM NO "COLAR"
       document.getElementById('i-content').addEventListener('paste', function(e) {
           const plain = e.clipboardData.getData('text/plain') || '';
           const html = e.clipboardData.getData('text/html') || '';
