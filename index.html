@@ -195,8 +195,7 @@
   .badge.video { background: #dc2626 !important; }
   .badge.cifra { background: #d97706 !important; }
 
-  /* Corrigido para display: block garantindo a medição perfeita de altura */
-  .doc-body { flex: 1; min-height: 0; width: 100%; display: block; padding-bottom: 0; overflow: hidden; } 
+  .doc-body { flex: 1; min-height: 0; width: 100%; display: flex; flex-direction: column; padding-bottom: 0; overflow: hidden; } 
   .cifra-content { font-family: 'Roboto Mono', monospace; font-size: 10pt; line-height: 1.2; white-space: pre; color: #000000; overflow: visible; -webkit-text-size-adjust: none; text-size-adjust: none; width: 100%; }
   hr.divider { border: 0; border-top: 2px solid #000000; margin: 10px 0 20px 0; }
   .split-block { display: flex; width: 100%; gap: 15px; margin-bottom: 2px; }
@@ -469,7 +468,8 @@
                       <div><b>Transposição:</b> <span style="color: #cbd5e1;">O "Tom" e as "Cifras" exibidas na página de visualização serão ajustados automaticamente.</span></div>
                       <div><b>Capotraste:</b> <span style="color: #cbd5e1;">O "Tom" e as "Cifras" exibidas na página de visualização serão ajustados automaticamente.</span></div>
                       <div><b>Separar partes:</b> <span style="color: #cbd5e1;">Digite <b>---</b> (3 traços) numa linha vazia, e crie uma separação entre as partes da música.</span></div>
-                      <div><b>Criar colunas:</b> <span style="color: #cbd5e1;">Digite <b>|</b> numa linha vazia para dividir Lado Esquerdo e Direito!</span></div>
+                      <div><b>Criar colunas:</b> <span style="color: #cbd5e1;">Digite <b>|</b> (barra vertical) numa linha vazia para dividir Lado Esquerdo e Direito!</span></div>
+                      <div><b>Deixar o texto Negrito:</b> <span style="color: #cbd5e1;">Digite <b>[b]</b> acima da linha de início do trecho que você quer deixar negrito e depois digite <b>[/b]</b> abaixo da linha no fim do trecho que deseja deixar em destaque.</span></div>
                   </div>
                   <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; border-left: 3px solid #0284c7;">
                       <b>Colagem Inteligente:</b><br><span style="color: #cbd5e1;">Se o botão "Puxar" for bloqueado pelo site no celular, basta ir ao Cifra Club, copiar a letra toda e colar nesta caixa. Ela será limpa e formatada magicamente!</span>
@@ -1151,7 +1151,6 @@
   /* ALGORITMO DE AJUSTE AUTOMÁTICO DE TEXTO COM A FONTE MAXIMIZADA */
   function autoFitText() {
       const pages = document.querySelectorAll('.a4-page');
-      const isDesktop = document.documentElement.classList.contains('is-desktop');
       
       pages.forEach(page => {
           const realContent = page.querySelector('.cifra-content');
@@ -1171,32 +1170,29 @@
           clonePage.style.pointerEvents = 'none';
           clonePage.style.zIndex = '-9999';
 
-          clonePage.style.setProperty('width', '794px', 'important');
-          clonePage.style.setProperty('min-width', '794px', 'important');
-          clonePage.style.setProperty('max-width', '794px', 'important');
-          clonePage.style.setProperty('height', '1118px', 'important'); 
-          clonePage.style.setProperty('min-height', '1118px', 'important');
-          clonePage.style.setProperty('max-height', '1118px', 'important');
+          clonePage.style.setProperty('width', '210mm', 'important');
+          clonePage.style.setProperty('min-width', '210mm', 'important');
+          clonePage.style.setProperty('max-width', '210mm', 'important');
+          clonePage.style.setProperty('height', '296mm', 'important'); 
+          clonePage.style.setProperty('min-height', '296mm', 'important');
+          clonePage.style.setProperty('max-height', '296mm', 'important');
           clonePage.style.setProperty('padding', '20px', 'important'); 
 
           document.body.appendChild(clonePage);
 
+          const cloneBody = clonePage.querySelector('.doc-body');
           const cloneContent = clonePage.querySelector('.cifra-content');
-          const cloneHeader = clonePage.querySelector('.doc-header');
+
+          cloneBody.style.flex = '1';
+          cloneBody.style.display = 'flex';
+          cloneBody.style.flexDirection = 'column';
+          cloneBody.style.overflow = 'hidden';
+          cloneContent.style.flex = 'none'; 
 
           void clonePage.offsetHeight;
 
-          // MATEMÁTICA CRAVADA (Bypass no motor do Windows/Edge/Chrome)
-          let headerH = cloneHeader ? cloneHeader.offsetHeight : 0;
-          if (headerH > 0) headerH += 12; // Compensação da margem inferior do header
-
-          // Altura total (1118px) - Paddings (40px) - Cabeçalho
-          let spaceH = 1118 - 40 - headerH;
-          // Largura total (794px) - Paddings (40px)
-          let spaceW = 794 - 40;
-
-          // Trava de segurança da margem direita APENAS para o PC
-          let limiteW = isDesktop ? (spaceW - 35) : spaceW;
+          let spaceH = cloneBody.clientHeight;
+          let spaceW = cloneBody.clientWidth;
 
           if (spaceH > 0 && spaceW > 0) {
               cloneContent.style.lineHeight = '1.2';
@@ -1208,7 +1204,7 @@
 
                   void cloneContent.offsetHeight;
 
-                  if (cloneContent.scrollHeight > spaceH || cloneContent.scrollWidth > limiteW) {
+                  if (cloneContent.scrollHeight > spaceH || cloneContent.scrollWidth > spaceW) {
                       maxF = mid;
                   } else {
                       bestF = mid;
@@ -1216,7 +1212,7 @@
                   }
               }
 
-              let bestFontSize = Math.max(5.0, bestF - 0.2);
+              let bestFontSize = Math.max(5.0, bestF - 0.3);
               realContent.style.fontSize = bestFontSize + 'pt';
               realContent.style.lineHeight = '1.2';
           }
@@ -1450,7 +1446,6 @@
                   let trimmedLine = line.trim();
                   let upperLine = trimmedLine.toUpperCase();
                   
-                  // A REGRA CORINGA QUE RESOLVE O BUG:
                   let matchIntro = trimmedLine.match(/^[\{\[\(]?INTRO[\}\]\)\.\:-]?\s*(.*)/i);
                   
                   if (matchIntro) {
@@ -1464,20 +1459,15 @@
                   }
                   
                   if (inIntroBlock) {
-                      // Se começar com [ (ex: [Primeira Parte]), a intro acabou!
                       if (upperLine.startsWith('[')) {
                           inIntroBlock = false;
                           newLines.push(line);
-                      } 
-                      // Se for linha vazia, só encerra se já pegou algum acorde antes.
-                      else if (trimmedLine === '') {
+                      } else if (trimmedLine === '') {
                           if (introHasChords) {
                               inIntroBlock = false;
                               newLines.push(line);
                           }
-                      } 
-                      // É acorde da intro!
-                      else {
+                      } else {
                           introChords.push(trimmedLine);
                           introHasChords = true;
                       }
