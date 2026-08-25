@@ -448,7 +448,7 @@
   let isDarkMode = false;
   let isDirty = false; 
 
-  /* FUNÇÃO PARA O NOVO MENU DE AJUDA */
+  /* FUNÇÃO PARA O NOVO MENU DE AJUDA COM REORDENAÇÃO E TEXTOS AJUSTADOS */
   window.mostrarAjuda = function() {
       let existente = document.getElementById('custom-help-modal');
       if (existente) existente.remove();
@@ -463,14 +463,15 @@
                   💡 Dicas e Ajuda
               </div>
               <div style="font-size: 14px; line-height: 1.5; color: #f8fafc; display: flex; flex-direction: column; gap: 12px;">
-                  <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; border-left: 3px solid #0284c7;">
-                      <b>Colagem Inteligente:</b><br><span style="color: #cbd5e1;">Se o botão "Puxar" for bloqueado pelo site no celular, basta ir ao Cifra Club, copiar a letra toda e colar nesta caixa. Ela será limpa e formatada magicamente!</span>
-                  </div>
                   <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; border-left: 3px solid #d97706; display: flex; flex-direction: column; gap: 8px;">
                       <div><b>Importação:</b> <span style="color: #cbd5e1;">Cole o link do Cifra Club acima e clique em "Puxar".</span></div>
-                      <div><b>Transposição:</b> <span style="color: #cbd5e1;">O "Tom" exibido na folha A4 será ajustado automaticamente!</span></div>
-                      <div><b>Separar partes:</b> <span style="color: #cbd5e1;">Digite <b>___</b> (3 underlines) numa linha vazia.</span></div>
+                      <div><b>Transposição:</b> <span style="color: #cbd5e1;">O "Tom" e as "Cifras" exibidas na página de visualização serão ajustados automaticamente.</span></div>
+                      <div><b>Capotraste:</b> <span style="color: #cbd5e1;">O "Tom" e as "Cifras" exibidas na página de visualização serão ajustados automaticamente.</span></div>
+                      <div><b>Separar partes:</b> <span style="color: #cbd5e1;">Digite <b>---</b> (3 traços) numa linha vazia, e crie uma separação entre as partes da música.</span></div>
                       <div><b>Criar colunas:</b> <span style="color: #cbd5e1;">Digite <b>|</b> numa linha vazia para dividir Lado Esquerdo e Direito!</span></div>
+                  </div>
+                  <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; border-left: 3px solid #0284c7;">
+                      <b>Colagem Inteligente:</b><br><span style="color: #cbd5e1;">Se o botão "Puxar" for bloqueado pelo site no celular, basta ir ao Cifra Club, copiar a letra toda e colar nesta caixa. Ela será limpa e formatada magicamente!</span>
                   </div>
               </div>
               <button class="custom-alert-btn" style="margin-top: 10px;" onclick="fecharAjuda()">ENTENDI</button>
@@ -1444,7 +1445,6 @@
                   let trimmedLine = line.trim();
                   let upperLine = trimmedLine.toUpperCase();
                   
-                  // A REGRA CORINGA QUE RESOLVE O BUG:
                   let matchIntro = trimmedLine.match(/^[\{\[\(]?INTRO[\}\]\)\.\:-]?\s*(.*)/i);
                   
                   if (matchIntro) {
@@ -1458,20 +1458,15 @@
                   }
                   
                   if (inIntroBlock) {
-                      // Se começar com [ (ex: [Primeira Parte]), a intro acabou!
                       if (upperLine.startsWith('[')) {
                           inIntroBlock = false;
                           newLines.push(line);
-                      } 
-                      // Se for linha vazia, só encerra se já pegou algum acorde antes.
-                      else if (trimmedLine === '') {
+                      } else if (trimmedLine === '') {
                           if (introHasChords) {
                               inIntroBlock = false;
                               newLines.push(line);
                           }
-                      } 
-                      // É acorde da intro!
-                      else {
+                      } else {
                           introChords.push(trimmedLine);
                           introHasChords = true;
                       }
