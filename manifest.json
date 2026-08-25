@@ -1,15 +1,21 @@
 {
   "name": "Setlist Pro",
-  "short_name": "Setlist Pro",
-  "start_url": "https://app-setlist-pro.github.io/index.html",
+  "short_name": "Setlist",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f8fafc",
   "theme_color": "#0f172a",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "https://app-setlist-pro.github.io/logo.png",
-      "sizes": "any 192x192 512x512",
+      "src": "logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo.png",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     }
