@@ -1828,6 +1828,9 @@ document.addEventListener('DOMContentLoaded', () => {
     stageContent.addEventListener('mousedown', (e) => {
         if (e.target.closest('a') || e.target.closest('button')) return;
         
+        // MÁGICA: Previne o comportamento padrão que seleciona o texto
+        e.preventDefault(); 
+        
         isStageDragging = true;
         window.stageHasDragged = false;
         stageContent.style.cursor = 'grabbing';
@@ -1842,17 +1845,17 @@ document.addEventListener('DOMContentLoaded', () => {
     stageContent.addEventListener('mousemove', (e) => {
         if (!isStageDragging) return;
         
+        e.preventDefault(); // Reforço contra seleção de texto
+        
         const x = e.pageX - stageContent.offsetLeft;
         const y = e.pageY - stageContent.offsetTop;
         
-        // Se o mouse mover mais de 5 pixels, o sistema entende que é um arrasto e não um clique
         if (Math.abs(x - stageStartX) > 5 || Math.abs(y - stageStartY) > 5) {
             window.stageHasDragged = true;
         }
         
         if (window.stageHasDragged) {
-            e.preventDefault();
-            const walkX = (x - stageStartX) * 1.5; // Multiplicador de velocidade do arrasto
+            const walkX = (x - stageStartX) * 1.5; 
             const walkY = (y - stageStartY) * 1.5;
             stageContent.scrollLeft = stageScrollLeft - walkX;
             stageContent.scrollTop = stageScrollTop - walkY;
@@ -1860,36 +1863,37 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Solta o clique
-    stageContent.addEventListener('mouseup', () => {
+    const stopDragging = () => {
         isStageDragging = false;
         stageContent.style.cursor = 'pointer';
-    });
-
-    stageContent.addEventListener('mouseleave', () => {
-        isStageDragging = false;
-        stageContent.style.cursor = 'pointer';
-    });
+    };
+    
+    stageContent.addEventListener('mouseup', stopDragging);
+    stageContent.addEventListener('mouseleave', stopDragging);
 
     // Zoom com a roda do mouse (Scroll Wheel)
     stageContent.addEventListener('wheel', (e) => {
-        // Executa apenas se estiver no PC (trava nativa do início do código)
         if (!document.documentElement.classList.contains('is-desktop')) return; 
         
-        e.preventDefault(); // Impede que a tela role de forma vertical comum
+        // Bloqueia a rolagem padrão da página para aplicar o zoom
+        e.preventDefault(); 
         
         const pagina = document.querySelector('#stage-a4-container .a4-page');
         if (!pagina) return;
         
         let currentZoom = parseFloat(pagina.style.zoom) || 1;
-        const zoomSpeed = 0.08; // Sensibilidade da roda do mouse
         
-        if (e.deltaY < 0) {
-            currentZoom += zoomSpeed; // Gira para cima: Zoom In
+        // Pega apenas a direção da roda para um passo de zoom consistente
+        const zoomDirection = Math.sign(e.deltaY);
+        const zoomSpeed = 0.1; 
+        
+        if (zoomDirection < 0) {
+            currentZoom += zoomSpeed; // Zoom In
         } else {
-            currentZoom -= zoomSpeed; // Gira para baixo: Zoom Out
+            currentZoom -= zoomSpeed; // Zoom Out
         }
         
-        // Trava o zoom mínimo e máximo para não bugar a tela
+        // Limites de zoom
         if (currentZoom < 0.3) currentZoom = 0.3;
         if (currentZoom > 4.0) currentZoom = 4.0;
         
@@ -1994,12 +1998,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /* CONTEÚDO PRINCIPAL E MÁSCARA DE CLIQUE PARA IOS */
 .stage-content {
-    flex: 1; height: 100%; overflow-y: auto; display: flex; justify-content: center;
+    flex: 1; height: 100%; 
+    overflow: auto; /* Permite movimentar a folha em todos os eixos */
+    display: block; text-align: center; /* Centraliza sem travar as bordas da tela */
     padding: 20px; cursor: pointer; transition: padding 0.3s ease;
     -webkit-tap-highlight-color: transparent; 
 }
 .stage-content * { cursor: pointer; } 
-#stage-a4-container { transform-origin: top center; display: flex; justify-content: center; width: 100%; transition: all 0.3s ease;}
+#stage-a4-container { 
+    display: inline-flex; justify-content: center; text-align: left; 
+    margin: 0 auto; transition: all 0.3s ease; transform-origin: top center;
+}
 
 /* =======================================
    O EFEITO DE TELA CHEIA (MODO LEITURA)
