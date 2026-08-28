@@ -1698,19 +1698,38 @@ function renderizarListaPalco() {
 
 function selecionarMusicaPalco(index) {
     currentIndex = index;
-    renderizarListaPalco(); // Atualiza a cor de ativo na lista
     
-    // Pega a página A4 já formatada do renderizador invisível
+    // Atualiza a cor de seleção sem precisar recriar a lista do zero
+    const items = document.querySelectorAll('.stage-song-item');
+    items.forEach((item, i) => {
+        if (i === index) item.classList.add('active');
+        else item.classList.remove('active');
+    });
+    
     const a4Wrapper = document.getElementById('a4-wrapper');
     const paginasA4 = a4Wrapper.querySelectorAll('.a4-page');
     
     if (paginasA4[index]) {
         const containerPalco = document.getElementById('stage-a4-container');
-        containerPalco.innerHTML = ''; // Limpa a anterior
+        containerPalco.innerHTML = ''; 
         
-        // Clona a página exata
         const paginaClonada = paginasA4[index].cloneNode(true);
         paginaClonada.classList.remove('hidden-preview');
+        
+        // Remove zooms residuais para que o CSS do modo leitura funcione perfeitamente
+        paginaClonada.style.removeProperty('zoom');
+        paginaClonada.style.removeProperty('transform');
+        
+        // CORREÇÃO PARA O IOS: Transforma a folha inteira em uma área clicável
+        paginaClonada.style.cursor = 'pointer';
+        paginaClonada.onclick = function(e) {
+            // Se você clicar exatamente no link de Vídeo ou Cifra, ele não fecha a tela, apenas abre o link
+            if (e.target.closest('a')) return;
+            
+            // Impede que o iOS confunda os toques e ativa a tela cheia
+            e.stopPropagation(); 
+            toggleStageSidebar();
+        };
         
         containerPalco.appendChild(paginaClonada);
     }
