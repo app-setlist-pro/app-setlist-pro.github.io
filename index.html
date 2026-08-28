@@ -1732,7 +1732,9 @@ function selecionarMusicaPalco(index) {
 </div>
 
 <style>
-/* ESTILOS DO MODO PALCO */
+/* ==========================================
+   ESTILOS DO MODO PALCO (DEFINITIVO)
+   ========================================== */
 .stage-overlay {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
     background: #e2e8f0; z-index: 999999; display: flex; flex-direction: row;
@@ -1743,18 +1745,22 @@ function selecionarMusicaPalco(index) {
 .dark-mode .stage-overlay { background: #0f172a; }
 
 .stage-close-btn {
-    position: fixed; top: 15px; right: 20px; z-index: 1000000;
+    position: absolute; top: 15px; right: 20px; z-index: 1000000;
     background: #dc2626; color: white; border: none; padding: 10px 20px;
     border-radius: 8px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-    transition: opacity 0.3s ease;
+    transition: all 0.3s ease;
 }
 
+/* BARRA LATERAL (SEMPRE FLUTUANTE POR CIMA DA PÁGINA) */
 .stage-sidebar {
-    width: 320px; max-width: 85%; background: #f8fafc; border-right: 1px solid #cbd5e1;
-    display: flex; flex-direction: column; transition: all 0.3s ease;
-    box-shadow: 2px 0 10px rgba(0,0,0,0.1); z-index: 999998;
+    position: absolute; left: 0; top: 0; height: 100%;
+    width: 340px; max-width: 85%; background: #f8fafc; border-right: 1px solid #cbd5e1;
+    display: flex; flex-direction: column; 
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 4px 0 15px rgba(0,0,0,0.2); z-index: 999998;
+    transform: translateX(0); /* Gaveta visível por padrão */
 }
-.dark-mode .stage-sidebar { background: #1e293b; border-color: #334155; }
+.dark-mode .stage-sidebar { background: #1e293b; border-color: #334155; box-shadow: 4px 0 15px rgba(0,0,0,0.5); }
 
 .stage-sidebar-header {
     padding: 15px; font-size: 18px; font-weight: bold; text-align: center;
@@ -1771,34 +1777,41 @@ function selecionarMusicaPalco(index) {
 .stage-song-item.active { border-left: 5px solid #0284c7; background: #e0f2fe; color: #0369a1; }
 .dark-mode .stage-song-item.active { background: #0f172a; color: #38bdf8; }
 
+/* CONTEÚDO PRINCIPAL (ONDE FICA A CIFRA) */
 .stage-content {
-    flex: 1; overflow-y: auto; display: flex; justify-content: center;
-    padding: 30px 20px; cursor: pointer; transition: padding 0.3s ease;
+    flex: 1; width: 100%; height: 100%; overflow-y: auto; display: flex; justify-content: center;
+    padding: 20px; cursor: pointer; transition: all 0.3s ease;
+    -webkit-tap-highlight-color: transparent; /* Tira o piscar azul ao tocar na tela no tablet/celular */
 }
-#stage-a4-container { transform-origin: top center; display: flex; justify-content: center; width: 100%; }
+#stage-a4-container { transform-origin: top center; display: flex; justify-content: center; width: 100%; transition: all 0.3s ease;}
 
 /* =======================================
-   COMPORTAMENTO DO MODO LEITURA (100% TELA)
+   ESTADOS DO MODO LEITURA (A MÁGICA DA TELA CHEIA)
    ======================================= */
+
+/* 1. Esconde a barra lateral jogando ela para fora da tela (agora sim funciona no iOS) */
 .stage-overlay.reading-mode .stage-sidebar {
-    margin-left: -320px; /* Desliza a barra para fora da tela */
+    transform: translateX(-105%); 
+    box-shadow: none;
 }
+/* 2. Remove as bordas cinzas do fundo para a página colar nas laterais */
 .stage-overlay.reading-mode .stage-content {
-    padding: 0 !important; /* Remove as margens do fundo cinza */
+    padding: 0 !important;
 }
+/* 3. Esconde o botão de fechar para imersão total */
 .stage-overlay.reading-mode .stage-close-btn {
-    opacity: 0; pointer-events: none; /* Esconde o botão vermelho */
+    opacity: 0; pointer-events: none; transform: translateY(-20px);
 }
+/* 4. Força a folha A4 a ignorar os limites e ocupar 100% da tela do aparelho */
 .stage-overlay.reading-mode #stage-a4-container .a4-page {
-    width: 100% !important; min-width: 100% !important; max-width: 100% !important;
+    width: 100vw !important; min-width: 100vw !important; max-width: 100vw !important;
     min-height: 100vh !important; height: auto !important; max-height: none !important;
     margin: 0 !important; border-radius: 0 !important; box-shadow: none !important;
-    zoom: 1 !important; /* Preenche a tela de ponta a ponta */
+    zoom: 1 !important; transform: none !important;
 }
 
-/* COMPORTAMENTO MOBILE */
+/* AJUSTE PARA O MODO NORMAL NO CELULAR/TABLET */
 @media (max-width: 850px) {
-    .stage-sidebar { position: absolute; left: 0; top: 0; height: 100%; }
     .stage-content { padding: 15px 5px; }
     #stage-a4-container .a4-page { zoom: 0.9; }
 }
