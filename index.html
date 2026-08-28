@@ -105,7 +105,12 @@
   .btn-danger { background: #dc2626; color: white; padding: 6px 10px; font-size: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;}
 
   /* Seletor de Cores (Dropdown Nativo) */
-  .theme-selector-container { border: 1px solid #cbd5e1; background: white; gap: 8px; cursor: pointer; flex-wrap: wrap;}
+  .theme-selector-container { 
+      border: 1px solid #cbd5e1; background: white; gap: 8px; cursor: pointer; 
+      flex-wrap: nowrap; /* Impede que o botão infle no celular */
+      height: 38px; /* Trava na mesma altura exata dos outros botões */
+      padding: 0 12px; /* Zera o espaçamento vertical interno */
+  }
   .theme-selector-label { font-size: 14px; font-weight: 900; color: #475569; }
 
   /* 💻 LAYOUT PARA PC (Linha única contínua) */
@@ -358,12 +363,13 @@
       <div style="display: flex; flex-direction: column; gap: 8px;">
           
           <div style="display: flex; gap: 8px;">
+              <button class="btn-primary" style="flex: 1; padding: 10px; font-size: 14px;" onclick="addNewSong()">➕ Nova</button>
+              
               <select id="i-sort" onchange="sortSongs()" style="flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; background: white; cursor: pointer;">
                   <option value="manual">↕️ Ordenar</option>
                   <option value="az-title">A-Z (Música)</option>
                   <option value="az-artist">A-Z (Artista)</option>
               </select>
-              <button class="btn-primary" style="flex: 1; padding: 10px; font-size: 14px;" onclick="addNewSong()">➕ Nova</button>
           </div>
 
           <input type="text" id="i-search" placeholder="🔍 Buscar música..." oninput="filterSongs()" style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; width: 100%;">
