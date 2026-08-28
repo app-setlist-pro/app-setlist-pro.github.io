@@ -1258,7 +1258,10 @@
       }
   }
 
-  window.addEventListener('resize', ajustarEscalaA4);
+  window.addEventListener('resize', () => {
+    ajustarEscalaA4();
+    if (typeof ajustarEscalaPalco === 'function') ajustarEscalaPalco();
+});
 
   function renderPreview() {
     const wrapper = document.getElementById('a4-wrapper');
@@ -1711,14 +1714,6 @@ function filtrarMusicasPalco() {
     });
 }
 
-function toggleStageSidebar(event) {
-    // Evita conflito se você clicar nos botões de Vídeo ou Cifra no cabeçalho da música
-    if (event && event.target && event.target.closest('a')) return;
-    
-    const overlay = document.getElementById('stage-mode-overlay');
-    overlay.classList.toggle('reading-mode'); 
-}
-
 function renderizarListaPalco() {
     const list = document.getElementById('stage-song-list');
     list.innerHTML = '';
@@ -1737,6 +1732,16 @@ function renderizarListaPalco() {
         };
         list.appendChild(div);
     });
+}
+
+function toggleStageSidebar(event) {
+    if (event && event.target && event.target.closest('a')) return;
+    
+    const overlay = document.getElementById('stage-mode-overlay');
+    overlay.classList.toggle('reading-mode'); 
+    
+    // Aguarda a animação do CSS terminar (300ms) e recalcula a escala da folha
+    setTimeout(ajustarEscalaPalco, 310);
 }
 
 function selecionarMusicaPalco(index) {
@@ -1758,12 +1763,29 @@ function selecionarMusicaPalco(index) {
         const paginaClonada = paginasA4[index].cloneNode(true);
         paginaClonada.classList.remove('hidden-preview');
         
-        // Remove configurações residuais de zoom para que o CSS mande no tamanho da tela
-        paginaClonada.style.removeProperty('zoom');
-        paginaClonada.style.removeProperty('transform');
+        // Removemos o reset de zoom que quebrava o layout
         
         containerPalco.appendChild(paginaClonada);
+        
+        // Aplica a escala instantaneamente
+        setTimeout(ajustarEscalaPalco, 10);
     }
+}
+
+// NOVA FUNÇÃO: Calcula a escala perfeita da folha para qualquer celular ou PC
+function ajustarEscalaPalco() {
+    const palcoContent = document.getElementById('stage-content');
+    const pagina = document.querySelector('#stage-a4-container .a4-page');
+    if (!palcoContent || !pagina) return;
+
+    const larguraA4 = 794; 
+    
+    // Calcula o espaço real livre na tela, subtraindo as margens
+    const padding = parseFloat(window.getComputedStyle(palcoContent).paddingLeft) + parseFloat(window.getComputedStyle(palcoContent).paddingRight);
+    const espacoDisponivel = palcoContent.clientWidth - padding;
+
+    // Aplica a proporção
+    pagina.style.zoom = espacoDisponivel / larguraA4;
 }
 
 </script>
@@ -1882,10 +1904,11 @@ function selecionarMusicaPalco(index) {
 .stage-overlay.reading-mode .stage-close-btn { opacity: 0; pointer-events: none; transform: translateY(-20px); }
 
 .stage-overlay.reading-mode #stage-a4-container .a4-page {
-    width: 100% !important; min-width: 100% !important; max-width: 100% !important;
-    min-height: 100vh !important; height: auto !important; max-height: none !important;
-    margin: 0 !important; border-radius: 0 !important; box-shadow: none !important;
-    zoom: 1 !important; transform: none !important;
+    margin: 0 auto !important; 
+    border-radius: 0 !important; 
+    box-shadow: none !important; 
+    border: none !important;
+    /* Removidas as travas de largura, altura e zoom para o JavaScript controlar a escala */
 }
 
 /* COMPORTAMENTO PARA CELULARES E IPAD EM PÉ */
