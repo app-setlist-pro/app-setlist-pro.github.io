@@ -1782,14 +1782,26 @@ function selecionarMusicaPalco(index) {
 .stage-song-item.active { border-left: 5px solid #0284c7; background: #e0f2fe; color: #0369a1; }
 .dark-mode .stage-song-item.active { background: #0f172a; color: #38bdf8; }
 
-/* CONTEÚDO PRINCIPAL E MÁSCARA DE CLIQUE PARA IOS */
+/* CONTEÚDO PRINCIPAL E SAFE AREA DO IOS */
 .stage-content {
     flex: 1; height: 100%; overflow-y: auto; display: flex; justify-content: center;
-    padding: 20px; cursor: pointer; transition: padding 0.3s ease;
+    padding: 20px; 
+    padding-top: max(20px, env(safe-area-inset-top)); /* Evita o sombreado da barra do sistema */
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+    cursor: pointer; transition: all 0.3s ease;
     -webkit-tap-highlight-color: transparent; 
 }
 .stage-content * { cursor: pointer; } 
 #stage-a4-container { transform-origin: top center; display: flex; justify-content: center; width: 100%; transition: all 0.3s ease;}
+
+/* Remove o sombreado forte da folha que vaza para o topo */
+#stage-a4-container .a4-page {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important; /* Sombra levíssima */
+    border: 1px solid #cbd5e1 !important;
+}
+.dark-mode #stage-a4-container .a4-page {
+    border-color: #334155 !important; box-shadow: none !important;
+}
 
 /* =======================================
    O EFEITO DE TELA CHEIA (MODO LEITURA)
@@ -1799,6 +1811,12 @@ function selecionarMusicaPalco(index) {
 }
 .stage-overlay.reading-mode .stage-content {
     padding: 0 !important;
+    padding-top: env(safe-area-inset-top) !important;
+    padding-bottom: env(safe-area-inset-bottom) !important;
+    background: white; /* Mescla com a folha e remove blocos cinzas */
+}
+.dark-mode .stage-overlay.reading-mode .stage-content {
+    background: #121212;
 }
 .stage-overlay.reading-mode .stage-close-btn {
     opacity: 0; pointer-events: none; transform: translateY(-20px);
@@ -1806,7 +1824,8 @@ function selecionarMusicaPalco(index) {
 .stage-overlay.reading-mode #stage-a4-container .a4-page {
     width: 100% !important; min-width: 100% !important; max-width: 100% !important;
     min-height: 100vh !important; height: auto !important; max-height: none !important;
-    margin: 0 !important; border-radius: 0 !important; box-shadow: none !important;
+    margin: 0 !important; border-radius: 0 !important;
+    box-shadow: none !important; border: none !important; /* Zera qualquer sombra */
     zoom: 1 !important; transform: none !important;
 }
 
@@ -1820,7 +1839,7 @@ function selecionarMusicaPalco(index) {
     .stage-overlay.reading-mode .stage-sidebar {
         transform: translateX(-100%);
     }
-    .stage-content { padding: 15px 5px; }
+    .stage-content { padding: 15px 5px; padding-top: max(15px, env(safe-area-inset-top)); }
     #stage-a4-container .a4-page { zoom: 0.9; }
 }
 
