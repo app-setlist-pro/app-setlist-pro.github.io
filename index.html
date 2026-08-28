@@ -1651,14 +1651,12 @@
    LÓGICA DO MODO PALCO (SEGUNDA TELA)
    ========================================== */
 function abrirModoPalco() {
-    renderPreview(); // Garante que as cifras estão atualizadas
+    renderPreview(); 
     const overlay = document.getElementById('stage-mode-overlay');
     overlay.classList.add('show');
     
-    // Abre a gaveta automaticamente se for mobile ao iniciar
-    if (window.innerWidth <= 850) {
-        document.getElementById('stage-sidebar').classList.add('open');
-    }
+    // Sempre inicia com a barra lateral à mostra
+    overlay.classList.remove('reading-mode'); 
     
     renderizarListaPalco();
     selecionarMusicaPalco(currentIndex);
@@ -1668,11 +1666,12 @@ function fecharModoPalco() {
     document.getElementById('stage-mode-overlay').classList.remove('show');
 }
 
-function toggleStageSidebar() {
-    if (window.innerWidth <= 850) {
-        const sidebar = document.getElementById('stage-sidebar');
-        sidebar.classList.toggle('open');
-    }
+function toggleStageSidebar(event) {
+    // Evita conflito se você clicar nos botões de Vídeo ou Cifra no cabeçalho da música
+    if (event && event.target && event.target.closest('a')) return;
+    
+    const overlay = document.getElementById('stage-mode-overlay');
+    overlay.classList.toggle('reading-mode'); 
 }
 
 function renderizarListaPalco() {
@@ -1685,12 +1684,12 @@ function renderizarListaPalco() {
         div.innerText = `${index + 1}. ${song.title || 'Música'}`;
         
         div.onclick = (e) => {
-            e.stopPropagation(); // Evita que o clique feche a gaveta imediatamente sem selecionar
+            e.stopPropagation(); // Impede que o clique na barra lateral acione a tela cheia acidentalmente
             selecionarMusicaPalco(index);
-            // Se for celular, fecha a gaveta após escolher a música
-            if (window.innerWidth <= 850) {
-                document.getElementById('stage-sidebar').classList.remove('open');
-            }
+            
+            // Ativa o Modo Leitura 100% no momento em que você escolhe a música
+            const overlay = document.getElementById('stage-mode-overlay');
+            overlay.classList.add('reading-mode');
         };
         list.appendChild(div);
     });
@@ -1699,7 +1698,6 @@ function renderizarListaPalco() {
 function selecionarMusicaPalco(index) {
     currentIndex = index;
     
-    // Atualiza a cor de seleção sem precisar recriar a lista do zero
     const items = document.querySelectorAll('.stage-song-item');
     items.forEach((item, i) => {
         if (i === index) item.classList.add('active');
@@ -1716,20 +1714,9 @@ function selecionarMusicaPalco(index) {
         const paginaClonada = paginasA4[index].cloneNode(true);
         paginaClonada.classList.remove('hidden-preview');
         
-        // Remove zooms residuais para que o CSS do modo leitura funcione perfeitamente
+        // Remove configurações residuais de zoom para que o CSS mande no tamanho da tela
         paginaClonada.style.removeProperty('zoom');
         paginaClonada.style.removeProperty('transform');
-        
-        // CORREÇÃO PARA O IOS: Transforma a folha inteira em uma área clicável
-        paginaClonada.style.cursor = 'pointer';
-        paginaClonada.onclick = function(e) {
-            // Se você clicar exatamente no link de Vídeo ou Cifra, ele não fecha a tela, apenas abre o link
-            if (e.target.closest('a')) return;
-            
-            // Impede que o iOS confunda os toques e ativa a tela cheia
-            e.stopPropagation(); 
-            toggleStageSidebar();
-        };
         
         containerPalco.appendChild(paginaClonada);
     }
@@ -1740,20 +1727,22 @@ function selecionarMusicaPalco(index) {
 <!-- ESTRUTURA DO MODO PALCO -->
 <div id="stage-mode-overlay" class="stage-overlay">
     <button class="stage-close-btn" onclick="fecharModoPalco()">X Fechar Modo Palco</button>
+    
     <div id="stage-sidebar" class="stage-sidebar">
         <div class="stage-sidebar-header">🎼 Setlist</div>
         <div id="stage-song-list"></div>
     </div>
-    <div id="stage-content" class="stage-content" onclick="toggleStageSidebar()">
+    
+    <!-- O (event) aqui garante o funcionamento do clique em todas as telas -->
+    <div id="stage-content" class="stage-content" onclick="toggleStageSidebar(event)">
         <!-- A cifra será injetada aqui -->
         <div id="stage-a4-container"></div>
     </div>
 </div>
 
 <style>
-/* ==========================================
-   ESTILOS DO MODO PALCO (DEFINITIVO)
-   ========================================== */
+
+/* ESTILOS DO MODO PALCO (CORRIGIDO) */
 .stage-overlay {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
     background: #e2e8f0; z-index: 999999; display: flex; flex-direction: row;
@@ -1770,16 +1759,13 @@ function selecionarMusicaPalco(index) {
     transition: all 0.3s ease;
 }
 
-/* BARRA LATERAL (SEMPRE FLUTUANTE POR CIMA DA PÁGINA) */
+/* BARRA LATERAL (FLEXÍVEL E UNIVERSAL) */
 .stage-sidebar {
-    position: absolute; left: 0; top: 0; height: 100%;
-    width: 340px; max-width: 85%; background: #f8fafc; border-right: 1px solid #cbd5e1;
-    display: flex; flex-direction: column; 
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 4px 0 15px rgba(0,0,0,0.2); z-index: 999998;
-    transform: translateX(0); /* Gaveta visível por padrão */
+    width: 320px; max-width: 85%; flex-shrink: 0; background: #f8fafc; border-right: 1px solid #cbd5e1;
+    display: flex; flex-direction: column; transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1); z-index: 999998; margin-left: 0; 
 }
-.dark-mode .stage-sidebar { background: #1e293b; border-color: #334155; box-shadow: 4px 0 15px rgba(0,0,0,0.5); }
+.dark-mode .stage-sidebar { background: #1e293b; border-color: #334155; }
 
 .stage-sidebar-header {
     padding: 15px; font-size: 18px; font-weight: bold; text-align: center;
@@ -1796,45 +1782,48 @@ function selecionarMusicaPalco(index) {
 .stage-song-item.active { border-left: 5px solid #0284c7; background: #e0f2fe; color: #0369a1; }
 .dark-mode .stage-song-item.active { background: #0f172a; color: #38bdf8; }
 
-/* CONTEÚDO PRINCIPAL (ONDE FICA A CIFRA) */
+/* CONTEÚDO PRINCIPAL E MÁSCARA DE CLIQUE PARA IOS */
 .stage-content {
-    flex: 1; width: 100%; height: 100%; overflow-y: auto; display: flex; justify-content: center;
-    padding: 20px; cursor: pointer; transition: all 0.3s ease;
-    -webkit-tap-highlight-color: transparent; /* Tira o piscar azul ao tocar na tela no tablet/celular */
+    flex: 1; height: 100%; overflow-y: auto; display: flex; justify-content: center;
+    padding: 20px; cursor: pointer; transition: padding 0.3s ease;
+    -webkit-tap-highlight-color: transparent; 
 }
+.stage-content * { cursor: pointer; } 
 #stage-a4-container { transform-origin: top center; display: flex; justify-content: center; width: 100%; transition: all 0.3s ease;}
 
 /* =======================================
-   ESTADOS DO MODO LEITURA (A MÁGICA DA TELA CHEIA)
+   O EFEITO DE TELA CHEIA (MODO LEITURA)
    ======================================= */
-
-/* 1. Esconde a barra lateral jogando ela para fora da tela (agora sim funciona no iOS) */
 .stage-overlay.reading-mode .stage-sidebar {
-    transform: translateX(-105%); 
-    box-shadow: none;
+    margin-left: -320px; 
 }
-/* 2. Remove as bordas cinzas do fundo para a página colar nas laterais */
 .stage-overlay.reading-mode .stage-content {
     padding: 0 !important;
 }
-/* 3. Esconde o botão de fechar para imersão total */
 .stage-overlay.reading-mode .stage-close-btn {
     opacity: 0; pointer-events: none; transform: translateY(-20px);
 }
-/* 4. Força a folha A4 a ignorar os limites e ocupar 100% da tela do aparelho */
 .stage-overlay.reading-mode #stage-a4-container .a4-page {
-    width: 100vw !important; min-width: 100vw !important; max-width: 100vw !important;
+    width: 100% !important; min-width: 100% !important; max-width: 100% !important;
     min-height: 100vh !important; height: auto !important; max-height: none !important;
     margin: 0 !important; border-radius: 0 !important; box-shadow: none !important;
     zoom: 1 !important; transform: none !important;
 }
 
-/* AJUSTE PARA O MODO NORMAL NO CELULAR/TABLET */
+/* COMPORTAMENTO PARA CELULARES E IPAD EM PÉ */
 @media (max-width: 850px) {
+    .stage-sidebar {
+        position: absolute; height: 100%; left: 0; top: 0;
+        transform: translateX(0); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        margin-left: 0 !important;
+    }
+    .stage-overlay.reading-mode .stage-sidebar {
+        transform: translateX(-100%);
+    }
     .stage-content { padding: 15px 5px; }
     #stage-a4-container .a4-page { zoom: 0.9; }
 }
-</style>
+
 </style>
 </body>
 </html>
