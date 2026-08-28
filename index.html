@@ -705,15 +705,18 @@
       isDarkMode = !isDarkMode;
       const btn = document.getElementById('btn-dark-mode');
       const wrapper = document.getElementById('a4-wrapper');
-      
+      const stageOverlay = document.getElementById('stage-mode-overlay');
+
       if (isDarkMode) {
           btn.innerHTML = 'Visualização em Modo Escuro 🌙';
           wrapper.classList.add('dark-mode');
+          if (stageOverlay) stageOverlay.classList.add('dark-mode');
           btn.style.background = '#1e293b';
           btn.style.color = 'white';
       } else {
           btn.innerHTML = 'Visualização em Modo Claro ☀️';
           wrapper.classList.remove('dark-mode');
+          if (stageOverlay) stageOverlay.classList.remove('dark-mode');
           btn.style.background = '#e2e8f0';
           btn.style.color = '#1e293b';
       }
@@ -1670,6 +1673,13 @@ function abrirModoPalco() {
     overlay.classList.add('show');
     overlay.classList.remove('reading-mode'); 
     
+    // Garante a sincronização da cor de fundo ao abrir a tela
+    if (isDarkMode) {
+        overlay.classList.add('dark-mode');
+    } else {
+        overlay.classList.remove('dark-mode');
+    }
+    
     // Limpa a busca do palco ao abrir
     document.getElementById('i-stage-search').value = '';
 
@@ -1904,6 +1914,10 @@ body.palco-ativo {
     background: white !important; /* Deixa o fundo sólido */
     padding: 0 !important;
 }
+
+/* Sincronização do Fundo do Modo Palco com o Modo Escuro */
+.stage-overlay.dark-mode { background: #0f172a !important; }
+.stage-overlay.dark-mode.reading-mode { background: #121212 !important; }
 
 </style>
 </body>
