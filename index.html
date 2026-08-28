@@ -1258,10 +1258,19 @@
       }
   }
 
+  // Atualiza as escalas ao redimensionar janelas
   window.addEventListener('resize', () => {
-    ajustarEscalaA4();
-    if (typeof ajustarEscalaPalco === 'function') ajustarEscalaPalco();
-});
+      ajustarEscalaA4();
+      if (typeof ajustarEscalaPalco === 'function') ajustarEscalaPalco();
+  });
+
+  // Gatilho exclusivo para forçar a renderização ao deitar/levantar celulares Android e iOS
+  window.addEventListener('orientationchange', () => {
+      setTimeout(() => {
+          ajustarEscalaA4();
+          if (typeof ajustarEscalaPalco === 'function') ajustarEscalaPalco();
+      }, 300);
+  });
 
   function renderPreview() {
     const wrapper = document.getElementById('a4-wrapper');
@@ -1779,13 +1788,24 @@ function ajustarEscalaPalco() {
     if (!palcoContent || !pagina) return;
 
     const larguraA4 = 794; 
+    const alturaA4 = 1123; // Altura padrão do formato A4
     
-    // Calcula o espaço real livre na tela, subtraindo as margens
-    const padding = parseFloat(window.getComputedStyle(palcoContent).paddingLeft) + parseFloat(window.getComputedStyle(palcoContent).paddingRight);
-    const espacoDisponivel = palcoContent.clientWidth - padding;
+    const style = window.getComputedStyle(palcoContent);
+    const paddingX = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
+    const paddingY = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+    
+    const espacoW = palcoContent.clientWidth - paddingX;
+    const espacoH = palcoContent.clientHeight - paddingY;
 
-    // Aplica a proporção
-    pagina.style.zoom = espacoDisponivel / larguraA4;
+    // Calcula a proporção necessária para encaixar na largura e na altura
+    const escalaW = espacoW / larguraA4;
+    const escalaH = espacoH / alturaA4;
+
+    // A MÁGICA: Escolhe a menor escala para garantir que a folha não corte em cima nem nos lados
+    let escalaFinal = Math.min(escalaW, escalaH);
+
+    // Aplica a escala final com um respiro de 2% para manter as margens visíveis
+    pagina.style.zoom = escalaFinal * 0.98;
 }
 
 </script>
@@ -1940,6 +1960,21 @@ body.palco-ativo {
 /* Sincronização do Fundo do Modo Palco com o Modo Escuro */
 .stage-overlay.dark-mode { background: #0f172a !important; }
 .stage-overlay.dark-mode.reading-mode { background: #121212 !important; }
+
+/* =======================================
+   VISUAL DE FOLHA A4 PARA COMPUTADOR/TABLET HORIZONTAL
+   ======================================= */
+@media (min-width: 851px) {
+    /* Restaura o fundo colorido em telas grandes para destacar a folha */
+    .stage-overlay.reading-mode { background: #e2e8f0; } 
+    .dark-mode .stage-overlay.reading-mode { background: #0f172a; }
+    
+    /* Devolve as margens e a sombra 3D para criar o aspecto de papel na mesa */
+    .stage-overlay.reading-mode .stage-content { padding: 20px !important; }
+    .stage-overlay.reading-mode #stage-a4-container .a4-page {
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2) !important; 
+    }
+}
 
 </style>
 </body>
