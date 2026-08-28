@@ -1652,10 +1652,12 @@
    ========================================== */
 function abrirModoPalco() {
     renderPreview(); 
+    
+    // A MÁGICA AQUI: Oculta o app de fundo para matar o embaçado do iOS
+    document.body.classList.add('palco-ativo');
+    
     const overlay = document.getElementById('stage-mode-overlay');
     overlay.classList.add('show');
-    
-    // Sempre inicia com a barra lateral à mostra
     overlay.classList.remove('reading-mode'); 
     
     renderizarListaPalco();
@@ -1663,6 +1665,9 @@ function abrirModoPalco() {
 }
 
 function fecharModoPalco() {
+    // Traz o app de volta quando você fecha o modo palco
+    document.body.classList.remove('palco-ativo');
+    
     document.getElementById('stage-mode-overlay').classList.remove('show');
 }
 
@@ -1833,6 +1838,19 @@ function selecionarMusicaPalco(index) {
     .stage-content { padding: 15px 5px; }
     #stage-a4-container .a4-page { zoom: 0.9; }
 }
+
+/* =======================================
+   CORREÇÃO DO EMBAÇADO (BARRA DO IOS)
+   ======================================= */
+body.palco-ativo .no-print,
+body.palco-ativo .preview-section {
+    display: none !important; /* Esconde o app de fundo para o iOS não embaçar as cores */
+}
+body.palco-ativo {
+    background: white !important; /* Deixa o fundo sólido */
+    padding: 0 !important;
+}
+
 </style>
 </body>
 </html>
