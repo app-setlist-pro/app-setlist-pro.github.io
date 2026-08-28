@@ -1744,12 +1744,18 @@ function renderizarListaPalco() {
 }
 
 function toggleStageSidebar(event) {
+    // Evita que arrastar a folha seja confundido com um clique para fechar a tela
+    if (window.stageHasDragged) {
+        setTimeout(() => { window.stageHasDragged = false; }, 50);
+        return;
+    }
+    
+    // Evita conflito se você clicar nos botões de Vídeo ou Cifra no cabeçalho da música
     if (event && event.target && event.target.closest('a')) return;
     
     const overlay = document.getElementById('stage-mode-overlay');
     overlay.classList.toggle('reading-mode'); 
     
-    // Aguarda a animação do CSS terminar (300ms) e recalcula a escala da folha
     setTimeout(ajustarEscalaPalco, 310);
 }
 
@@ -1807,6 +1813,89 @@ function ajustarEscalaPalco() {
     // Aplica a escala final com um respiro de 2% para manter as margens visíveis
     pagina.style.zoom = escalaFinal * 0.98;
 }
+
+/* ==========================================
+   PAN & ZOOM (MOVER E APROXIMAR NO PC)
+   ========================================== */
+window.stageHasDragged = false;
+let isStageDragging = false;
+let stageStartX, stageStartY, stageScrollLeft, stageScrollTop;
+
+document.addEventListener('DOMContentLoaded', () => {
+    const stageContent = document.getElementById('stage-content');
+    
+    // Inicia o arrasto (Clique e segura)
+    stageContent.addEventListener('mousedown', (e) => {
+        if (e.target.closest('a') || e.target.closest('button')) return;
+        
+        isStageDragging = true;
+        window.stageHasDragged = false;
+        stageContent.style.cursor = 'grabbing';
+        
+        stageStartX = e.pageX - stageContent.offsetLeft;
+        stageStartY = e.pageY - stageContent.offsetTop;
+        stageScrollLeft = stageContent.scrollLeft;
+        stageScrollTop = stageContent.scrollTop;
+    });
+
+    // Movimenta a folha
+    stageContent.addEventListener('mousemove', (e) => {
+        if (!isStageDragging) return;
+        
+        const x = e.pageX - stageContent.offsetLeft;
+        const y = e.pageY - stageContent.offsetTop;
+        
+        // Se o mouse mover mais de 5 pixels, o sistema entende que é um arrasto e não um clique
+        if (Math.abs(x - stageStartX) > 5 || Math.abs(y - stageStartY) > 5) {
+            window.stageHasDragged = true;
+        }
+        
+        if (window.stageHasDragged) {
+            e.preventDefault();
+            const walkX = (x - stageStartX) * 1.5; // Multiplicador de velocidade do arrasto
+            const walkY = (y - stageStartY) * 1.5;
+            stageContent.scrollLeft = stageScrollLeft - walkX;
+            stageContent.scrollTop = stageScrollTop - walkY;
+        }
+    });
+
+    // Solta o clique
+    stageContent.addEventListener('mouseup', () => {
+        isStageDragging = false;
+        stageContent.style.cursor = 'pointer';
+    });
+
+    stageContent.addEventListener('mouseleave', () => {
+        isStageDragging = false;
+        stageContent.style.cursor = 'pointer';
+    });
+
+    // Zoom com a roda do mouse (Scroll Wheel)
+    stageContent.addEventListener('wheel', (e) => {
+        // Executa apenas se estiver no PC (trava nativa do início do código)
+        if (!document.documentElement.classList.contains('is-desktop')) return; 
+        
+        e.preventDefault(); // Impede que a tela role de forma vertical comum
+        
+        const pagina = document.querySelector('#stage-a4-container .a4-page');
+        if (!pagina) return;
+        
+        let currentZoom = parseFloat(pagina.style.zoom) || 1;
+        const zoomSpeed = 0.08; // Sensibilidade da roda do mouse
+        
+        if (e.deltaY < 0) {
+            currentZoom += zoomSpeed; // Gira para cima: Zoom In
+        } else {
+            currentZoom -= zoomSpeed; // Gira para baixo: Zoom Out
+        }
+        
+        // Trava o zoom mínimo e máximo para não bugar a tela
+        if (currentZoom < 0.3) currentZoom = 0.3;
+        if (currentZoom > 4.0) currentZoom = 4.0;
+        
+        pagina.style.zoom = currentZoom;
+    }, { passive: false });
+});
 
 </script>
 
