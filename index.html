@@ -126,6 +126,7 @@
       .app-logo-area { justify-content: flex-start; width: 100%; }
       .header-btn { width: 100%; white-space: normal; padding: 8px; }
       .project-name-container { width: 100%; }
+      #btn-modo-palco { grid-column: span 2; padding: 12px; font-size: 16px; } /* Faz o botão ocupar a linha toda */
   }
   /* ======================================================= */
   
@@ -332,7 +333,6 @@
         <input type="file" id="file-upload" accept=".json,application/json" style="display:none" onchange="loadProject(event)">
         <button class="btn-primary header-btn" style="background:#0f766e;" onclick="exportarProjeto()">💾 Exportar</button>
         <button class="btn-success header-btn" onclick="triggerPrint()" id="btn-pdf-print">🖨️ PDF</button>
-        <button class="btn-primary header-btn" style="background:#8b5cf6;" onclick="abrirModoPalco()">🎸 Modo Palco</button>
         
         <!-- MODO CLARO/ESCURO COM FONTE PADRÃO 14px -->
         <button class="btn-primary header-btn" style="background:#e2e8f0; color: #1e293b;" id="btn-dark-mode" onclick="toggleDarkMode()">Visualização em Modo Claro ☀️</button>
@@ -346,6 +346,9 @@
                 <option value="theme-red">🔴</option>
             </select>
         </div>
+
+        <!-- MODO PALCO (MOVIDO PARA O FINAL COM NOVO ID) -->
+        <button class="btn-primary header-btn" id="btn-modo-palco" style="background:#8b5cf6;" onclick="abrirModoPalco()">🎸 Modo Palco</button>
   </div>
   
   <div class="songs-container">
@@ -353,7 +356,6 @@
     <div class="sidebar-wrapper">
       <!-- BARRA DE FERRAMENTAS: BUSCA, ORDENAÇÃO E NOVA MÚSICA -->
       <div style="display: flex; flex-direction: column; gap: 8px;">
-          <input type="text" id="i-search" placeholder="🔍 Buscar música..." oninput="filterSongs()" style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; width: 100%;">
           
           <div style="display: flex; gap: 8px;">
               <select id="i-sort" onchange="sortSongs()" style="flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; background: white; cursor: pointer;">
@@ -363,6 +365,8 @@
               </select>
               <button class="btn-primary" style="flex: 1; padding: 10px; font-size: 14px;" onclick="addNewSong()">➕ Nova</button>
           </div>
+
+          <input type="text" id="i-search" placeholder="🔍 Buscar música..." oninput="filterSongs()" style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; width: 100%;">
       </div>
       
       <div class="song-list-sidebar" id="song-list"></div>
