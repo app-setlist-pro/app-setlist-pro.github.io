@@ -1732,9 +1732,8 @@ function renderizarListaPalco() {
             e.stopPropagation(); // Impede que o clique na barra lateral acione a tela cheia acidentalmente
             selecionarMusicaPalco(index);
             
-            // Ativa o Modo Leitura 100% no momento em que você escolhe a música
-            const overlay = document.getElementById('stage-mode-overlay');
-            overlay.classList.add('reading-mode');
+            // A linha overlay.classList.add('reading-mode'); foi removida daqui.
+            // O setlist permanecerá aberto até que você toque na folha da música.
         };
         list.appendChild(div);
     });
